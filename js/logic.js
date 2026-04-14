@@ -136,6 +136,14 @@ function fmtQty(val,unit){
 function totTime(r){return r.prep+r.cui;}
 function catClass(cat){return cat.replace(" / "," ").split(" ")[0];}
 function diffLabel(d){return d<=1?'Facile':d===2?'Moyen':d===3?'Difficile':'Expert';}
+function dots(difficulty){
+  const d=Math.min(5,Math.max(1,parseInt(difficulty)||1));
+  let html='';
+  for(let i=0;i<5;i++){
+    html+='<span class="dot'+(i<d?' on':'')+'" style="display:inline-block"></span>';
+  }
+  return html;
+}
 
 function debounce(fn,delay){
   let t;
