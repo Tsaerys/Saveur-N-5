@@ -39,7 +39,7 @@ let FT={interval:null,remaining:0,running:false,label:""};
 let MENU_DATA=null;
 
 // ── RECETTES UTILISATEUR ───────────────────────────────────────────────────
-var USER_RECIPES=[];
+var USER_RECIPES=lsGet('sn5_user_recipes',[]);
 
 // ── PERSISTENCE localStorage ───────────────────────────────────────────────
 function lsGet(k,d=null){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
@@ -60,3 +60,12 @@ const saveRatings=()=>lsSet("gr2",RATINGS);
 const saveRecent=()=>lsSet("grec",RECENT);
 function getLastBackup(){var d=lsGet("sn5_bk",null);if(!d)return null;return new Date(d);}
 function saveUserRecipes(){lsSet('sn5_user_recipes',USER_RECIPES);}
+
+function initUserRecipes(){
+  USER_RECIPES=lsGet('sn5_user_recipes',[]);
+  USER_RECIPES.forEach(function(r){
+    if(!RECIPES.find(function(x){ return x.id === r.id; })){
+      RECIPES.push(r);
+    }
+  });
+}
