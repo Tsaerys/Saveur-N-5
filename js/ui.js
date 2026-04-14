@@ -206,16 +206,19 @@ function clearIngs(){S.frigo_ings=[];renderFrigo();renderMain();updateCount();}
 // ── RÉCENTS ───────────────────────────────────────────────────────────────
 function renderRecent(){
   const rz=document.getElementById("recent-zone");
-  if(!RECENT.length){rz.innerHTML="";return;}
+  if(!RECENT.length||!rz){if(rz)rz.innerHTML="";return;}
   const recRecs=RECENT.map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean);
-  const cards=recRecs.map(r=>`
+  const cards=recRecs.map(r=>{
+    const grad=typeof recipeGradient==="function"?recipeGradient(r.cat):"linear-gradient(135deg,#f3e5f5 0%,#e1bee7 100%)";
+    const emoji=typeof recipeEmoji==="function"?recipeEmoji(r.cat,r.nom):"🍽";
+    return`
     <div class="recent-card" onclick="openRecipe('${r.id}')">
-      <div class="recent-photo-smart" style="background:${recipeGradient(r.cat)}"><span>${recipeEmoji(r.cat,r.nom)}</span></div>
+      <div class="recent-photo-smart" style="background:${grad}"><span>${emoji}</span></div>
       <div class="recent-card-body">
         <div class="recent-card-nom">${r.nom}</div>
         <div class="recent-card-co">${FLAGS[r.co]||""} ${r.co}</div>
       </div>
-    </div>`).join("");
+    </div>`;}).join("");
   rz.innerHTML=`<div class="recent-section"><div class="recent-title">Récemment consultées</div><div class="recent-scroll">${cards}</div></div>`;
 }
 
