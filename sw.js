@@ -1,12 +1,15 @@
 // Saveur N°5 — Service Worker
 // Cache l'app shell pour le mode hors ligne
 
-const CACHE_NAME = 'saveur-n5-v8';
+const CACHE_NAME = 'saveur-n5-v14';
 const APP_SHELL = [
   './',
   './index.html',
   './css/style.css',
   './js/data.js',
+  './js/state.js',
+  './js/logic.js',
+  './js/ui.js',
   './js/app.js',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap'
