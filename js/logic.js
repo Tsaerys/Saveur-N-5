@@ -87,6 +87,19 @@ function checkState(){
   }
 }
 
+// ── HISTORIQUE RECETTES ────────────────────────────────────────────────────
+function addRecent(recipeId){
+  if(!recipeId||typeof recipeId!=="string")return;
+  // Retirer si déjà présent
+  RECENT=RECENT.filter(id=>id!==recipeId);
+  // Ajouter au début
+  RECENT.unshift(recipeId);
+  // Garder max 10 récentes
+  if(RECENT.length>10)RECENT=RECENT.slice(0,10);
+  // Sauvegarder
+  saveRecent();
+}
+
 // ── HELPERS CALCUL ─────────────────────────────────────────────────────────
 function getRayon(nom){
   var nomLower=nom.toLowerCase();
