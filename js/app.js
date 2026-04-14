@@ -19,14 +19,15 @@ function render(){
 }
 
 function init(){
-  validateRecipes();
-  warnRecipeDuplicates();
-  checkState();
+  if(typeof validateRecipes==="function")validateRecipes();
+  if(typeof warnRecipeDuplicates==="function")warnRecipeDuplicates();
+  if(typeof checkState==="function")checkState();
 
-  initUserRecipes();
-  updateBadges();
-  initTheme();
-  initScrollTop();
+  if(typeof initUserRecipes==="function")initUserRecipes();
+  else console.warn("[SN5] initUserRecipes manquant (cache SW ou script non chargé)");
+  if(typeof updateBadges==="function")updateBadges();
+  if(typeof initTheme==="function")initTheme();
+  if(typeof initScrollTop==="function")initScrollTop();
   bindEvents();
   render();
 }
