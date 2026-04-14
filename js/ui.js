@@ -1,5 +1,43 @@
 // Saveur N°5 — UI (DOM uniquement)
 
+function recipeEmoji(cat,nom){
+  var nomL=nom.toLowerCase();
+  if(nomL.includes('boeuf')||nomL.includes('steak')||nomL.includes('entrecote')||nomL.includes('cote de'))return'🥩';
+  if(nomL.includes('poulet')||nomL.includes('volaille')||nomL.includes('canard')||nomL.includes('faisan'))return'🍗';
+  if(nomL.includes('agneau')||nomL.includes('mouton'))return'🫙';
+  if(nomL.includes('porc')||nomL.includes('jambon')||nomL.includes('lard'))return'🥓';
+  if(nomL.includes('saumon')||nomL.includes('thon')||nomL.includes('morue')||nomL.includes('cabillaud')||nomL.includes('lotte')||nomL.includes('truite'))return'🐟';
+  if(nomL.includes('crevette')||nomL.includes('homard')||nomL.includes('gambas')||nomL.includes('moule'))return'🦐';
+  if(nomL.includes('pate')||nomL.includes('pâtes')||nomL.includes('spaghetti')||nomL.includes('risotto')||nomL.includes('lasagne')||nomL.includes('tagliatelle'))return'🍝';
+  if(nomL.includes('pizza')||nomL.includes('calzone'))return'🍕';
+  if(nomL.includes('soupe')||nomL.includes('veloute')||nomL.includes('velout')||nomL.includes('bisque')||nomL.includes('potage'))return'🍲';
+  if(nomL.includes('salade')||nomL.includes('tabboul'))return'🥗';
+  if(nomL.includes('tarte')||nomL.includes('quiche')||nomL.includes('flamm')||nomL.includes('tourte'))return'🥧';
+  if(nomL.includes('gateau')||nomL.includes('gâteau')||nomL.includes('cake')||nomL.includes('fondant')||nomL.includes('brownie'))return'🎂';
+  if(nomL.includes('glace')||nomL.includes('sorbet')||nomL.includes('gelato'))return'🍦';
+  if(nomL.includes('macaron')||nomL.includes('biscuit')||nomL.includes('cookie')||nomL.includes('madeleine'))return'🍪';
+  if(nomL.includes('chocolat'))return'🍫';
+  if(nomL.includes('crepe')||nomL.includes('crêpe'))return'🥞';
+  if(nomL.includes('oeuf')||nomL.includes('omelette')||nomL.includes('souffle'))return'🍳';
+  if(nomL.includes('burger')||nomL.includes('sandwich'))return'🍔';
+  if(nomL.includes('sushi')||nomL.includes('maki'))return'🍱';
+  if(nomL.includes('curry')||nomL.includes('dal')||nomL.includes('masala'))return'🍛';
+  if(nomL.includes('taco')||nomL.includes('enchilada'))return'🌮';
+  if(nomL.includes('pain')||nomL.includes('brioche')||nomL.includes('naan'))return'🍞';
+  if(nomL.includes('couscous')||nomL.includes('tajine'))return'🫕';
+  if(nomL.includes('legume')||nomL.includes('légume')||nomL.includes('ratatouille')||nomL.includes('aubergine'))return'🥦';
+  if(cat==='Dessert')return'🍰';
+  if(cat==='Entrée')return'🥗';
+  if(cat==='Sauce / Base')return'🫙';
+  return'🍽';
+}
+function recipeGradient(cat){
+  if(cat==='Entrée')return'linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 100%)';
+  if(cat==='Plat')return'linear-gradient(135deg,#fff3e0 0%,#ffe0b2 100%)';
+  if(cat==='Dessert')return'linear-gradient(135deg,#fce4ec 0%,#f8bbd0 100%)';
+  return'linear-gradient(135deg,#f3e5f5 0%,#e1bee7 100%)';
+}
+
 function toast(msg,dur,type){
   var t=document.getElementById("toast");
   if(!t)return;
