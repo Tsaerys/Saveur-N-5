@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#f8f4ef">
+<meta name="description" content="Saveur N°5 — Base de recettes gastronomiques : Ducasse, Bocuse, Robuchon, Pierre Hermé">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Saveur N°5">
+<link rel="manifest" href="manifest.json">
+<title>Saveur N°5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="offline-banner" id="offline-banner">
+  📴 Mode hors ligne — photos indisponibles, toutes les recettes restent accessibles
+</div>
+
+<header class="topbar">
+  <div class="logo" id="logo-home">
+    <span class="gem">◆</span> Saveur N°5
+  </div>
+  <button id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Basculer thème clair/sombre" title="Thème clair/sombre">🌙</button>
+  <div class="topbar-search" id="search-zone" style="display:none">
+    <span class="si" aria-hidden="true">⌕</span>
+    <input type="text" id="qi" placeholder="Plat, chef, ingrédient…" aria-label="Rechercher une recette">
+    <button class="voice-btn" id="voice-btn"
+      title="Recherche vocale"
+      aria-label="Recherche vocale"
+      onclick="startVoice()">🎤</button>
+  </div>
+  <nav class="topbar-nav" role="navigation" aria-label="Navigation principale">
+    <button class="nav-btn active" id="nav-browse" onclick="setView('browse')"
+      aria-label="Toutes les recettes">
+      <span aria-hidden="true">🍽</span><span class="nav-lbl"> Recettes</span>
+    </button>
+    <button class="nav-btn" id="nav-menu" onclick="setView('menu')"
+      aria-label="Menu de la semaine">
+      <span aria-hidden="true">📅</span><span class="nav-lbl"> Menu</span>
+    </button>
+    <button class="nav-btn" id="nav-favs" onclick="setView('favs')"
+      aria-label="Mes recettes favorites">
+      <span aria-hidden="true">♥</span><span class="nav-lbl"> Favoris</span>
+      <span class="badge" id="fav-badge" style="display:none" aria-live="polite">0</span>
+    </button>
+    <button class="nav-btn" id="nav-courses" onclick="setView('courses')"
+      aria-label="Liste de courses">
+      <span aria-hidden="true">🛒</span><span class="nav-lbl"> Courses</span>
+      <span class="badge" id="cart-badge" style="display:none" aria-live="polite">0</span>
+    </button>
+    <button class="nav-btn" id="nav-frigo" onclick="toggleFrigo()"
+      aria-label="Filtrer par ingrédients du frigo">
+      <span aria-hidden="true">🧊</span><span class="nav-lbl"> Frigo</span>
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="setView('settings')"
+      aria-label="Paramètres, sauvegarde et statistiques">
+      <span aria-hidden="true">⚙️</span><span class="nav-lbl"> Réglages</span>
+    </button>
+    <button class="nav-btn" id="nav-create" onclick="setView('create')"
+      aria-label="Créer une recette">
+      <span aria-hidden="true">✍️</span><span class="nav-lbl"> Créer</span>
+    </button>
+    <button class="nav-btn" id="nav-random" onclick="openRandom()"
+      aria-label="Recette aléatoire">
+      <span aria-hidden="true">🎲</span><span class="nav-lbl"> Surprise</span>
+    </button>
+  </nav>
+</header>
+
+<div class="content-area" id="content-area">
+  <div id="filters-zone" role="search" aria-label="Filtres de recettes"></div>
+  <div id="frigo-zone" style="display:none"></div>
+  <div id="recent-zone"></div>
+  <main id="main" role="main"></main>
+</div>
+
+<!-- Minuteur flottant -->
+<div class="floating-timer" id="floating-timer" role="timer" aria-live="polite">
+  <div class="ft-icon" aria-hidden="true">⏱</div>
+  <div class="ft-label">
+    <div class="ft-label-name" id="ft-name">Minuteur</div>
+    <div class="ft-label-time" id="ft-time">0:00</div>
+  </div>
+  <div class="ft-btns">
+    <button class="ft-btn primary" id="ft-toggle" onclick="ftToggle()"
+      aria-label="Pause ou reprise du minuteur">⏸ Pause</button>
+    <button class="ft-btn" onclick="ftClose()"
+      aria-label="Fermer le minuteur">✕ Fermer</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="cooking-overlay"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<button id="scroll-top-btn" aria-label="Retour en haut">↑</button>
+</body>
+</html>
