@@ -349,9 +349,9 @@ function renderDetail(){
     if(isHead)return`<div class="etape-item section-head">${s}</div>`;
     stepNum++;
     const stepText=s.replace(/^\d+[\.\)]\s*/,"");
-    const tm=stepText.match(/(\d+)\s*(?:min|h)/i);
+    const tm=stepText.match(/(\d+)\s*(heures?|h\b|minutes?|min\b)/i);
     let timerBtn="";
-    if(tm){const num=parseInt(tm[1]);const sec=tm[0].toLowerCase().includes("h")?num*3600:num*60;timerBtn=`<br><button class="step-timer-btn" onclick="ftStart(${sec},'Étape ${stepNum} — ${r.nom.split(' ').slice(0,2).join(' ')}')">⏱ Lancer ${tm[0]}</button>`;}
+    if(tm){const num=parseInt(tm[1]);const isH=/^h/i.test(tm[2]);const sec=isH?num*3600:num*60;const lbl=isH?(num>1?num+" heures":"1 heure"):(num>1?num+" min":"1 min");timerBtn=`<br><button class="step-timer-btn" onclick="ftStart(${sec},'Étape ${stepNum} — ${r.nom.split(' ').slice(0,3).join(' ')}')" aria-label="Lancer minuteur ${lbl}">⏱ ${lbl}</button>`;}
     return`<div class="etape-item"><div class="step-num">${stepNum}</div><div class="step-text">${stepText}${timerBtn}</div></div>`;
   }).join("");
 
@@ -487,8 +487,8 @@ function renderCooking(){
   const ratio=portions/r.bp;
   const si=S.cooking_step;const step=steps[si];
   const pct=Math.round(((si+1)/steps.length)*100);
-  const tm=step?.match(/(\d+)\s*(?:min|h)/i);
-  let timerSec=0;if(tm){const n=parseInt(tm[1]);timerSec=tm[0].toLowerCase().includes("h")?n*3600:n*60;}
+  const tm=step?.match(/(\d+)\s*(heures?|h\b|minutes?|min\b)/i);
+  let timerSec=0;if(tm){const n=parseInt(tm[1]);timerSec=/^h/i.test(tm[2])?n*3600:n*60;}
   if(S.timer_remaining===0&&timerSec>0)S.timer_remaining=timerSec;
   const tStr=fmtTimerFT(S.timer_remaining);
   const tCls=S.timer_running?"running":(S.timer_remaining===0&&timerSec>0?"done":"");

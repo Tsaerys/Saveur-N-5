@@ -303,22 +303,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* ── OFFLINE BANNER ── */
 .offline-banner{display:none;background:#fff3cd;border-bottom:1px solid #ffc107;padding:8px 20px;font-size:12px;color:#856404;text-align:center;font-weight:500}
 .offline-banner.show{display:block}
-/* ── PRINT ── */
-@media print{
-  .topbar,.filters-bar,.back-btn,.detail-actions-bar,.step-timer-btn,
-  .cooking-mode,.accords-section,.recent-section,.detail-rating-bar,
-  .unit-toggle-bar,.pnotes-lbl,.pnotes-ta,.pnotes-save,.floating-timer{display:none!important}
-  body{background:#fff;color:#111;font-size:12px}
-  .detail-card{border:none;box-shadow:none;page-break-inside:avoid}
-  .detail-photo-wrap{height:200px}
-  .detail-photo-title{font-size:22px}
-  .detail-body{display:block}
-  .col-l{border-right:none;border-bottom:1px solid #ddd;padding-bottom:12px;margin-bottom:12px}
-  .ingr-qty{color:#8b6914}
-  .col-r{padding-top:0}
-  .courses-wrap .cs-selector{display:none}
-  .courses-wrap{padding:0}
-}
 /* ── RESPONSIVE ── */
 
 
@@ -739,13 +723,46 @@ body {
   .var-btn { min-height: 38px; padding: 8px 16px; }
 }
 
-/* ── PRINT ── */
+/* ── PRINT — Mode impression A4 parfait ── */
 @media print {
-  .topbar, .topbar-nav, .filters-bar, .back-btn, .detail-actions,
-  .frigo-zone, .recent-zone, #scroll-top-btn, #theme-toggle-btn,
-  .card-fav-btn, .card-cart-btn { display: none !important; }
-  .content-area { height: auto; overflow: visible; }
-  body { padding-bottom: 0; }
+  @page { size: A4; margin: 1.5cm 2cm; }
+
+  /* Masquer tous les éléments interactifs */
+  .topbar, .filters-bar, .back-btn, .detail-actions-bar, .detail-actions,
+  .step-timer-btn, .cooking-mode, .accords-section, .recent-section,
+  .detail-rating-bar, .unit-toggle-bar, .pnotes-lbl, .pnotes-ta,
+  .pnotes-save, .floating-timer, .frigo-zone, .recent-zone,
+  #scroll-top-btn, #theme-toggle-btn, .card-fav-btn, .card-cart-btn,
+  .offline-banner, .toast, #cooking-overlay, .portions-ctrl,
+  .var-btn, .act-btn { display: none !important; }
+
+  /* Base */
+  body { background: #fff !important; color: #111; font-size: 11pt;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    padding-bottom: 0; }
+  .content-area { height: auto; overflow: visible; max-width: 100%; padding: 0; }
+
+  /* Fiche recette — mise en page A4 */
+  .detail-card { border: none; box-shadow: none; page-break-inside: avoid; }
+  .detail-photo-wrap { height: 180px; }
+  .detail-photo-title { font-size: 22pt; }
+  .detail-body { display: grid; grid-template-columns: 40% 1fr; gap: 24px; }
+  .col-l { border-right: 1px solid #ddd; border-bottom: none;
+    padding-bottom: 0; margin-bottom: 0; padding-right: 16px; }
+  .col-r { padding-top: 0; }
+
+  /* Ingrédients en 2 colonnes pour A4 */
+  .ingr-list { columns: 2; column-gap: 12px; }
+  .ingr-item { break-inside: avoid; }
+  .ingr-qty { color: #8b6914; }
+
+  /* Étapes : éviter les coupures de page */
+  .etape-item { page-break-inside: avoid; break-inside: avoid; }
+  .section-head { page-break-after: avoid; break-after: avoid; }
+
+  /* Liste de courses */
+  .courses-wrap .cs-selector { display: none; }
+  .courses-wrap { padding: 0; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
