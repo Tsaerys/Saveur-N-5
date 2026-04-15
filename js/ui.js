@@ -203,22 +203,50 @@ function addIng(){var inp=document.getElementById("frigo-input");var raw=inp.val
 function removeIng(i){S.frigo_ings.splice(i,1);renderFrigo();renderMain();updateCount();}
 function clearIngs(){S.frigo_ings=[];renderFrigo();renderMain();updateCount();}
 
+// ── PHOTO HELPERS ─────────────────────────────────────────────────────────
+function getPhotoUrl(id){
+  if(typeof PHOTO_KW==="undefined"||!PHOTO_KW[id])return null;
+  return "https://loremflickr.com/480/320/food,"+PHOTO_KW[id].replace(/\s+/g,",");
+}
+function buildCardPhoto(r){
+  var url=getPhotoUrl(r.id);
+  if(url)return '<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
+  return '<div class="card-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span class="card-emoji">'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+}
+function buildRecentPhoto(r){
+  var url=getPhotoUrl(r.id);
+  if(url)return '<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
+  return '<div class="recent-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span>'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+}
+function buildAccordPhoto(r){
+  var url=getPhotoUrl(r.id);
+  if(url)return '<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
+  return '<div class="accord-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span>'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+}
+function buildDetailPhoto(r){
+  var url=getPhotoUrl(r.id);
+  if(url)return '<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
+  return '<div class="detail-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span class="detail-emoji">'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+}
+function buildMenuPhoto(r){
+  var url=getPhotoUrl(r.id);
+  if(url)return '<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
+  return '<div class="recent-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span>'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+}
+
 // ── RÉCENTS ───────────────────────────────────────────────────────────────
 function renderRecent(){
   const rz=document.getElementById("recent-zone");
   if(!RECENT.length||!rz){if(rz)rz.innerHTML="";return;}
   const recRecs=RECENT.map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean);
-  const cards=recRecs.map(r=>{
-    const grad=typeof recipeGradient==="function"?recipeGradient(r.cat):"linear-gradient(135deg,#f3e5f5 0%,#e1bee7 100%)";
-    const emoji=typeof recipeEmoji==="function"?recipeEmoji(r.cat,r.nom):"🍽";
-    return`
+  const cards=recRecs.map(r=>`
     <div class="recent-card" onclick="openRecipe('${r.id}')">
-      <div class="recent-photo-smart" style="background:${grad}"><span>${emoji}</span></div>
+      ${buildRecentPhoto(r)}
       <div class="recent-card-body">
         <div class="recent-card-nom">${r.nom}</div>
         <div class="recent-card-co">${FLAGS[r.co]||""} ${r.co}</div>
       </div>
-    </div>`;}).join("");
+    </div>`).join("");
   rz.innerHTML=`<div class="recent-section"><div class="recent-title">Récemment consultées</div><div class="recent-scroll">${cards}</div></div>`;
 }
 
@@ -268,7 +296,7 @@ function renderMain(){
     const ratingHtml=`<div class="card-rating" data-id="${r.id}">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" onclick="event.stopPropagation();rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>`;
     const qlbl=r.qual?`<span class="qual-pill" style="border-color:${QUAL_COLORS[r.qual]||"#aaa"};color:${QUAL_COLORS[r.qual]||"#aaa"}">${QUAL_LABELS[r.qual]||""}</span>`:"";
     return`<div class="card" data-id="${r.id}">
-      <div class="card-photo-smart" style="background:${recipeGradient(r.cat)}"><span class="card-emoji">${recipeEmoji(r.cat,r.nom)}</span></div>
+      ${buildCardPhoto(r)}
       <button class="card-fav-btn${isFav?" active":""}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
       <button class="card-cart-btn${inCart?" active":""}" title="Ajouter aux courses" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
       ${ratingHtml}
@@ -360,7 +388,7 @@ function renderDetail(){
   const prepAvHtml=prepAv.length?`<div class="prepav-block"><div class="prepav-title">⏰ À préparer à l'avance</div>${prepAv.map(p=>`<div class="prepav-item"><span>📌</span><span>${p}</span></div>`).join("")}</div>`:"";
 
   const accords=getAccords(r);
-  const accordsHtml=accords.length?`<div class="accords-section"><div class="accords-title">✨ Recettes pour compléter le repas</div><div class="accords-grid">${accords.map(a=>`<div class="accord-card" onclick="openRecipe('${a.id}')"><div class="accord-photo-smart" style="background:${recipeGradient(a.cat)}"><span>${recipeEmoji(a.cat,a.nom)}</span></div><div class="accord-card-info"><div class="accord-card-nom">${a.nom}</div><div class="accord-card-lbl"><span class="cat-badge cat-${catClass(a.cat)}" style="font-size:10px;padding:2px 7px">${a.cat}</span> · ${a.chef.split(' ').slice(-1)[0]}</div></div></div>`).join("")}</div></div>`:"";
+  const accordsHtml=accords.length?`<div class="accords-section"><div class="accords-title">✨ Recettes pour compléter le repas</div><div class="accords-grid">${accords.map(a=>`<div class="accord-card" onclick="openRecipe('${a.id}')">${buildAccordPhoto(a)}<div class="accord-card-info"><div class="accord-card-nom">${a.nom}</div><div class="accord-card-lbl"><span class="cat-badge cat-${catClass(a.cat)}" style="font-size:10px;padding:2px 7px">${a.cat}</span> · ${a.chef.split(' ').slice(-1)[0]}</div></div></div>`).join("")}</div></div>`:"";
 
   document.getElementById("main").innerHTML=`
     <div class="detail-wrap">
@@ -380,7 +408,7 @@ function renderDetail(){
       </div>
       <div class="detail-card" style="margin-top:14px">
         <div class="detail-photo-wrap">
-          <div class="detail-photo-smart" style="background:${recipeGradient(r.cat)}"><span class="detail-emoji">${recipeEmoji(r.cat,r.nom)}</span></div>
+          ${buildDetailPhoto(r)}
           <div class="detail-photo-overlay"></div>
           <div class="detail-photo-title">${r.nom}</div>
           <div class="detail-photo-chef">${r.chef}</div>
@@ -585,7 +613,7 @@ function renderMenuResult(){
           <div class="menu-slot">
             <span class="menu-slot-type">${type}</span>
             <div class="menu-slot-recipe" onclick="openRecipe('${r.id}')">
-              <div class="recent-photo-smart" style="background:${recipeGradient(r.cat)}"><span>${recipeEmoji(r.cat,r.nom)}</span></div>
+              ${buildMenuPhoto(r)}
               <div class="menu-slot-info">
                 <div class="menu-slot-nom">${r.nom}</div>
                 <div class="menu-slot-meta">${r.chef.split(' ').slice(-1)[0]} · ${totTime(r)} min · diff ${r.diff}/5</div>
@@ -627,7 +655,7 @@ function renderFavs(q){
   }
   const cards=favRecs.map(r=>`
     <div class="card" data-id="${r.id}">
-      <div class="card-photo-smart" style="background:${recipeGradient(r.cat)}"><span class="card-emoji">${recipeEmoji(r.cat,r.nom)}</span></div>
+      ${buildCardPhoto(r)}
       <button class="card-fav-btn active" onclick="event.stopPropagation();toggleFav('${r.id}')">♥</button>
       <div class="card-body">
         <div class="card-top"><span class="cat-badge cat-${catClass(r.cat)}">${r.cat}</span><div class="diff-dots">${dots(r.diff)}</div></div>
@@ -871,12 +899,11 @@ function _updateThemeBtn(){
 function initScrollTop(){
   var btn=document.getElementById('scroll-top-btn');
   if(!btn)return;
-  var main=document.getElementById('main');
-  main.addEventListener('scroll',function(){
-    btn.style.opacity=main.scrollTop>300?'1':'0';
-    btn.style.pointerEvents=main.scrollTop>300?'auto':'none';
-  });
-  btn.onclick=function(){main.scrollTo({top:0,behavior:'smooth'});};
+  window.addEventListener('scroll',function(){
+    btn.style.opacity=window.scrollY>300?'1':'0';
+    btn.style.pointerEvents=window.scrollY>300?'auto':'none';
+  },{passive:true});
+  btn.onclick=function(){window.scrollTo({top:0,behavior:'smooth'});};
 }
 
 // ── VARIANTES ─────────────────────────────────────────────────────────────
