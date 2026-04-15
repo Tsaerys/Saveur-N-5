@@ -18,6 +18,18 @@ function render(){
   }
 }
 
+function initTopbarScroll(){
+  var tb=document.querySelector('.topbar');
+  if(!tb)return;
+  var scrolled=false;
+  var onScroll=function(){
+    var s=window.scrollY>6;
+    if(s!==scrolled){scrolled=s;tb.classList.toggle('topbar--scrolled',s);}
+  };
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+}
+
 function init(){
   if(typeof validateRecipes==="function")validateRecipes();
   if(typeof warnRecipeDuplicates==="function")warnRecipeDuplicates();
@@ -28,6 +40,7 @@ function init(){
   if(typeof updateBadges==="function")updateBadges();
   if(typeof initTheme==="function")initTheme();
   if(typeof initScrollTop==="function")initScrollTop();
+  initTopbarScroll();
   bindEvents();
   render();
 }

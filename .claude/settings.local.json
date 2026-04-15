@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(powershell -Command \"\\(Get-Content 'S:\\\\Apps\\\\Saveur N°5\\\\saveur-n5-v14\\\\js\\\\data.js'\\).Count\")"
+      "Bash(powershell -Command \"\\(Get-Content 'S:\\\\Apps\\\\Saveur N°5\\\\saveur-n5-v14\\\\js\\\\data.js'\\).Count\")",
+      "Bash(powershell -Command \"Get-Content js/data.js | Select-Object -Last 10\")"
     ]
   }
 }

@@ -25,7 +25,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 .qual-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.85);border:1.5px solid var(--bord2);border-radius:var(--rx);padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.03em;white-space:nowrap}
 /* ── TOPBAR ── */
-.topbar{position:sticky;top:0;z-index:200;background:rgba(248,244,239,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--bord);padding:0 10px;height:54px;display:flex;align-items:center;gap:12px}
+.topbar{position:sticky;top:0;z-index:200;background:rgba(248,244,239,.78);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(232,224,212,.5);padding:0 10px;height:54px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 0 rgba(80,60,30,.04);transition:box-shadow .3s,border-color .3s}
 .logo{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--text);white-space:nowrap;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;letter-spacing:-.02em}
 .logo .gem{color:var(--gold-l)}
 .topbar-search{flex:1;max-width:400px;position:relative}
@@ -49,9 +49,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .filter-grp select{background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:5px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;transition:border-color .15s}
 .filter-grp select:focus{border-color:var(--gold-l)}
 .regime-filters{display:flex;gap:6px;flex-wrap:wrap}
-.regime-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:4px 10px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .15s}
-.regime-btn:hover{border-color:var(--bord2);color:var(--text2)}
-.regime-btn.active{background:var(--gold-faint);border-color:var(--gold-l);color:var(--gold)}
+.regime-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:4px 10px;font-size:12px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:background .15s,border-color .15s,color .15s,box-shadow .15s,transform .12s cubic-bezier(.25,.46,.45,.94)}
+.regime-btn:hover{border-color:var(--bord2);color:var(--text2);transform:translateY(-1px);box-shadow:0 2px 8px rgba(80,60,30,.1)}
+.regime-btn.active{background:var(--gold);border-color:var(--gold-l);color:#fff;box-shadow:0 3px 10px rgba(154,111,42,.38);font-weight:600}
 .filter-count{margin-left:auto;font-size:12px;color:var(--text3);background:var(--bg3);border:1px solid var(--bord);border-radius:var(--rx);padding:4px 12px;font-weight:500}
 /* ── FRIGO ── */
 .frigo-bar{background:linear-gradient(135deg,#fffbf0,#fdf7e8);border-bottom:1px solid #e8d8a8;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -83,8 +83,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 @media(min-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:1200px){.grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:420px){.grid{grid-template-columns:1fr}}
-.card{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);cursor:pointer;overflow:hidden;position:relative;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
-.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.card{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);cursor:pointer;overflow:hidden;position:relative;box-shadow:var(--shadow);transition:transform .28s cubic-bezier(.25,.46,.45,.94),box-shadow .28s,border-color .2s}
+.card:hover{transform:translateY(-7px) scale(1.01);box-shadow:0 16px 40px rgba(80,60,30,.18),0 4px 10px rgba(80,60,30,.08);border-color:var(--bord2);z-index:1}
 .card-photo{width:100%;height:175px;object-fit:cover;display:block;background:var(--bg3);transition:opacity .3s}
 .card-photo.loading{opacity:0}
 .card-photo-placeholder{width:100%;height:175px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:42px;color:var(--bord2)}
@@ -352,6 +352,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   filter: drop-shadow(0 2px 6px rgba(0,0,0,.12));
   line-height: 1;
   user-select: none;
+  transition: transform .45s cubic-bezier(.25,.46,.45,.94);
+  display: block;
 }
 .detail-photo-smart {
   width: 100%;
@@ -424,7 +426,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   --bord2: #3a3a5a;
   --gold-faint: rgba(212,175,55,.1);
 }
-[data-theme="dark"] .topbar,
+[data-theme="dark"] .topbar {
+  background: rgba(22,33,62,.80);
+  border-bottom-color: rgba(42,42,74,.6);
+}
 [data-theme="dark"] .topbar-nav {
   background: var(--bg2);
   border-color: var(--bord);
@@ -741,6 +746,71 @@ body {
   .card-fav-btn, .card-cart-btn { display: none !important; }
   .content-area { height: auto; overflow: visible; }
   body { padding-bottom: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM UI/UX v14.1
+   1. Header Glassmorphism  ·  2. Cartes dynamiques  ·  3. Filtres
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. TOPBAR — ombre progressive au scroll (classe JS) ── */
+.topbar--scrolled {
+  box-shadow: 0 4px 24px rgba(80,60,30,.15);
+  border-bottom-color: rgba(232,224,212,.75);
+}
+
+[data-theme="dark"] .topbar--scrolled {
+  box-shadow: 0 4px 24px rgba(0,0,0,.45);
+}
+
+/* ── 2. CARTES ÉDITORIALES — zoom emoji + touch mobile ── */
+
+/* Zoom de l'emoji à l'intérieur de la photo */
+.card:hover .card-emoji {
+  transform: scale(1.18) rotate(-2deg);
+}
+
+/* État actif en dark mode : bord lumineux */
+[data-theme="dark"] .card:hover {
+  border-color: rgba(154,111,42,.5);
+  box-shadow: 0 16px 40px rgba(0,0,0,.4), 0 4px 10px rgba(0,0,0,.25);
+}
+
+/* Touch : sensation physique identique au hover desktop */
+@media (hover: none) and (pointer: coarse) {
+  .card:active {
+    transform: translateY(-4px) scale(1.006);
+    box-shadow: 0 10px 30px rgba(80,60,30,.16), 0 3px 8px rgba(80,60,30,.08);
+    border-color: var(--bord2);
+    transition-duration: .08s;
+  }
+  .card:active .card-emoji {
+    transform: scale(1.1);
+    transition-duration: .12s;
+  }
+}
+
+/* ── 3. FILTRES INTERACTIFS — enfoncement physique au clic ── */
+
+/* Enfoncement au clic — spécificité 0-3-0 > 0-2-0 de .active et :hover, pas de !important */
+.regime-btn:active,
+.regime-btn.active:active {
+  transform: scale(0.91);
+  box-shadow: none;
+  transition-duration: .06s;
+}
+
+/* Hover sur le filtre actif : teinte or plus foncée */
+.regime-btn.active:hover {
+  background: var(--gold-l);
+  border-color: var(--gold-xl);
+  box-shadow: 0 4px 14px rgba(154,111,42,.42);
+}
+
+/* ── SELECT filtres : focus ring cohérent ── */
+.filter-grp select:hover {
+  border-color: var(--bord2);
+  box-shadow: 0 1px 4px rgba(80,60,30,.08);
 }
 
 /* ═══════════════════════════════════════════════════════
