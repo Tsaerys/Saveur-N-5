@@ -286,7 +286,7 @@ function renderSeasonal(){
   var recs=getSeasonalRecipes();
   if(!data||!recs.length){zone.innerHTML='';return;}
   var cards=recs.map(function(r){
-    var url=_userPhoto(r.id)||getPhotoUrl(r.id);
+    var url=_userPhoto(r.id)||getPhotoUrl(r);
     return '<div class="seasonal-card" onclick="openRecipe(\''+r.id+'\')">'
       +'<img class="seasonal-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy">'
       +'<div class="seasonal-card-body">'

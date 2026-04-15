@@ -206,31 +206,47 @@ function removeIng(i){S.frigo_ings.splice(i,1);renderFrigo();renderMain();update
 function clearIngs(){S.frigo_ings=[];renderFrigo();renderMain();updateCount();}
 
 // ── PHOTO HELPERS ─────────────────────────────────────────────────────────
-function getPhotoUrl(id){
-  return 'https://picsum.photos/seed/'+id+'/480/320';
+// _idHash : nombre stable 1-5000 basé sur l'identifiant recette
+function _idHash(id){
+  var h=0;for(var i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))&0x7fffffff;
+  return(h%5000)+1;
+}
+// getPhotoUrl : loremflickr avec lock = photo cohérente et toujours food
+function getPhotoUrl(r){
+  var id=typeof r==='string'?r:r.id;
+  var kw='food';
+  if(typeof r==='object'&&r){
+    if(r.cat==='Dessert')kw='dessert';
+    else if(r.cat==='Sauce / Base')kw='sauce';
+    else if(r.co==='Italie')kw='italian,food';
+    else if(r.co==='France')kw='french,food';
+    else if(r.co==='Grèce')kw='greek,food';
+    else if(r.co==='Espagne')kw='spanish,food';
+  }
+  return'https://loremflickr.com/480/320/'+kw+'?lock='+_idHash(id);
 }
 function _userPhoto(id){
   try{return localStorage.getItem('sn5_photo_'+id)||null;}catch(e){return null;}
 }
 function buildCardPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
-  return '<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  var url=_userPhoto(r.id)||getPhotoUrl(r);
+  return'<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 function buildRecentPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
-  return '<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  var url=_userPhoto(r.id)||getPhotoUrl(r);
+  return'<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 function buildAccordPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
-  return '<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  var url=_userPhoto(r.id)||getPhotoUrl(r);
+  return'<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 function buildDetailPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
-  return '<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="eager" onerror="this.style.opacity=\'0\'">';
+  var url=_userPhoto(r.id)||getPhotoUrl(r);
+  return'<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="eager" onerror="this.style.opacity=\'0\'">';
 }
 function buildMenuPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
-  return '<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  var url=_userPhoto(r.id)||getPhotoUrl(r);
+  return'<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 
 // ── RÉCENTS ───────────────────────────────────────────────────────────────
