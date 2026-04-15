@@ -206,47 +206,45 @@ function removeIng(i){S.frigo_ings.splice(i,1);renderFrigo();renderMain();update
 function clearIngs(){S.frigo_ings=[];renderFrigo();renderMain();updateCount();}
 
 // ── PHOTO HELPERS ─────────────────────────────────────────────────────────
-// _idHash : nombre stable 1-5000 basé sur l'identifiant recette
-function _idHash(id){
-  var h=0;for(var i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))&0x7fffffff;
-  return(h%5000)+1;
-}
-// getPhotoUrl : loremflickr avec lock = photo cohérente et toujours food
+var _PH='images/placeholder.webp';
+
+// getPhotoUrl : Unsplash source avec les mots-clés PHOTO_KW exacts.
+// Retourne null si aucun mot-clé disponible → les build* utilisent placeholder.
 function getPhotoUrl(r){
   var id=typeof r==='string'?r:r.id;
-  var kw='food';
-  if(typeof r==='object'&&r){
-    if(r.cat==='Dessert')kw='dessert';
-    else if(r.cat==='Sauce / Base')kw='sauce';
-    else if(r.co==='Italie')kw='italian,food';
-    else if(r.co==='France')kw='french,food';
-    else if(r.co==='Grèce')kw='greek,food';
-    else if(r.co==='Espagne')kw='spanish,food';
-  }
-  return'https://loremflickr.com/480/320/'+kw+'?lock='+_idHash(id);
+  if(typeof PHOTO_KW==='undefined'||!PHOTO_KW[id])return null;
+  var kw=PHOTO_KW[id].trim().replace(/\s+/g,'+');
+  return'https://source.unsplash.com/480x320/?'+encodeURIComponent(PHOTO_KW[id].trim());
 }
 function _userPhoto(id){
   try{return localStorage.getItem('sn5_photo_'+id)||null;}catch(e){return null;}
 }
+var _onerr="this.onerror=null;this.src='"+_PH+"'";
+
 function buildCardPhoto(r){
   var url=_userPhoto(r.id)||getPhotoUrl(r);
-  return'<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  if(url)return'<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
+  return'<img class="card-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
 }
 function buildRecentPhoto(r){
   var url=_userPhoto(r.id)||getPhotoUrl(r);
-  return'<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  if(url)return'<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
+  return'<img class="recent-card-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
 }
 function buildAccordPhoto(r){
   var url=_userPhoto(r.id)||getPhotoUrl(r);
-  return'<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  if(url)return'<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
+  return'<img class="accord-card-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
 }
 function buildDetailPhoto(r){
   var url=_userPhoto(r.id)||getPhotoUrl(r);
-  return'<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="eager" onerror="this.style.opacity=\'0\'">';
+  if(url)return'<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="eager" onerror="'+_onerr+'">';
+  return'<img class="detail-photo" src="'+_PH+'" alt="'+r.nom+'" loading="eager">';
 }
 function buildMenuPhoto(r){
   var url=_userPhoto(r.id)||getPhotoUrl(r);
-  return'<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
+  if(url)return'<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
+  return'<img class="menu-slot-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
 }
 
 // ── RÉCENTS ───────────────────────────────────────────────────────────────
