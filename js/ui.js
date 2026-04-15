@@ -163,6 +163,8 @@ function renderFilters(){
         <button class="regime-btn${regime==="vege"?" active":""}" onclick="setRegime('vege')">🌿 Végétarien</button>
         <button class="regime-btn${regime==="gluten"?" active":""}" onclick="setRegime('gluten')">🌾 Sans gluten</button>
         <button class="regime-btn${regime==="lactose"?" active":""}" onclick="setRegime('lactose')">🥛 Sans lactose</button>
+        <button class="regime-btn${regime==="seafood"?" active":""}" onclick="setRegime('seafood')">🦐 Sans fruits de mer</button>
+        <button class="regime-btn${regime==="fish"?" active":""}" onclick="setRegime('fish')">🐟 Sans poissons</button>
         ${ratedCount>0?`<button class="regime-btn${regime==="rated"?" active":""}" onclick="setRegime('rated')">⭐ Mes évaluées (${ratedCount})</button>`:""}
       </div>
       <div class="filter-count">${n} recette${n>1?"s":""}</div>
@@ -205,33 +207,30 @@ function clearIngs(){S.frigo_ings=[];renderFrigo();renderMain();updateCount();}
 
 // ── PHOTO HELPERS ─────────────────────────────────────────────────────────
 function getPhotoUrl(id){
-  if(typeof PHOTO_KW==="undefined"||!PHOTO_KW[id])return null;
-  return "https://loremflickr.com/480/320/food,"+PHOTO_KW[id].replace(/\s+/g,",");
+  return 'https://picsum.photos/seed/'+id+'/480/320';
+}
+function _userPhoto(id){
+  try{return localStorage.getItem('sn5_photo_'+id)||null;}catch(e){return null;}
 }
 function buildCardPhoto(r){
-  var url=getPhotoUrl(r.id);
-  if(url)return '<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
-  return '<div class="card-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span class="card-emoji">'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
+  return '<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 function buildRecentPhoto(r){
-  var url=getPhotoUrl(r.id);
-  if(url)return '<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
-  return '<div class="recent-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span>'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
+  return '<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 function buildAccordPhoto(r){
-  var url=getPhotoUrl(r.id);
-  if(url)return '<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
-  return '<div class="accord-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span>'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
+  return '<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 function buildDetailPhoto(r){
-  var url=getPhotoUrl(r.id);
-  if(url)return '<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
-  return '<div class="detail-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span class="detail-emoji">'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
+  return '<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="eager" onerror="this.style.opacity=\'0\'">';
 }
 function buildMenuPhoto(r){
-  var url=getPhotoUrl(r.id);
-  if(url)return '<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.webp\'">';
-  return '<div class="recent-photo-smart" style="background:'+recipeGradient(r.cat)+'"><span>'+recipeEmoji(r.cat,r.nom)+'</span></div>';
+  var url=_userPhoto(r.id)||getPhotoUrl(r.id);
+  return '<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="this.style.opacity=\'0\'">';
 }
 
 // ── RÉCENTS ───────────────────────────────────────────────────────────────
@@ -476,6 +475,7 @@ function updateIngrList(){
 
 function goBack(){
   S.view="browse";
+  if(window.location.hash)history.pushState('',document.title,window.location.pathname+window.location.search);
   document.getElementById("search-zone").style.display="";
   document.getElementById("filters-zone").style.display="";
   if(S.frigo_active)document.getElementById("frigo-zone").style.display="";
@@ -589,7 +589,7 @@ function renderMenuView(){
       <div class="menu-config">
         <div class="config-grp"><label>Personnes</label><input type="number" id="cfg-pers" value="4" min="1" max="20"></div>
         <div class="config-grp"><label>Occasion</label><select id="cfg-occ"><option value="famille">Repas en famille</option><option value="diner">Dîner entre amis</option><option value="romantique">Dîner romantique</option><option value="grande">Grande occasion</option></select></div>
-        <div class="config-grp"><label>Régime</label><select id="cfg-regime"><option value="">Aucun</option><option value="vege">Végétarien</option><option value="gluten">Sans gluten</option><option value="lactose">Sans lactose</option></select></div>
+        <div class="config-grp"><label>Régime</label><select id="cfg-regime"><option value="">Aucun</option><option value="vege">Végétarien</option><option value="gluten">Sans gluten</option><option value="lactose">Sans lactose</option><option value="seafood">Sans fruits de mer</option><option value="fish">Sans poissons</option></select></div>
         <div class="config-grp"><label>Jours</label><select id="cfg-jours"><option value="5">5 jours</option><option value="7" selected>7 jours</option></select></div>
         <button class="btn-gen-menu" onclick="generateMenu()">✨ Générer le menu</button>
       </div>
@@ -813,7 +813,7 @@ function importBackup() {
 // ── HASH ROUTER / PARTAGE ────────────────────────────────────────────────
 function shareRecipe(id){
   var r=RECIPES.find(function(x){return x.id===id;});
-  var url=window.location.origin+window.location.pathname+'#recette/'+id;
+  var url=window.location.origin+window.location.pathname+'?s=1#recette/'+id;
   if(navigator.share&&r){
     navigator.share({title:'Saveur N5 - '+r.nom,url:url}).catch(function(){});
   }else if(navigator.clipboard&&window.isSecureContext){

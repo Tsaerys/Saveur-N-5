@@ -75,6 +75,7 @@
   <div id="filters-zone" role="search" aria-label="Filtres de recettes"></div>
   <div id="frigo-zone" style="display:none"></div>
   <div id="recent-zone"></div>
+  <div id="seasonal-zone"></div>
   <main id="main" role="main"></main>
 </div>
 
@@ -95,6 +96,27 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="cooking-overlay"></div>
+
+<!-- Mode Focus — cuisine étape par étape -->
+<div id="focus-overlay" role="dialog" aria-modal="true" aria-label="Mode Focus — Cuisine étape par étape">
+  <div class="focus-header">
+    <div class="focus-recipe-title" id="focus-recipe-title"></div>
+    <button class="focus-close-btn" onclick="closeFocus()" aria-label="Fermer le mode Focus">✕</button>
+  </div>
+  <div class="focus-progress-wrap">
+    <div class="focus-progress-bar" id="focus-progress-bar" style="width:0%"></div>
+  </div>
+  <div class="focus-body">
+    <div class="focus-counter" id="focus-counter">Étape 1 / 1</div>
+    <div class="focus-step-text" id="focus-step-text"></div>
+    <div class="focus-timer-bar" id="focus-timer-bar"></div>
+  </div>
+  <div class="focus-footer">
+    <button class="focus-nav-btn focus-prev" id="focus-prev-btn" onclick="focusPrev()" aria-label="Étape précédente">← Précédent</button>
+    <button class="focus-speak-btn" id="focus-speak-btn" onclick="focusSpeak()" aria-label="Lire à voix haute" title="Sous-Chef Vocal">🔊</button>
+    <button class="focus-nav-btn focus-next" id="focus-next-btn" onclick="focusNext()" aria-label="Étape suivante">Suivant →</button>
+  </div>
+</div>
 
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>

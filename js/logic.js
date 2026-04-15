@@ -9,8 +9,8 @@ function validateRecipes(){
       console.error("[SN5] RECIPES n'est pas un tableau");
       return false;
     }
-    if(RECIPES.length!==512){
-      console.warn("[SN5] Nombre de recettes inattendu:", RECIPES.length, "(attendu: 512)");
+    if(RECIPES.length<100){
+      console.warn("[SN5] Nombre de recettes anormalement faible:", RECIPES.length);
     }
     let ok=true;
     for(let i=0;i<RECIPES.length;i++){
@@ -168,6 +168,10 @@ function _sn5Norm(s){
 function isVege(r){const ings=r.ig.map(([n])=>n.toLowerCase());return!REGIME_KW.vege.some(kw=>ings.some(i=>i.includes(kw)));}
 function isGlutenFree(r){const ings=r.ig.map(([n])=>n.toLowerCase());return!REGIME_KW.gluten.some(kw=>ings.some(i=>i.includes(kw)));}
 function isLactoseFree(r){const ings=r.ig.map(([n])=>n.toLowerCase());return!REGIME_KW.lactose.some(kw=>ings.some(i=>i.includes(kw)));}
+const SEAFOOD_KW=['homard','langoustin','crevette','palourde','moule','saint-jacque','gambas','poulpe','pieuvre','seiche','calmar','huître','huitre','crabe','tourteau','bigorneau','bulot','praire','fruits de mer'];
+const FISH_KW=['saumon','thon','sole ','bar ','anchois','sardine','truite','brochet','congre','grondin','vive ','rascasse','cabillaud','morue','lotte','merlu','turbot','daurade','maquereau','hareng','lieu noir','lieu jaune'];
+function isSeafoodFree(r){const ings=r.ig.map(([n])=>n.toLowerCase());return!SEAFOOD_KW.some(kw=>ings.some(i=>i.includes(kw)));}
+function isFishFree(r){const ings=r.ig.map(([n])=>n.toLowerCase());return!FISH_KW.some(kw=>ings.some(i=>i.includes(kw)));}
 
 // ── FILTRAGE ───────────────────────────────────────────────────────────────
 let _filteredMemo=new Map();
@@ -199,6 +203,8 @@ function filtered(){
     if(regime==="vege"&&!isVege(r))return false;
     if(regime==="gluten"&&!isGlutenFree(r))return false;
     if(regime==="lactose"&&!isLactoseFree(r))return false;
+    if(regime==="seafood"&&!isSeafoodFree(r))return false;
+    if(regime==="fish"&&!isFishFree(r))return false;
     if(rayon){
       try{
         const rs=(r.ig||[]).map(function(x){return getRayon((x&&x[0])||"");});
@@ -306,7 +312,7 @@ function generateMenu(){
   ["Entrée","Plat","Dessert"].forEach(cat=>{
     pool[cat]=RECIPES.filter(r=>{
       if(r.cat!==cat)return false;if(r.diff>maxDiff)return false;
-      if(regime==="vege"&&!isVege(r))return false;if(regime==="gluten"&&!isGlutenFree(r))return false;if(regime==="lactose"&&!isLactoseFree(r))return false;
+      if(regime==="vege"&&!isVege(r))return false;if(regime==="gluten"&&!isGlutenFree(r))return false;if(regime==="lactose"&&!isLactoseFree(r))return false;if(regime==="seafood"&&!isSeafoodFree(r))return false;if(regime==="fish"&&!isFishFree(r))return false;
       return true;
     });
   });
