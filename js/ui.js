@@ -160,12 +160,12 @@ function renderFilters(){
       <div class="filter-grp"><label>Qualité</label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
       <div class="filter-grp"><label>Rayon</label><select id="frayon"><option value="">Tous</option>${rayonOpts}</select></div>
       <div class="regime-filters">
-        <button class="regime-btn${regime==="vege"?" active":""}" onclick="setRegime('vege')">🌿 Végétarien</button>
-        <button class="regime-btn${regime==="gluten"?" active":""}" onclick="setRegime('gluten')">🌾 Sans gluten</button>
-        <button class="regime-btn${regime==="lactose"?" active":""}" onclick="setRegime('lactose')">🥛 Sans lactose</button>
-        <button class="regime-btn${regime==="seafood"?" active":""}" onclick="setRegime('seafood')">🦐 Sans fruits de mer</button>
-        <button class="regime-btn${regime==="fish"?" active":""}" onclick="setRegime('fish')">🐟 Sans poissons</button>
-        ${ratedCount>0?`<button class="regime-btn${regime==="rated"?" active":""}" onclick="setRegime('rated')">⭐ Mes évaluées (${ratedCount})</button>`:""}
+        <button class="regime-btn${regime==="vege"?" active":""}" aria-pressed="${regime==="vege"}" onclick="setRegime('vege')">🌿 Végétarien</button>
+        <button class="regime-btn${regime==="gluten"?" active":""}" aria-pressed="${regime==="gluten"}" onclick="setRegime('gluten')">🌾 Sans gluten</button>
+        <button class="regime-btn${regime==="lactose"?" active":""}" aria-pressed="${regime==="lactose"}" onclick="setRegime('lactose')">🥛 Sans lactose</button>
+        <button class="regime-btn${regime==="seafood"?" active":""}" aria-pressed="${regime==="seafood"}" onclick="setRegime('seafood')">🦐 Sans fruits de mer</button>
+        <button class="regime-btn${regime==="fish"?" active":""}" aria-pressed="${regime==="fish"}" onclick="setRegime('fish')">🐟 Sans poissons</button>
+        ${ratedCount>0?`<button class="regime-btn${regime==="rated"?" active":""}" aria-pressed="${regime==="rated"}" onclick="setRegime('rated')">⭐ Mes évaluées (${ratedCount})</button>`:""}
       </div>
       <div class="filter-count">${n} recette${n>1?"s":""}</div>
     </div>`;
@@ -306,12 +306,12 @@ function renderMain(){
     let matchExtra="";
     if(S.frigo_active&&r._match!==undefined){const pct=Math.round(r._mr*100);matchExtra=`<div class="match-strip"><div class="match-fill" style="width:${pct}%"></div></div><div class="match-label">${r._match}/${S.frigo_ings.length} ingr. correspondant${r._match>1?"s":""}</div>`;}
     const rating=RATINGS[r.id]||0;
-    const ratingHtml=`<div class="card-rating" data-id="${r.id}">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" onclick="event.stopPropagation();rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>`;
+    const ratingHtml=`<div class="card-rating" role="group" aria-label="Ma note" data-id="${r.id}">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" role="button" tabindex="0" aria-label="${i} étoile${i>1?'s':''}" aria-pressed="${i<=rating}" onclick="event.stopPropagation();rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>`;
     const qlbl=r.qual?`<span class="qual-pill" style="border-color:${QUAL_COLORS[r.qual]||"#aaa"};color:${QUAL_COLORS[r.qual]||"#aaa"}">${QUAL_LABELS[r.qual]||""}</span>`:"";
-    return`<div class="card" data-id="${r.id}">
+    return`<div class="card" role="article" aria-label="${r.nom}" data-id="${r.id}">
       ${buildCardPhoto(r)}
-      <button class="card-fav-btn${isFav?" active":""}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
-      <button class="card-cart-btn${inCart?" active":""}" title="Ajouter aux courses" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
+      <button class="card-fav-btn${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
+      <button class="card-cart-btn${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
       ${ratingHtml}
       <div class="card-body">
         <div class="card-top">
@@ -401,15 +401,15 @@ function renderDetail(){
   const prepAvHtml=prepAv.length?`<div class="prepav-block"><div class="prepav-title">⏰ À préparer à l'avance</div>${prepAv.map(p=>`<div class="prepav-item"><span>📌</span><span>${p}</span></div>`).join("")}</div>`:"";
 
   const accords=getAccords(r);
-  const accordsHtml=accords.length?`<div class="accords-section"><div class="accords-title">✨ Recettes pour compléter le repas</div><div class="accords-grid">${accords.map(a=>`<div class="accord-card" onclick="openRecipe('${a.id}')">${buildAccordPhoto(a)}<div class="accord-card-info"><div class="accord-card-nom">${a.nom}</div><div class="accord-card-lbl"><span class="cat-badge cat-${catClass(a.cat)}" style="font-size:10px;padding:2px 7px">${a.cat}</span> · ${a.chef.split(' ').slice(-1)[0]}</div></div></div>`).join("")}</div></div>`:"";
+  const accordsHtml=accords.length?`<div class="accords-section"><div class="accords-title">✨ Recettes pour compléter le repas</div><div class="accords-grid">${accords.map(a=>`<div class="accord-card" role="button" tabindex="0" aria-label="Voir la recette ${a.nom}" onclick="openRecipe('${a.id}')">${buildAccordPhoto(a)}<div class="accord-card-info"><div class="accord-card-nom">${a.nom}</div><div class="accord-card-lbl"><span class="cat-badge cat-${catClass(a.cat)}" style="font-size:10px;padding:2px 7px">${a.cat}</span> · ${a.chef.split(' ').slice(-1)[0]}</div></div></div>`).join("")}</div></div>`:"";
 
   document.getElementById("main").innerHTML=`
     <div class="detail-wrap">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0">
-        <button class="back-btn" onclick="goBack()">← Retour</button>
+        <button class="back-btn" onclick="goBack()" aria-label="Retour à la liste des recettes">← Retour</button>
         <div class="detail-actions-bar">
-          <button class="act-btn${isFav?" active":""}" onclick="toggleFav('${r.id}')">${isFav?"♥ Favori":"♡ Favoris"}</button>
-          <button class="act-btn${inCart?" active":""}" onclick="toggleCart('${r.id}')">${inCart?"🛒 Dans la liste":"🛒 Courses"}</button>
+          <button class="act-btn${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥ Favori":"♡ Favoris"}</button>
+          <button class="act-btn${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">${inCart?"🛒 Dans la liste":"🛒 Courses"}</button>
           <button class="act-btn" onclick="startCooking()">👨‍🍳 Mode cuisine</button>
           <button class="act-btn" onclick="printRecipe()">🖨 Imprimer</button>
           ${S.recipe&&S.recipe._custom?'<button class="act-btn" onclick="S._editId=S.recipe.id;setView(\'edit\')" aria-label="Modifier">✏️ Modifier</button>':''}
@@ -427,7 +427,7 @@ function renderDetail(){
           <div class="detail-photo-chef">${r.chef}</div>
           ${r.qual?'<div class="qual-badge" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);border-radius:20px;padding:3px 11px;font-size:11px;color:#fff;letter-spacing:.3px">'+'★'.repeat(r.qual)+' '+(QUAL_LABELS[r.qual]||'')+'</div>':''}
 
-          <div class="detail-rating-bar">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" onclick="rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>
+          <div class="detail-rating-bar" role="group" aria-label="Ma note">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" role="button" tabindex="0" aria-label="${i} étoile${i>1?'s':''}" aria-pressed="${i<=rating}" onclick="rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>
         </div>
         <div class="detail-info-row">
           <span class="info-pill">${FLAGS[r.co]||""} ${r.co}</span>
@@ -444,16 +444,16 @@ function renderDetail(){
             <div class="sec-lbl">Ingrédients</div>
             <div class="portions-ctrl">
               <span class="portions-lbl">Personnes</span>
-              <button class="qty-btn" onclick="changePortion(-1)">−</button>
-              <span class="qty-val" id="qv">${S.portions}</span>
-              <button class="qty-btn" onclick="changePortion(1)">+</button>
+              <button class="qty-btn" aria-label="Réduire les portions" onclick="changePortion(-1)">−</button>
+              <span class="qty-val" id="qv" aria-live="polite">${S.portions}</span>
+              <button class="qty-btn" aria-label="Augmenter les portions" onclick="changePortion(1)">+</button>
             </div>
             <div class="portions-hint">Base : ${r.bp} pers. · Les quantités s'ajustent automatiquement</div>
             <div class="unit-toggle-bar">
               <span style="font-size:11px;color:var(--text4);font-weight:500">Unités :</span>
-              <button class="unit-toggle-btn${S.unit_mode==="metric"?" active":""}" onclick="setUnitMode('metric')">Métrique</button>
-              <button class="unit-toggle-btn${S.unit_mode==="imperial"?" active":""}" onclick="setUnitMode('imperial')">Impérial</button>
-              <button class="unit-toggle-btn${S.unit_mode==="volume"?" active":""}" onclick="setUnitMode('volume')">Volumes</button>
+              <button class="unit-toggle-btn${S.unit_mode==="metric"?" active":""}" aria-pressed="${S.unit_mode==="metric"}" onclick="setUnitMode('metric')">Métrique</button>
+              <button class="unit-toggle-btn${S.unit_mode==="imperial"?" active":""}" aria-pressed="${S.unit_mode==="imperial"}" onclick="setUnitMode('imperial')">Impérial</button>
+              <button class="unit-toggle-btn${S.unit_mode==="volume"?" active":""}" aria-pressed="${S.unit_mode==="volume"}" onclick="setUnitMode('volume')">Volumes</button>
             </div>
             <ul class="ingr-list" id="ingr-list">${ig}</ul>
             ${variantHtml}
@@ -464,7 +464,7 @@ function renderDetail(){
               <div class="pnotes-lbl">Mes notes personnelles</div>
               <textarea class="pnotes-ta" id="pnotes-ta" placeholder="Vos variantes, observations, astuces personnelles…">${note}</textarea>
               <div style="display:flex;align-items:center">
-                <button class="pnotes-save" onclick="saveNote('${r.id}')">Sauvegarder</button>
+                <button class="pnotes-save" aria-label="Sauvegarder mes notes personnelles" onclick="saveNote('${r.id}')">Sauvegarder</button>
                 <span id="pnotes-saved" class="pnotes-saved">✓ Sauvegardé</span>
               </div>
             </div>

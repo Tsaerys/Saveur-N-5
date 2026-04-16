@@ -154,7 +154,7 @@ function _injectDetailButtons(){
 })();
 (function(){
   var _orig=window.renderMain;
-  window.renderMain=function(){ _orig(); renderSeasonal(); };
+  window.renderMain=function(){ _orig(); renderSeasonal(); renderHelix(); };
 })();
 
 // ── MODE FOCUS ────────────────────────────────────────────────────────────
@@ -301,6 +301,255 @@ function renderSeasonal(){
     +'</div>'
     +'<div class="seasonal-scroll">'+cards+'</div>'
     +'</div>';
+}
+
+// ── CARROUSEL HÉLICE 3D ──────────────────────────────────────────────────
+var _HLX_SLOTS = 9;    // nombre de cartes DOM dans le carousel
+var _HLX_DEG   = 50;   // angle (degrés) entre deux positions consécutives
+var _HLX_PY    = 70;   // décalage vertical (px) par position (recalculé mobile)
+var _HLX_R     = 200;  // rayon du cylindre hélicoïdal (px, recalculé mobile)
+var _hlxPool   = [];   // pool de recettes (12 max)
+var _hlxPos    = 0;    // position courante (flottant, interpolé)
+var _hlxTarget = 0;    // position cible (entier, après snap)
+var _hlxRaf    = null; // handle requestAnimationFrame
+var _hlxLive   = false;
+var _hlxDrag   = false;
+var _hlxTouchY0 = 0;
+var _hlxTgt0   = 0;
+
+/* ── Pool de recettes ── */
+function _hlxPoolBuild(){
+  var seasonal = getSeasonalRecipes().slice(0, 5);
+  var pool = seasonal.slice();
+  var ids = new Set(pool.map(function(r){ return r.id; }));
+  var shuffled = RECIPES.slice().sort(function(){ return Math.random() - 0.5; });
+  for(var i = 0; i < shuffled.length && pool.length < 12; i++){
+    if(!ids.has(shuffled[i].id)){ pool.push(shuffled[i]); ids.add(shuffled[i].id); }
+  }
+  return pool;
+}
+
+/* ── HTML d'une carte ── */
+function _hlxCardHTML(r){
+  var url = _userPhoto(r.id) || getPhotoUrl(r) || _PH;
+  return '<img class="helix-card-photo" src="'+url+'" alt="'+r.nom
+    +'" loading="lazy" onerror="this.onerror=null;this.src=\''+_PH+'\'">'
+    +'<div class="helix-card-body">'
+    +'<span class="helix-card-cat">'+r.cat+'</span>'
+    +'<div class="helix-card-nom">'+r.nom+'</div>'
+    +'<div class="helix-card-chef">'+r.chef.split(' ').pop()+'</div>'
+    +'</div>';
+}
+
+/* ── Rendu 3D (appelé à chaque frame) ── */
+function _hlxRender(){
+  var car = document.getElementById('helix-carousel');
+  if(!car || !_hlxLive) return;
+  var N = _hlxPool.length;
+  if(!N) return;
+  var iPos = Math.round(_hlxPos);
+  var frac = _hlxPos - iPos;
+  var half = Math.floor(_HLX_SLOTS / 2); // 4
+
+  for(var s = -half; s <= half; s++){
+    var card = car.querySelector('.helix-card[data-slot="'+(s+half)+'"]');
+    if(!card) continue;
+
+    /* recette cyclique pour ce slot */
+    var rIdx = ((iPos + s) % N + N) % N;
+    var rec  = _hlxPool[rIdx];
+    if(rec && card.dataset.id !== rec.id){
+      card.dataset.id = rec.id;
+      card.innerHTML  = _hlxCardHTML(rec);
+    }
+
+    /* position visuelle continue */
+    var vp   = s - frac;           // flottant dans [-4.5 ; +4.5]
+    var ang  = vp * _HLX_DEG;     // rotation Y en degrés
+    var yPx  = -vp * _HLX_PY;     // décalage vertical (px)
+    var cosA = Math.cos(ang * Math.PI / 180);
+
+    /* profondeur normalisée [0 ; 1] : 1 = face au spectateur */
+    var depth = (1 + cosA) / 2;
+
+    /* masquer cartes trop loin ou tournées derrière */
+    if(depth < 0.04 || Math.abs(vp) > 4.5){
+      card.style.opacity      = '0';
+      card.style.visibility   = 'hidden';
+      card.style.pointerEvents= 'none';
+      continue;
+    }
+
+    var opacity  = (0.10 + 0.90 * depth).toFixed(2);
+    var blurPx   = Math.max(0, (1 - depth) * 5).toFixed(1);
+    var scaleFac = (0.70 + 0.30 * depth).toFixed(3);
+    var zIdx     = Math.round(depth * 100);
+
+    card.style.visibility   = 'visible';
+    card.style.opacity      = opacity;
+    card.style.filter       = depth < 0.95 ? 'blur('+blurPx+'px)' : 'none';
+    card.style.zIndex       = ''+zIdx;
+    card.style.pointerEvents= depth > 0.14 ? 'auto' : 'none';
+    card.style.transform    =
+      'rotateY('+ang.toFixed(2)+'deg)'
+      +' translateZ('+_HLX_R+'px)'
+      +' translateY('+yPx.toFixed(1)+'px)'
+      +' scale('+scaleFac+')';
+
+    /* surbrillance carte centrale */
+    card.classList.toggle('helix-center', depth > 0.95);
+  }
+}
+
+/* ── Boucle d'animation (easing exponentiel) ── */
+function _hlxStep(){
+  var d = _hlxTarget - _hlxPos;
+  if(Math.abs(d) < 0.002){
+    _hlxPos = _hlxTarget;
+    _hlxRender();
+    _hlxRaf = null;
+    _hlxSetTr(true);   // réactive transitions CSS à la fin
+    return;
+  }
+  _hlxPos += d * 0.14;
+  _hlxRender();
+  _hlxRaf = requestAnimationFrame(_hlxStep);
+}
+
+/* ── Transitions CSS (off pendant l'animation, on au repos) ── */
+function _hlxSetTr(on){
+  var cards = document.querySelectorAll('.helix-card');
+  var v = on ? 'opacity .28s, filter .28s, box-shadow .28s' : 'none';
+  for(var i = 0; i < cards.length; i++) cards[i].style.transition = v;
+}
+
+/* ── Démarre une animation vers _hlxTarget ── */
+function _hlxGo(){
+  _hlxSetTr(false);
+  if(_hlxRaf) cancelAnimationFrame(_hlxRaf);
+  _hlxRaf = requestAnimationFrame(_hlxStep);
+}
+
+/* ── Navigation publique (boutons, clavier) ── */
+function helixNavigate(dir){
+  _hlxTarget += dir;
+  _hlxGo();
+}
+
+/* ── Arrêt propre ── */
+function _hlxStop(){
+  if(_hlxRaf){ cancelAnimationFrame(_hlxRaf); _hlxRaf = null; }
+  _hlxLive = false;
+}
+
+/* ── Liaison des événements (une seule fois par rendu) ── */
+function _hlxBind(){
+  var cont = document.getElementById('helix-container');
+  if(!cont) return;
+
+  /* Molette */
+  cont.addEventListener('wheel', function(e){
+    e.preventDefault();
+    _hlxTarget += e.deltaY > 0 ? 1 : -1;
+    _hlxGo();
+  }, { passive: false });
+
+  /* Tactile */
+  cont.addEventListener('touchstart', function(e){
+    _hlxDrag    = true;
+    _hlxTouchY0 = e.touches[0].clientY;
+    _hlxTgt0    = _hlxTarget;
+    _hlxSetTr(false);
+  }, { passive: true });
+
+  cont.addEventListener('touchmove', function(e){
+    if(!_hlxDrag) return;
+    var dy      = _hlxTouchY0 - e.touches[0].clientY;
+    _hlxTarget  = _hlxTgt0 + dy / _HLX_PY;
+    _hlxPos     = _hlxTarget;          // mise à jour directe (pas d'easing pendant le drag)
+    _hlxRender();
+  }, { passive: true });
+
+  cont.addEventListener('touchend', function(){
+    if(!_hlxDrag) return;
+    _hlxDrag   = false;
+    _hlxTarget = Math.round(_hlxTarget); // snap à l'entier le plus proche
+    _hlxGo();
+  }, { passive: true });
+
+  /* Clavier */
+  cont.setAttribute('tabindex', '0');
+  cont.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowDown' || e.key === 'ArrowRight'){ e.preventDefault(); helixNavigate(1); }
+    else if(e.key === 'ArrowUp' || e.key === 'ArrowLeft'){ e.preventDefault(); helixNavigate(-1); }
+  });
+
+  /* Clic sur une carte → ouvrir la recette */
+  var car = document.getElementById('helix-carousel');
+  if(car) car.addEventListener('click', function(e){
+    var c = e.target.closest('.helix-card');
+    if(c && c.dataset.id) openRecipe(c.dataset.id);
+  });
+}
+
+/* ── Point d'entrée principal ── */
+function renderHelix(){
+  var zone = document.getElementById('helix-zone');
+  if(!zone) return;
+
+  /* Masquer si filtres actifs ou vue différente */
+  var f    = S.filters;
+  var busy = f.co || f.cat || f.diff || f.time || f.q || f.regime || f.qual || f.rayon || S.frigo_active;
+  if(S.view !== 'browse' || busy){
+    if(_hlxLive){ _hlxStop(); zone.innerHTML = ''; }
+    return;
+  }
+
+  /* Si déjà vivant et carousel présent → simple re-rendu */
+  if(_hlxLive && document.getElementById('helix-carousel')){
+    _hlxRender();
+    return;
+  }
+
+  /* Construction */
+  _hlxPool   = _hlxPoolBuild();
+  _hlxLive   = true;
+  _hlxPos    = 0;
+  _hlxTarget = 0;
+
+  /* Paramètres adaptatifs mobile */
+  var mob = window.innerWidth < 640;
+  _HLX_R  = mob ? 130 : 200;
+  _HLX_PY = mob ? 58  : 70;
+
+  /* En-tête saisonnier */
+  var m  = new Date().getMonth();
+  var sd = SEASON_DATA[m];
+
+  /* Slots de cartes */
+  var cardsHtml = '';
+  for(var i = 0; i < _HLX_SLOTS; i++){
+    cardsHtml += '<div class="helix-card" data-slot="'+i+'" data-id=""'
+      +' role="button" tabindex="-1" aria-label="Recette"></div>';
+  }
+
+  zone.innerHTML =
+    '<div id="helix-container">'
+    +'<div class="helix-header">'
+    +'<div class="helix-title">◆ '+(sd ? sd.label : 'À la une')+'</div>'
+    +'<div class="helix-subtitle">'+(sd ? sd.sub : 'Recettes du moment')+'</div>'
+    +'</div>'
+    +'<div id="helix-scene"><div id="helix-carousel">'+cardsHtml+'</div></div>'
+    +'<div class="helix-controls">'
+    +'<button class="helix-ctrl-btn" onclick="helixNavigate(-1)" aria-label="Recette précédente">↑</button>'
+    +'<button class="helix-ctrl-btn" onclick="helixNavigate(1)"  aria-label="Recette suivante">↓</button>'
+    +'</div>'
+    +'<div class="helix-hint">Molette · Swipe · ↑↓</div>'
+    +'</div>';
+
+  _hlxRender();
+  _hlxSetTr(true);
+  _hlxBind();
 }
 
 init();

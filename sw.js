@@ -1,7 +1,7 @@
 // Saveur N°5 — Service Worker
 // Cache l'app shell pour le mode hors ligne
 
-const CACHE_NAME = 'saveur-n5-v17';
+const CACHE_NAME = 'saveur-n5-v18';
 const APP_SHELL = [
   './',
   './index.html',
@@ -12,6 +12,9 @@ const APP_SHELL = [
   './js/ui.js',
   './js/app.js',
   './manifest.json',
+  './images/icon-192.png',
+  './images/icon-512.png',
+  './images/placeholder.webp',
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap'
 ];
 
@@ -47,10 +50,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Images externes (loremflickr) → réseau uniquement, pas de cache
-  if (url.hostname === 'loremflickr.com') {
+  // Images Unsplash → réseau uniquement, fallback placeholder mis en cache
+  if (url.hostname === 'source.unsplash.com') {
     event.respondWith(
-      fetch(event.request).catch(() => new Response('', { status: 503 }))
+      fetch(event.request).catch(() =>
+        caches.match('./images/placeholder.webp').then(r => r || new Response('', { status: 503 }))
+      )
     );
     return;
   }
