@@ -48,6 +48,9 @@ function init(){
   if(typeof initScrollTop==="function")initScrollTop();
   initTopbarScroll();
   bindEvents();
+  _initCardEffects();
+  _initMagnetic();
+  _initRipple();
   render();
 }
 
@@ -148,9 +151,40 @@ function _injectDetailButtons(){
 }
 
 // ── WRAPPERS D'INTÉGRATION ────────────────────────────────────────────────
+/* ── View Transition : Carte → Détail ── */
 (function(){
   var _orig=window.openRecipe;
-  window.openRecipe=function(id){ _orig(id); _injectDetailButtons(); };
+  window.openRecipe=function(id){
+    var doOpen=function(){
+      _orig(id);
+      _injectDetailButtons();
+      var dp=document.querySelector('.detail-photo');
+      if(dp) dp.style.viewTransitionName='recipe-hero';
+    };
+    var cp=document.querySelector('.card[data-id="'+id+'"] .card-photo');
+    if(cp&&'startViewTransition'in document){
+      cp.style.viewTransitionName='recipe-hero';
+      document.startViewTransition(function(){ cp.style.viewTransitionName=''; doOpen(); });
+    }else{ doOpen(); }
+  };
+})();
+/* ── View Transition : Détail → Liste ── */
+(function(){
+  var _orig=window.goBack;
+  window.goBack=function(){
+    if(!('startViewTransition'in document)){ _orig(); return; }
+    var dp=document.querySelector('.detail-photo');
+    var prevId=S.recipe&&S.recipe.id;
+    if(dp) dp.style.viewTransitionName='recipe-hero';
+    document.startViewTransition(function(){
+      if(dp) dp.style.viewTransitionName='';
+      _orig();
+      if(prevId){
+        var cp=document.querySelector('.card[data-id="'+prevId+'"] .card-photo');
+        if(cp) cp.style.viewTransitionName='recipe-hero';
+      }
+    });
+  };
 })();
 (function(){
   var _orig=window.renderMain;
@@ -301,6 +335,100 @@ function renderSeasonal(){
     +'</div>'
     +'<div class="seasonal-scroll">'+cards+'</div>'
     +'</div>';
+}
+
+// ── EFFETS VISUELS AVANCÉS ────────────────────────────────────────────────
+
+/* ─ Tilt 3D + Spotlight (event delegation, rAF-throttlé) ─ */
+function _initCardEffects(){
+  var _spotCard=null, _spotRect=null;
+  var _rafId=null, _mx=0, _my=0, _ac=null;
+
+  // Injection du glare au premier survol (lazy)
+  document.addEventListener('mouseover', function(e){
+    var c=e.target.closest?e.target.closest('.card[data-id]'):null;
+    if(!c||c._glareAdded) return;
+    c._glareAdded=true;
+    var g=document.createElement('div'); g.className='card-glare';
+    c.appendChild(g); c._glare=g;
+    c.addEventListener('mouseenter',function(){
+      c.style.transition='none'; c.style.willChange='transform';
+    });
+    c.addEventListener('mouseleave',function(){
+      c.style.willChange='';
+      c.style.transition='transform .5s cubic-bezier(.23,1,.32,1),box-shadow .3s,border-color .2s';
+      c.style.transform='';
+      if(c._glare) c._glare.style.backgroundImage='';
+      c.style.removeProperty('--card-mx'); c.style.removeProperty('--card-my');
+      setTimeout(function(){ c.style.transition=''; },520);
+    });
+  },{passive:true});
+
+  // mousemove combiné : spotlight CSS vars + tilt transform (rAF)
+  document.addEventListener('mousemove',function(e){
+    var c=e.target.closest?e.target.closest('.card[data-id]'):null;
+    if(c!==_spotCard){ _spotCard=c; _spotRect=c?c.getBoundingClientRect():null; }
+    if(!c||!_spotRect) return;
+    _mx=e.clientX-_spotRect.left; _my=e.clientY-_spotRect.top; _ac=c;
+    if(_rafId) return;
+    _rafId=requestAnimationFrame(function(){
+      _rafId=null;
+      if(!_ac||!_spotRect) return;
+      var dx=_mx/_spotRect.width*2-1;
+      var dy=_my/_spotRect.height*2-1;
+      _ac.style.setProperty('--card-mx',_mx+'px');
+      _ac.style.setProperty('--card-my',_my+'px');
+      _ac.style.transform=
+        'perspective(900px) rotateX('+(-dy*7).toFixed(2)+'deg)'
+        +' rotateY('+(dx*7).toFixed(2)+'deg) scale(1.02)';
+      if(_ac._glare){
+        _ac._glare.style.backgroundImage=
+          'radial-gradient(circle at '+((dx+1)*50).toFixed(0)+'% '
+          +((dy+1)*50).toFixed(0)+'%,rgba(255,255,255,.18) 0%,transparent 65%)';
+      }
+    });
+  },{passive:true});
+
+  // Invalide le cache rect au scroll (positions stales)
+  window.addEventListener('scroll',function(){ _spotCard=null; _spotRect=null; },{passive:true});
+}
+
+/* ─ Boutons Magnétiques (nav buttons) ─ */
+function _initMagnetic(){
+  document.querySelectorAll('.nav-btn').forEach(function(btn){
+    btn.addEventListener('mouseenter',function(){ btn.style.transition='none'; });
+    btn.addEventListener('mousemove',function(e){
+      var r=btn.getBoundingClientRect();
+      var dx=e.clientX-(r.left+r.width/2);
+      var dy=e.clientY-(r.top+r.height/2);
+      btn.style.transform='translate('+(dx*.22).toFixed(1)+'px,'+(dy*.22).toFixed(1)+'px)';
+    },{passive:true});
+    btn.addEventListener('mouseleave',function(){
+      btn.style.transition='transform .38s cubic-bezier(.23,1,.32,1)';
+      btn.style.transform='';
+      setTimeout(function(){ btn.style.transition=''; },400);
+    });
+  });
+}
+
+/* ─ Ripple au clic ─ */
+function _initRipple(){
+  var SEL='.nav-btn,.regime-btn,.act-btn,.helix-ctrl-btn'
+    +',.focus-nav-btn,.focus-speak-btn,.qty-btn,.unit-toggle-btn'
+    +',.pnotes-save,.back-btn,.cook-nav-btn,.step-timer-btn,.btn-add-ing';
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest?e.target.closest(SEL):null;
+    if(!btn) return;
+    var r=btn.getBoundingClientRect();
+    var sz=Math.max(r.width,r.height)*2.6;
+    var sp=document.createElement('span');
+    sp.className='ripple';
+    sp.style.cssText='width:'+sz+'px;height:'+sz+'px;'
+      +'left:'+(e.clientX-r.left-sz/2)+'px;'
+      +'top:' +(e.clientY-r.top -sz/2)+'px';
+    btn.appendChild(sp);
+    sp.addEventListener('animationend',function(){ sp.remove(); },{once:true});
+  });
 }
 
 // ── CARROUSEL HÉLICE 3D ──────────────────────────────────────────────────

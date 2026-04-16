@@ -1239,3 +1239,83 @@ body {
   .helix-card-nom   { font-size: 11.5px; }
 }
 .shared-mode .content-area { padding-bottom: 16px; }
+
+/* ══════════════════════════════════════════════
+   EFFETS VISUELS AVANCÉS
+   ══════════════════════════════════════════════ */
+
+/* ── 1. View Transitions ── */
+@media (prefers-reduced-motion: no-preference) {
+  /* Fondu global (toutes les transitions de page) */
+  ::view-transition-old(root) {
+    animation: 180ms ease-out both vt-out;
+  }
+  ::view-transition-new(root) {
+    animation: 220ms ease-out both vt-in;
+  }
+  @keyframes vt-out { to   { opacity: 0; transform: scale(.97); } }
+  @keyframes vt-in  { from { opacity: 0; transform: scale(.97); } }
+
+  /* Morphing héros photo recette → détail */
+  ::view-transition-group(recipe-hero) {
+    animation-duration: 400ms;
+    animation-timing-function: cubic-bezier(.4, 0, .2, 1);
+  }
+  ::view-transition-old(recipe-hero),
+  ::view-transition-new(recipe-hero) {
+    animation-duration: 400ms;
+    animation-timing-function: cubic-bezier(.4, 0, .2, 1);
+    object-fit: cover;
+  }
+}
+
+/* ── 2. Spotlight doré sur les cartes ── */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    260px circle at var(--card-mx, -500px) var(--card-my, -500px),
+    rgba(192, 156, 48, .13) 0%,
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity .35s;
+  pointer-events: none;
+  z-index: 2;
+}
+.card:hover::before { opacity: 1; }
+
+/* ── 3. Glare (reflet spéculaire dynamique) ── */
+.card-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: overlay;
+}
+
+/* ── 4. Ripple au clic ── */
+@keyframes ripple-expand {
+  to { transform: scale(1); opacity: 0; }
+}
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.28);
+  transform: scale(0);
+  animation: ripple-expand .55s ease-out forwards;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Overflow: hidden requis pour clipper les ripples */
+.nav-btn,
+.regime-btn, .act-btn, .qty-btn, .unit-toggle-btn,
+.pnotes-save, .back-btn, .focus-nav-btn, .focus-speak-btn,
+.cook-nav-btn, .step-timer-btn, .btn-add-ing, .helix-ctrl-btn {
+  position: relative;
+  overflow: hidden;
+}
