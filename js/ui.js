@@ -1,5 +1,18 @@
 // Saveur N°5 — UI (DOM uniquement)
 
+/* ── Filtres rétractables (mobile) ── */
+var _filtersOpen = window.matchMedia('(min-width: 640px)').matches;
+function toggleFilters(){
+  _filtersOpen = !_filtersOpen;
+  var body = document.querySelector('.filters-body');
+  var btn  = document.querySelector('.filters-toggle-btn');
+  if(body) body.classList.toggle('open', _filtersOpen);
+  if(btn){
+    btn.classList.toggle('open', _filtersOpen);
+    btn.setAttribute('aria-expanded', _filtersOpen);
+  }
+}
+
 function recipeEmoji(cat,nom){
   var nomL=nom.toLowerCase();
   if(nomL.includes('boeuf')||nomL.includes('steak')||nomL.includes('entrecote')||nomL.includes('cote de'))return'🥩';
@@ -140,7 +153,9 @@ function startVoice(){
 
 // ── FILTRES RENDER ────────────────────────────────────────────────────────
 function renderFilters(){
-  const {co,cat,diff,time,regime,qual,rayon}=S.filters;
+  var f=S.filters;var co=f.co,cat=f.cat,diff=f.diff,time=f.time,regime=f.regime,qual=f.qual,rayon=f.rayon;
+  var hasFilter=hasAnyFilter(false);
+  if(hasFilter) _filtersOpen=true;
   var countsByCo={};RECIPES.forEach(function(r){countsByCo[r.co]=(countsByCo[r.co]||0)+1;});
   const coOpts=COUNTRIES.map(function(c){var n=countsByCo[c]||0;return'<option value="'+c+'"'+(co===c?' selected':'')+'>'+(FLAGS[c]||"")+' '+c+' ('+n+')</option>';}).join("");
   const catOpts=CATS.map(c=>`<option value="${c}"${cat===c?" selected":""}>${c}</option>`).join("");
@@ -148,26 +163,42 @@ function renderFilters(){
   const timeOpts=[["30","−30 min"],["60","−1 h"],["120","−2 h"]].map(([v,l])=>`<option value="${v}"${time===v?" selected":""}>${l}</option>`).join("");
   const qualOpts=[1,2,3,4,5].map(d=>`<option value="${d}"${qual==d?" selected":""}>${d} — ${QUAL_LABELS[d]||""}</option>`).join("");
   const rayonOpts=RAYON_ORDER.map(r=>`<option value="${r}"${rayon===r?" selected":""}>${r}</option>`).join("");
-  // Filtre mes évaluées
   const ratedCount=Object.keys(RATINGS).filter(id=>RATINGS[id]>0).length;
   const n=filtered().length;
+  var summaryParts=[];
+  if(co) summaryParts.push(co);
+  if(cat) summaryParts.push(cat);
+  if(regime) summaryParts.push(regime);
+  if(diff) summaryParts.push('★'.repeat(Number(diff)));
+  if(time) summaryParts.push('−'+time+' min');
+  var summaryTxt = summaryParts.length ? summaryParts.join(' · ') : (n+' recette'+(n>1?'s':''));
+  var openClass = _filtersOpen ? ' open' : '';
+  var hasClass  = hasFilter ? ' has-filter' : '';
   document.getElementById("filters-zone").innerHTML=`
-    <div class="filters-bar">
-      <div class="filter-grp"><label>Pays</label><select id="fco"><option value="">Tous les pays</option>${coOpts}</select></div>
-      <div class="filter-grp"><label>Catégorie</label><select id="fcat"><option value="">Toutes</option>${catOpts}</select></div>
-      <div class="filter-grp"><label>Difficulté</label><select id="fdiff"><option value="">Toutes</option>${diffOpts}</select></div>
-      <div class="filter-grp"><label>Temps</label><select id="ftime"><option value="">Tout</option>${timeOpts}</select></div>
-      <div class="filter-grp"><label>Qualité</label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
-      <div class="filter-grp"><label>Rayon</label><select id="frayon"><option value="">Tous</option>${rayonOpts}</select></div>
-      <div class="regime-filters">
-        <button class="regime-btn${regime==="vege"?" active":""}" aria-pressed="${regime==="vege"}" onclick="setRegime('vege')">🌿 Végétarien</button>
-        <button class="regime-btn${regime==="gluten"?" active":""}" aria-pressed="${regime==="gluten"}" onclick="setRegime('gluten')">🌾 Sans gluten</button>
-        <button class="regime-btn${regime==="lactose"?" active":""}" aria-pressed="${regime==="lactose"}" onclick="setRegime('lactose')">🥛 Sans lactose</button>
-        <button class="regime-btn${regime==="seafood"?" active":""}" aria-pressed="${regime==="seafood"}" onclick="setRegime('seafood')">🦐 Sans fruits de mer</button>
-        <button class="regime-btn${regime==="fish"?" active":""}" aria-pressed="${regime==="fish"}" onclick="setRegime('fish')">🐟 Sans poissons</button>
-        ${ratedCount>0?`<button class="regime-btn${regime==="rated"?" active":""}" aria-pressed="${regime==="rated"}" onclick="setRegime('rated')">⭐ Mes évaluées (${ratedCount})</button>`:""}
+    <div class="filters-toggle-row">
+      <span class="filters-summary">${summaryTxt}</span>
+      <button class="filters-toggle-btn${openClass}${hasClass}" onclick="toggleFilters()" aria-expanded="${_filtersOpen}" aria-label="Afficher ou masquer les filtres">
+        🔍 Filtres <span class="filters-toggle-chevron">▼</span>
+      </button>
+    </div>
+    <div class="filters-body${openClass}">
+      <div class="filters-bar">
+        <div class="filter-grp"><label>Pays</label><select id="fco"><option value="">Tous les pays</option>${coOpts}</select></div>
+        <div class="filter-grp"><label>Catégorie</label><select id="fcat"><option value="">Toutes</option>${catOpts}</select></div>
+        <div class="filter-grp"><label>Difficulté</label><select id="fdiff"><option value="">Toutes</option>${diffOpts}</select></div>
+        <div class="filter-grp"><label>Temps</label><select id="ftime"><option value="">Tout</option>${timeOpts}</select></div>
+        <div class="filter-grp"><label>Qualité</label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
+        <div class="filter-grp"><label>Rayon</label><select id="frayon"><option value="">Tous</option>${rayonOpts}</select></div>
+        <div class="regime-filters">
+          <button class="regime-btn${regime==="vege"?" active":""}" aria-pressed="${regime==="vege"}" onclick="setRegime('vege')">🌿 Végétarien</button>
+          <button class="regime-btn${regime==="gluten"?" active":""}" aria-pressed="${regime==="gluten"}" onclick="setRegime('gluten')">🌾 Sans gluten</button>
+          <button class="regime-btn${regime==="lactose"?" active":""}" aria-pressed="${regime==="lactose"}" onclick="setRegime('lactose')">🥛 Sans lactose</button>
+          <button class="regime-btn${regime==="seafood"?" active":""}" aria-pressed="${regime==="seafood"}" onclick="setRegime('seafood')">🦐 Sans fruits de mer</button>
+          <button class="regime-btn${regime==="fish"?" active":""}" aria-pressed="${regime==="fish"}" onclick="setRegime('fish')">🐟 Sans poissons</button>
+          ${ratedCount>0?`<button class="regime-btn${regime==="rated"?" active":""}" aria-pressed="${regime==="rated"}" onclick="setRegime('rated')">⭐ Mes évaluées (${ratedCount})</button>`:""}
+        </div>
+        <div class="filter-count">${n} recette${n>1?"s":""}</div>
       </div>
-      <div class="filter-count">${n} recette${n>1?"s":""}</div>
     </div>`;
   document.getElementById("fco").onchange=e=>{S.filters.co=e.target.value;renderMain();updateCount();};
   document.getElementById("fcat").onchange=e=>{S.filters.cat=e.target.value;renderMain();updateCount();};
@@ -182,23 +213,25 @@ function updateCount(){const el=document.querySelector(".filter-count");if(!el)r
 
 // ── FRIGO ─────────────────────────────────────────────────────────────────
 function renderFrigo(){
-  const tags=S.frigo_ings.map((ing,i)=>`<span class="frigo-tag">${ing}<button onclick="removeIng(${i})">×</button></span>`).join("");
+  const tags=S.frigo_ings.map((ing,i)=>`<span class="frigo-tag">${ing}<button aria-label="Retirer ${ing}" onclick="removeIng(${i})">×</button></span>`).join("");
   document.getElementById("frigo-zone").innerHTML=`
     <div class="frigo-bar">
-      <span class="frigo-title">🧊 Mon frigo</span>
-      <div class="frigo-input-wrap">
-        <input type="text" id="frigo-input" placeholder="ex: agneau, tomates… (virgule ou Entrée pour séparer)" onkeydown="if(event.key==='Enter')addIng()">
-        <button class="btn-add-ing" onclick="addIng()">Ajouter</button>
+      <div class="frigo-row-top">
+        <span class="frigo-title">🧊 Mon frigo</span>
+        <div class="frigo-input-wrap">
+          <input type="text" id="frigo-input" placeholder="agneau, tomates… (virgule ou Entrée)" onkeydown="if(event.key==='Enter')addIng()" aria-label="Ajouter un ingrédient">
+          <button class="btn-add-ing" onclick="addIng()">Ajouter</button>
+        </div>
       </div>
-        ${S.frigo_ings.length?'<button onclick="clearIngs()" style="font-size:11px;background:none;border:1px solid var(--bord2);border-radius:20px;padding:2px 10px;cursor:pointer;color:var(--text3)">✕ Tout vider</button>':''}
-      </div>
-      <label class="frigo-strict-label" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);padding:6px 0;cursor:pointer">
-        <input type="checkbox" id="frigo-strict-cb" ${S.frigo_strict?"checked":""} onchange="S.frigo_strict=this.checked;renderMain();updateCount()" style="accent-color:var(--gold-l);cursor:pointer">
+      <label class="frigo-strict-label">
+        <input type="checkbox" id="frigo-strict-cb" ${S.frigo_strict?"checked":""} onchange="S.frigo_strict=this.checked;renderMain();updateCount()">
         <span>Je n'ai <strong>QUE</strong> ces ingrédients</span>
-      </label
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div class="frigo-tags">${tags}${S.frigo_ings.length?`<button class="frigo-clear" onclick="clearIngs()">Tout effacer</button>`:""}</div>
+      </label>
+      ${S.frigo_ings.length?`
+      <div class="frigo-tags-row">
+        <div class="frigo-tags">${tags}</div>
+        <button class="frigo-clear" onclick="clearIngs()" aria-label="Vider le frigo">✕ Tout vider</button>
+      </div>`:''}
     </div>`;
 }
 function addIng(){var inp=document.getElementById("frigo-input");var raw=inp.value.trim();if(!raw)return;raw.split(/[,\n]+/).map(function(s){return s.trim().toLowerCase();}).filter(Boolean).forEach(function(v){if(!S.frigo_ings.includes(v))S.frigo_ings.push(v);});inp.value="";renderFrigo();renderMain();updateCount();}

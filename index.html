@@ -38,6 +38,41 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script>
+/* ── Protection © Teva L. ─────────────────────────────────────── */
+(function(){
+  console.log('%c◆ Saveur N°5','color:#bf9b30;font-size:28px;font-weight:700;padding:6px 0');
+  console.log('%c© Teva L. — Tous droits réservés.\nApplication protégée. Toute copie ou redistribution est interdite.','color:#888;font-size:12px;line-height:1.7');
+  function _pt(){
+    var t=document.getElementById('protect-toast');
+    if(!t)return;
+    t.style.display='block';
+    clearTimeout(t._tid);
+    t._tid=setTimeout(function(){t.style.display='none';},2400);
+  }
+  document.addEventListener('contextmenu',function(e){
+    var tag=e.target&&e.target.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+    e.preventDefault(); _pt();
+  });
+  document.addEventListener('keydown',function(e){
+    var c=e.ctrlKey||e.metaKey;
+    if(e.key==='F12'
+      ||(c&&e.shiftKey&&'IJCijc'.includes(e.key))
+      ||(c&&'uUsS'.includes(e.key))){
+      e.preventDefault(); _pt();
+    }
+  });
+  var _dt=false;
+  setInterval(function(){
+    var open=(window.outerWidth-window.innerWidth>160)||(window.outerHeight-window.innerHeight>160);
+    if(open===_dt)return;
+    _dt=open;
+    var b=document.getElementById('devtools-banner');
+    if(b)b.style.display=open?'block':'none';
+  },700);
+})();
+</script>
 </head>
 <body>
 <div class="offline-banner" id="offline-banner">
@@ -140,6 +175,27 @@
     <button class="focus-nav-btn focus-prev" id="focus-prev-btn" onclick="focusPrev()" aria-label="Étape précédente">← Précédent</button>
     <button class="focus-speak-btn" id="focus-speak-btn" onclick="focusSpeak()" aria-label="Lire à voix haute" title="Sous-Chef Vocal">🔊</button>
     <button class="focus-nav-btn focus-next" id="focus-next-btn" onclick="focusNext()" aria-label="Étape suivante">Suivant →</button>
+  </div>
+</div>
+
+<!-- Crédit permanent -->
+<div class="credit-badge">© Teva L.</div>
+
+<!-- Toast protection (clic droit / raccourcis) -->
+<div id="protect-toast">🔒 Application protégée — © Teva L.</div>
+
+<!-- Bannière détection DevTools -->
+<div id="devtools-banner">🔒 Code source protégé · © Teva L. — Tous droits réservés</div>
+
+<!-- Changelog — s'affiche au premier lancement après chaque MAJ -->
+<div id="changelog-overlay" role="dialog" aria-modal="true" aria-label="Nouveautés de la mise à jour">
+  <div class="changelog-modal">
+    <div class="changelog-modal-header">
+      <span class="changelog-gem">◆</span>
+      <span class="changelog-app-name">Saveur N°5</span>
+    </div>
+    <div id="changelog-body"></div>
+    <button class="changelog-btn" onclick="closeChangelog()">Découvrir →</button>
   </div>
 </div>
 

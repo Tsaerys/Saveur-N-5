@@ -1,4 +1,24 @@
 // Saveur N°5 — Orchestration (v18)
+// ── VERSION (à incrémenter à chaque déploiement) ──────────────────────────
+var _SN5_VER = 'v18';
+var _SN5_LOG = [
+  {
+    v: 'v18', date: 'Avril 2025', titre: 'Grande mise à jour',
+    items: [
+      '🎠 Carrousel Hélice 3D — navigation en spirale',
+      '✨ Tilt 3D et spotlight doré sur les cartes',
+      '🔄 Transitions de page fluides (View Transitions API)',
+      '🌊 Ripple + boutons magnétiques',
+      '🔊 Sous-Chef Vocal — lecture étape par étape',
+      '🔪 Mode Focus — cuisine plein écran',
+      '🦐 Filtres Sans fruits de mer & Sans poissons',
+      '📸 Photo personnalisée par recette',
+      '🔗 Mode Partage — lien direct vers une recette',
+      '🍃 Accueil saisonnier intelligent',
+      '♿ Accessibilité ARIA enrichie sur tous les contrôles',
+    ]
+  }
+];
 
 // ── Mode Partage (détecté avant init) ────────────────────────────────────
 (function(){
@@ -52,6 +72,7 @@ function init(){
   _initMagnetic();
   _initRipple();
   render();
+  setTimeout(checkChangelog, 500);
 }
 
 window.addEventListener('hashchange', () => {
@@ -312,9 +333,7 @@ function getSeasonalRecipes(){
 function renderSeasonal(){
   var zone=document.getElementById('seasonal-zone');
   if(!zone)return;
-  var f=S.filters;
-  var hasFilter=f.co||f.cat||f.diff||f.time||f.q||f.regime||f.qual||f.rayon||S.frigo_active;
-  if(S.view!=='browse'||hasFilter){zone.innerHTML='';return;}
+  if(S.view!=='browse'||hasAnyFilter(true)){zone.innerHTML='';return;}
   var m=new Date().getMonth();
   var data=SEASON_DATA[m];
   var recs=getSeasonalRecipes();
@@ -337,10 +356,41 @@ function renderSeasonal(){
     +'</div>';
 }
 
+// ── CHANGELOG ─────────────────────────────────────────────────────────────
+function checkChangelog(){
+  try{
+    var seen=lsGet('sn5_version_seen','');
+    if(seen===_SN5_VER) return;
+    lsSet('sn5_version_seen',_SN5_VER);
+    var entry=_SN5_LOG.find(function(e){ return e.v===_SN5_VER; });
+    if(!entry) return;
+    var body=document.getElementById('changelog-body');
+    if(!body) return;
+    body.innerHTML=
+      '<div class="changelog-version-tag">'+entry.v+' · '+entry.date+'</div>'
+      +'<div class="changelog-titre">'+entry.titre+'</div>'
+      +'<ul class="changelog-list">'
+      +entry.items.map(function(i){ return '<li>'+i+'</li>'; }).join('')
+      +'</ul>';
+    var ov=document.getElementById('changelog-overlay');
+    if(ov) ov.classList.add('active');
+  }catch(e){}
+}
+
+function closeChangelog(){
+  var ov=document.getElementById('changelog-overlay');
+  if(ov) ov.classList.remove('active');
+}
+
 // ── EFFETS VISUELS AVANCÉS ────────────────────────────────────────────────
+
+/* Détection tactile (calculée une seule fois) */
+var _isTouch = window.matchMedia('(hover:none)').matches;
 
 /* ─ Tilt 3D + Spotlight (event delegation, rAF-throttlé) ─ */
 function _initCardEffects(){
+  if(_isTouch) return;
+
   var _spotCard=null, _spotRect=null;
   var _rafId=null, _mx=0, _my=0, _ac=null;
 
@@ -395,6 +445,9 @@ function _initCardEffects(){
 
 /* ─ Boutons Magnétiques (nav buttons) ─ */
 function _initMagnetic(){
+  // mouseleave ne se déclenche pas correctement sur tactile
+  if(_isTouch) return;
+
   document.querySelectorAll('.nav-btn').forEach(function(btn){
     btn.addEventListener('mouseenter',function(){ btn.style.transition='none'; });
     btn.addEventListener('mousemove',function(e){
@@ -420,7 +473,7 @@ function _initRipple(){
     var btn=e.target.closest?e.target.closest(SEL):null;
     if(!btn) return;
     var r=btn.getBoundingClientRect();
-    var sz=Math.max(r.width,r.height)*2.6;
+    var sz=Math.min(Math.max(r.width,r.height)*2.0, 180);
     var sp=document.createElement('span');
     sp.className='ripple';
     sp.style.cssText='width:'+sz+'px;height:'+sz+'px;'
@@ -626,9 +679,7 @@ function renderHelix(){
   if(!zone) return;
 
   /* Masquer si filtres actifs ou vue différente */
-  var f    = S.filters;
-  var busy = f.co || f.cat || f.diff || f.time || f.q || f.regime || f.qual || f.rayon || S.frigo_active;
-  if(S.view !== 'browse' || busy){
+  if(S.view !== 'browse' || hasAnyFilter(true)){
     if(_hlxLive){ _hlxStop(); zone.innerHTML = ''; }
     return;
   }

@@ -189,6 +189,12 @@ function _filteredKey(){
   }
 }
 
+/* Renvoie true si au moins un filtre est actif (includeFrigo = inclure le mode frigo) */
+function hasAnyFilter(includeFrigo){
+  var f=S.filters;
+  return !!(f.co||f.cat||f.diff||f.time||f.q||f.regime||f.qual||f.rayon||(includeFrigo&&S.frigo_active));
+}
+
 function filtered(){
   const k=_filteredKey();
   if(_filteredMemo.has(k))return _filteredMemo.get(k);
