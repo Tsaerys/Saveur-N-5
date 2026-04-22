@@ -43,6 +43,15 @@
 (function(){
   console.log('%c◆ Saveur N°5','color:#bf9b30;font-size:28px;font-weight:700;padding:6px 0');
   console.log('%c© Teva L. — Tous droits réservés.\nApplication protégée. Toute copie ou redistribution est interdite.','color:#888;font-size:12px;line-height:1.7');
+  // Mode dev : activable via ?dev=1 (persisté), désactivable via ?dev=0
+  try{
+    var qs=new URLSearchParams(window.location.search);
+    if(qs.get('dev')==='1'){localStorage.setItem('sn5_dev','1');console.log('%c[DEV MODE ACTIVÉ]','color:#0a0;font-weight:700');}
+    else if(qs.get('dev')==='0'){localStorage.removeItem('sn5_dev');console.log('%c[DEV MODE DÉSACTIVÉ]','color:#a00;font-weight:700');}
+  }catch(e){}
+  var DEV=false;
+  try{DEV=localStorage.getItem('sn5_dev')==='1';}catch(e){}
+  if(DEV){console.log('%c🔓 Protection désactivée — F12/DevTools autorisés. ?dev=0 pour réactiver.','color:#0a0;font-size:12px');return;}
   function _pt(){
     var t=document.getElementById('protect-toast');
     if(!t)return;

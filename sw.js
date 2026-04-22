@@ -1,7 +1,7 @@
 // Saveur N°5 — Service Worker
 // Cache l'app shell pour le mode hors ligne
 
-const CACHE_NAME = 'saveur-n5-v18';
+const CACHE_NAME = 'saveur-n5-v19';
 const APP_SHELL = [
   './',
   './index.html',
@@ -76,23 +76,42 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // App shell → Cache First
+  // index.html → Network First : les mises à jour de l'app sont immédiates si en ligne
+  const accept = event.request.headers.get('accept') || '';
+  const isHtml = accept.includes('text/html') || url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
+  if (isHtml) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request).then(r => r || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // App shell (JS/CSS/images) → Cache First
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Mettre en cache les nouvelles ressources statiques
         if (response.status === 200 && event.request.method === 'GET') {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
         }
         return response;
       }).catch(() => {
-        // Fallback hors ligne pour les pages HTML
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('./index.html');
-        }
+        if (accept.includes('text/html')) return caches.match('./index.html');
       });
     })
   );
+});
+
+// Message handler : permet au client de forcer l'activation immédiate du nouveau SW
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

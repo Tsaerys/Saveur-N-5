@@ -1161,6 +1161,16 @@ function renderSettings(){
         </div>
       </div>
 
+      <div class="detail-card" style="margin-bottom:14px">
+        <div class="setting-section-head">🔄 Maintenance</div>
+        <div class="setting-section-body">
+          <p class="setting-desc">Forcez le téléchargement de la toute dernière version de l'app (vide le cache hors-ligne et recharge).</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="act-btn" onclick="forceUpdate()">🔄 Forcer la mise à jour</button>
+          </div>
+        </div>
+      </div>
+
       <div class="detail-card">
         <div class="setting-section-head">ℹ️ À propos</div>
         <div class="setting-section-body">

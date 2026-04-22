@@ -117,6 +117,24 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Force mise à jour : vide tous les caches, désenregistre le SW, recharge (contourne le cache SW cache-first)
+function forceUpdate(){
+  if(typeof toast==='function')toast('🔄 Mise à jour en cours…',4000);
+  var tasks=[];
+  if('caches' in window){
+    tasks.push(caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}));
+  }
+  if('serviceWorker' in navigator){
+    tasks.push(navigator.serviceWorker.getRegistrations().then(function(regs){return Promise.all(regs.map(function(r){return r.unregister();}));}));
+  }
+  Promise.all(tasks).catch(function(){}).then(function(){
+    // Cache-bust le reload pour forcer le navigateur à refetch index.html depuis le réseau
+    var u=new URL(window.location.href);
+    u.searchParams.set('_v',Date.now());
+    window.location.replace(u.toString());
+  });
+}
+
 // ── PHOTO UPLOAD ─────────────────────────────────────────────────────────
 function uploadRecipePhoto(id){
   var input=document.createElement('input');
