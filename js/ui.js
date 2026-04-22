@@ -790,7 +790,6 @@ function renderMenuResult(){
       </div>
     </div>`;
   }).join("");
-  // Ajouter une barre d'actions globale
   var actions='<div class="menu-actions-bar"><button class="act-btn" onclick="addAllMenuToCourses()">🛒 Tout ajouter aux courses</button><button class="act-btn" onclick="generateMenu()">🔄 Régénérer</button></div>';
   document.getElementById("menu-result").innerHTML=actions+html;
 }
@@ -866,7 +865,6 @@ function renderFavs(q){
 function renderCourses(){
   const {cartRecs,groups,order}=buildCoursesAgg();
   const main=document.getElementById("main");
-  // Pills regroupées par catégorie : ordre préféré, puis les autres cats par ordre alpha
   var pillGroups={};
   RECIPES.forEach(function(r){(pillGroups[r.cat]=pillGroups[r.cat]||[]).push(r);});
   var preferred=["Entrée","Plat","Dessert","Sauce / Base","Accompagnement","Soupe","Assaisonnement","Entremet"];
@@ -958,21 +956,6 @@ function clearAllChecked(){
 }
 
 // ── EXPORT COURSES : COPIE / PARTAGE / TÉLÉCHARGEMENT ─────────────────────
-// Format "simple" (1 item par ligne, sans cases ni rayons) : idéal pour AnyList / Bring
-function buildCoursesTextSimple(){
-  var agg=buildCoursesAgg();
-  if(!agg.cartRecs.length)return "";
-  var lines=[];
-  agg.order.forEach(function(rayon){
-    var items=agg.groups[rayon];
-    if(!items||!items.length)return;
-    items.forEach(function(item){
-      var qty=item.unit==='qs'?'q.s.':fmtQty(item.qty,item.unit);
-      lines.push(item.nom+(qty?' ('+qty+')':''));
-    });
-  });
-  return lines.join('\n');
-}
 function _copyToClipboard(txt,okMsg){
   if(navigator.clipboard&&window.isSecureContext){
     navigator.clipboard.writeText(txt).then(function(){toast(okMsg||'📋 Copié !',2500,'success');}).catch(function(){_fallbackCopy(txt,okMsg);});
@@ -986,12 +969,12 @@ function exportCoursesText(){
   _copyToClipboard(txt,'📋 Liste copiée !');
 }
 function shareCoursesText(){
-  var txt=buildCoursesTextSimple();
+  // Format "plain" (1 item/ligne) : directement collable dans AnyList / Bring
+  var txt=buildCoursesText({plain:true});
   if(!txt)return toast('Liste vide');
   if(navigator.share){
     navigator.share({title:'Ma liste de courses',text:txt}).catch(function(){});
   }else{
-    // Fallback : copie au format "simple" compatible AnyList/Bring (à coller dans l'app)
     _copyToClipboard(txt,'📋 Copié (format AnyList/Bring)');
   }
 }

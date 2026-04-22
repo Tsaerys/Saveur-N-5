@@ -314,17 +314,22 @@ function buildCoursesAgg(){
   return{cartRecs:cartRecs,groups:groups,order:RAYON_ORDER};
 }
 
-function buildCoursesText(){
-  var agg=buildCoursesAgg();var lines=['🛒 Ma liste de courses — Saveur N°5',''];
+// opts.plain=true → format sans en-tête/rayons/cases (idéal AnyList / Bring)
+function buildCoursesText(opts){
+  var plain=opts&&opts.plain;
+  var agg=buildCoursesAgg();
+  if(plain&&!agg.cartRecs.length)return "";
+  var lines=plain?[]:['🛒 Ma liste de courses — Saveur N°5',''];
   agg.order.forEach(function(rayon){
     var items=agg.groups[rayon];
     if(!items||!items.length)return;
-    lines.push('── '+rayon+' ──');
+    if(!plain)lines.push('── '+rayon+' ──');
     items.forEach(function(item){
       var qty=item.unit==='qs'?'q.s.':fmtQty(item.qty,item.unit);
-      lines.push((CHECKED_ITEMS[item.nom]?'[x] ':'[ ] ')+item.nom+(qty?' ('+qty+')':''));
+      var line=item.nom+(qty?' ('+qty+')':'');
+      lines.push(plain?line:((CHECKED_ITEMS[item.nom]?'[x] ':'[ ] ')+line));
     });
-    lines.push('');
+    if(!plain)lines.push('');
   });
   return lines.join('\n');
 }
