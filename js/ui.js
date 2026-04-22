@@ -718,17 +718,41 @@ if(S.timer_interval){clearInterval(S.timer_interval);S.timer_interval=null;}S.ti
 
 // ── MENU DE LA SEMAINE ────────────────────────────────────────────────────
 function renderMenuView(){
+  var hist=loadMenuHistory();
+  var histHtml='';
+  if(hist.length){
+    histHtml='<div class="menu-history"><div class="menu-history-title">📜 Menus récents</div><div class="menu-history-list">'
+      +hist.map(function(h,i){
+        var d=new Date(h.date);
+        var dateStr=d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+        return'<div class="menu-history-item">'
+          +'<div class="mh-info"><div class="mh-date">'+dateStr+'</div>'
+          +'<div class="mh-lbl">'+(h.occLbl||h.occ||'')+' · '+h.days+'j · '+h.pers+' pers.</div></div>'
+          +'<button class="act-btn mh-restore" onclick="restoreMenuFromHistory('+i+')">↻ Restaurer</button>'
+          +'<button class="mh-del" onclick="deleteMenuHistory('+i+')" aria-label="Supprimer">✕</button>'
+          +'</div>';
+      }).join('')
+      +'</div></div>';
+  }
   document.getElementById("main").innerHTML=`
     <div class="menu-wrap">
       <div class="page-title">📅 Menu de la semaine</div>
       <div class="page-sub">Générez un menu équilibré et sa liste de courses en un clic</div>
       <div class="menu-config">
         <div class="config-grp"><label>Personnes</label><input type="number" id="cfg-pers" value="4" min="1" max="20"></div>
-        <div class="config-grp"><label>Occasion</label><select id="cfg-occ"><option value="famille">Repas en famille</option><option value="diner">Dîner entre amis</option><option value="romantique">Dîner romantique</option><option value="grande">Grande occasion</option></select></div>
+        <div class="config-grp"><label>Occasion</label><select id="cfg-occ">
+          <option value="rapide">⏱ Quotidien rapide</option>
+          <option value="famille" selected>👨‍👩‍👧 Repas en famille</option>
+          <option value="batch">🥘 Batch cooking</option>
+          <option value="diner">🍷 Dîner entre amis</option>
+          <option value="romantique">💞 Dîner romantique</option>
+          <option value="grande">🎉 Grande occasion</option>
+        </select></div>
         <div class="config-grp"><label>Régime</label><select id="cfg-regime"><option value="">Aucun</option><option value="vege">Végétarien</option><option value="gluten">Sans gluten</option><option value="lactose">Sans lactose</option><option value="seafood">Sans fruits de mer</option><option value="fish">Sans poissons</option></select></div>
-        <div class="config-grp"><label>Jours</label><select id="cfg-jours"><option value="5">5 jours</option><option value="7" selected>7 jours</option></select></div>
+        <div class="config-grp"><label>Jours</label><select id="cfg-jours"><option value="3">3 jours</option><option value="5">5 jours</option><option value="7" selected>7 jours</option></select></div>
         <button class="btn-gen-menu" onclick="generateMenu()">✨ Générer le menu</button>
       </div>
+      ${histHtml}
       <div id="menu-result"></div>
     </div>`;
   if(MENU_DATA)renderMenuResult();
@@ -737,15 +761,21 @@ function renderMenuView(){
 function renderMenuResult(){
   if(!MENU_DATA){document.getElementById("menu-result").innerHTML="";return;}
   const html=MENU_DATA.jours.map((j,ji)=>{
-    const slots=[["Entrée",j.entree],["Plat",j.plat],["Dessert",j.dessert]];
-    const allInCart=slots.every(([,r])=>CART.has(r.id));
+    // Slots réellement présents (entrée et dessert sont optionnels selon l'occasion)
+    var slots=[];
+    if(j.entree) slots.push(["Entrée",j.entree,"entree"]);
+    slots.push(["Plat",j.plat,"plat"]);
+    if(j.dessert) slots.push(["Dessert",j.dessert,"dessert"]);
+    const allInCart=slots.every(function(s){return CART.has(s[1].id);});
     return`<div class="menu-day">
       <div class="menu-day-hdr">
         <div class="menu-day-title">${j.day}</div>
         <button class="menu-courses-btn${allInCart?" added":""}" onclick="addMenuToCourses(${ji})">${allInCart?"✓ Dans les courses":"🛒 Ajouter aux courses"}</button>
       </div>
       <div>
-        ${slots.map(([type,r])=>`
+        ${slots.map(function(s){
+          var type=s[0],r=s[1],field=s[2];
+          return`
           <div class="menu-slot">
             <span class="menu-slot-type">${type}</span>
             <div class="menu-slot-recipe" onclick="openRecipe('${r.id}')">
@@ -755,19 +785,35 @@ function renderMenuResult(){
                 <div class="menu-slot-meta">${r.chef.split(' ').slice(-1)[0]} · ${totTime(r)} min · diff ${r.diff}/5</div>
               </div>
             </div>
-            <button class="menu-slot-change" onclick="changeMenuSlot(${ji},'${type.toLowerCase()}','${type}')">↺</button>
-          </div>`).join("")}
+            <button class="menu-slot-change" onclick="changeMenuSlot(${ji},'${field}','${type}')" aria-label="Changer de ${type.toLowerCase()}">↺</button>
+          </div>`;}).join("")}
       </div>
     </div>`;
   }).join("");
-  document.getElementById("menu-result").innerHTML=html;
+  // Ajouter une barre d'actions globale
+  var actions='<div class="menu-actions-bar"><button class="act-btn" onclick="addAllMenuToCourses()">🛒 Tout ajouter aux courses</button><button class="act-btn" onclick="generateMenu()">🔄 Régénérer</button></div>';
+  document.getElementById("menu-result").innerHTML=actions+html;
 }
 
-function addMenuToCourses(ji){const j=MENU_DATA.jours[ji];[j.entree,j.plat,j.dessert].forEach(r=>CART.add(r.id));saveCart();updateBadges();toast("🛒 Ajouté aux courses");renderMenuResult();}
+function addMenuToCourses(ji){
+  const j=MENU_DATA.jours[ji];
+  [j.entree,j.plat,j.dessert].filter(Boolean).forEach(function(r){CART.add(r.id);});
+  saveCart();updateBadges();toast("🛒 Ajouté aux courses");renderMenuResult();
+}
+function addAllMenuToCourses(){
+  if(!MENU_DATA||!MENU_DATA.jours)return;
+  var n=0;
+  MENU_DATA.jours.forEach(function(j){
+    [j.entree,j.plat,j.dessert].filter(Boolean).forEach(function(r){if(!CART.has(r.id)){CART.add(r.id);n++;}});
+  });
+  saveCart();updateBadges();
+  toast(n?"🛒 "+n+" recette"+(n>1?"s":"")+" ajoutée"+(n>1?"s":""):"Tout était déjà dans les courses",2500);
+  renderMenuResult();
+}
 function changeMenuSlot(ji,field,type){
   const current=MENU_DATA.jours[ji][field];
   const usedIds=new Set(MENU_DATA.jours.flatMap(j=>[j.entree?.id,j.plat?.id,j.dessert?.id]).filter(Boolean));
-  usedIds.delete(current.id);
+  if(current)usedIds.delete(current.id);
   const avail=RECIPES.filter(r=>r.cat===type&&!usedIds.has(r.id));
   if(!avail.length)return;
   MENU_DATA.jours[ji][field]=avail[Math.floor(Math.random()*avail.length)];
@@ -820,7 +866,21 @@ function renderFavs(q){
 function renderCourses(){
   const {cartRecs,groups,order}=buildCoursesAgg();
   const main=document.getElementById("main");
-  const pills=RECIPES.map(r=>{const sel=CART.has(r.id);const col=CAT_COLORS[r.cat]||"#9a6f2a";return`<div class="cs-pill${sel?" selected":""}" onclick="toggleCartFromCourses('${r.id}')"><span class="cs-dot" style="background:${col}"></span>${r.nom}</div>`;}).join("");
+  // Pills regroupées par catégorie : ordre préféré, puis les autres cats par ordre alpha
+  var pillGroups={};
+  RECIPES.forEach(function(r){(pillGroups[r.cat]=pillGroups[r.cat]||[]).push(r);});
+  var preferred=["Entrée","Plat","Dessert","Sauce / Base","Accompagnement","Soupe","Assaisonnement","Entremet"];
+  var otherCats=Object.keys(pillGroups).filter(function(c){return preferred.indexOf(c)<0;}).sort();
+  var catOrder=preferred.filter(function(c){return pillGroups[c];}).concat(otherCats);
+  var pillsHtml=catOrder.map(function(cat){
+    var col=CAT_COLORS[cat]||"#9a6f2a";
+    var list=pillGroups[cat].slice().sort(function(a,b){return a.nom.localeCompare(b.nom);});
+    var inner=list.map(function(r){
+      var sel=CART.has(r.id);
+      return'<div class="cs-pill'+(sel?' selected':'')+'" onclick="toggleCartFromCourses(\''+r.id+'\')"><span class="cs-dot" style="background:'+col+'"></span>'+r.nom+'</div>';
+    }).join("");
+    return'<div class="cs-pill-group"><div class="cs-pill-cat" style="color:'+col+'">'+cat+'</div><div class="cs-pills">'+inner+'</div></div>';
+  }).join("");
   let html="";
   if(cartRecs.length){
     order.forEach(cat=>{
@@ -846,23 +906,19 @@ function renderCourses(){
   }
   main.innerHTML=`
     <div class="courses-wrap">
-      <div class="page-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>🛒 Liste de courses</span>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span id="courses-count" style="font-size:12px;color:var(--text3);font-weight:400"></span>
-          <button class="btn-export" onclick="clearAllChecked()" style="font-size:12px">☐ Tout décocher</button>
-        </div>
-      </div>
+      <div class="page-title">🛒 Liste de courses</div>
       <input type="text" id="courses-search" placeholder="Rechercher un ingrédient..." oninput="filterCoursesDisplay()" style="width:100%;background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:8px 14px;font-size:13px;font-family:inherit;color:var(--text);outline:none;margin-bottom:12px">
       <div style="font-size:13px;color:var(--text3);margin-bottom:18px">Sélectionnez des recettes — les ingrédients sont consolidés automatiquement</div>
-      <div class="cs-selector"><div class="cs-lbl">Choisir les recettes</div><div class="cs-pills">${pills}</div></div>
+      <div class="cs-selector"><div class="cs-lbl">Choisir les recettes</div>${pillsHtml}</div>
       <div class="courses-card">
         <div class="courses-card-hdr">
-          <span>${cartRecs.length>0?`Ingrédients — ${cartRecs.length} recette${cartRecs.length>1?"s":""}`:""}</span>
+          <span>${cartRecs.length>0?`Ingrédients — ${cartRecs.length} recette${cartRecs.length>1?"s":""}`:""}<span id="courses-count" class="courses-count"></span></span>
           <div class="courses-export-btns">
-            <button class="btn-export" onclick="exportCoursesText()">📋 Copier texte</button>
-            <button class="btn-export" onclick="shareCoursesText()">🔗 Partager</button>
-            <button class="btn-export" onclick="window.print()">🖨 Imprimer</button>
+            <button class="btn-export" onclick="clearAllChecked()" title="Tout décocher">☐ Décocher</button>
+            <button class="btn-export" onclick="exportCoursesText()" title="Copier en presse-papier">📋 Copier</button>
+            <button class="btn-export" onclick="shareCoursesText()" title="Partager / AnyList / Bring">🔗 Partager</button>
+            <button class="btn-export" onclick="downloadCoursesText()" title="Télécharger .txt">⬇ .txt</button>
+            <button class="btn-export" onclick="window.print()" title="Imprimer">🖨</button>
           </div>
         </div>
         ${cartRecs.length>0?html:`<div class="courses-empty">Sélectionnez des recettes ci-dessus pour générer la liste</div>`}
@@ -899,6 +955,57 @@ function clearAllChecked(){
   saveCheckedItems();
   renderCourses();
   toast("Tous les articles ont été décochés");
+}
+
+// ── EXPORT COURSES : COPIE / PARTAGE / TÉLÉCHARGEMENT ─────────────────────
+// Format "simple" (1 item par ligne, sans cases ni rayons) : idéal pour AnyList / Bring
+function buildCoursesTextSimple(){
+  var agg=buildCoursesAgg();
+  if(!agg.cartRecs.length)return "";
+  var lines=[];
+  agg.order.forEach(function(rayon){
+    var items=agg.groups[rayon];
+    if(!items||!items.length)return;
+    items.forEach(function(item){
+      var qty=item.unit==='qs'?'q.s.':fmtQty(item.qty,item.unit);
+      lines.push(item.nom+(qty?' ('+qty+')':''));
+    });
+  });
+  return lines.join('\n');
+}
+function _copyToClipboard(txt,okMsg){
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(function(){toast(okMsg||'📋 Copié !',2500,'success');}).catch(function(){_fallbackCopy(txt,okMsg);});
+  }else{
+    _fallbackCopy(txt,okMsg);
+  }
+}
+function exportCoursesText(){
+  var txt=buildCoursesText();
+  if(!txt)return toast('Liste vide');
+  _copyToClipboard(txt,'📋 Liste copiée !');
+}
+function shareCoursesText(){
+  var txt=buildCoursesTextSimple();
+  if(!txt)return toast('Liste vide');
+  if(navigator.share){
+    navigator.share({title:'Ma liste de courses',text:txt}).catch(function(){});
+  }else{
+    // Fallback : copie au format "simple" compatible AnyList/Bring (à coller dans l'app)
+    _copyToClipboard(txt,'📋 Copié (format AnyList/Bring)');
+  }
+}
+function downloadCoursesText(){
+  var txt=buildCoursesText();
+  if(!txt)return toast('Liste vide');
+  var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='courses-'+new Date().toISOString().slice(0,10)+'.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  toast('⬇ Liste téléchargée');
 }
 
 // ── EXPORT / IMPORT BACKUP ────────────────────────────────────────────────
@@ -964,8 +1071,8 @@ function shareRecipe(id){
   if(navigator.share&&r){
     navigator.share({title:'Saveur N5 - '+r.nom,url:url}).catch(function(){});
   }else if(navigator.clipboard&&window.isSecureContext){
-    navigator.clipboard.writeText(url).then(function(){toast('🔗 Lien copié dans le presse-papiers !',2500,'success');}).catch(function(){_fallbackCopy(url);});
-  }else{_fallbackCopy(url);}
+    navigator.clipboard.writeText(url).then(function(){toast('🔗 Lien copié dans le presse-papiers !',2500,'success');}).catch(function(){_fallbackCopy(url,'🔗 Lien copié dans le presse-papiers !');});
+  }else{_fallbackCopy(url,'🔗 Lien copié dans le presse-papiers !');}
 }
 
 // ── VUE PARAMÈTRES ────────────────────────────────────────────────────────

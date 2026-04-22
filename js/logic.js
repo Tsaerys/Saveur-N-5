@@ -330,25 +330,103 @@ function buildCoursesText(){
 }
 
 // ── MENU : GÉNÉRATION ─────────────────────────────────────────────────────
+// Contraintes par occasion : difficulté max, temps max (min), multi-plats autorisés
+var MENU_OCC_RULES={
+  famille:    {maxDiff:3,maxTime:90,  lbl:"Repas en famille"},
+  diner:      {maxDiff:4,maxTime:120, lbl:"Dîner entre amis"},
+  romantique: {maxDiff:4,maxTime:120, lbl:"Dîner romantique"},
+  grande:     {maxDiff:5,maxTime:240, lbl:"Grande occasion"},
+  rapide:     {maxDiff:3,maxTime:40,  lbl:"Quotidien rapide",noEntree:true,noDessert:true},
+  batch:      {maxDiff:4,maxTime:180, lbl:"Batch cooking",noEntree:true}
+};
+
 function generateMenu(){
   const pers=parseInt(document.getElementById("cfg-pers").value)||4;
   const occ=document.getElementById("cfg-occ").value;
   const regime=document.getElementById("cfg-regime").value;
   const jours=parseInt(document.getElementById("cfg-jours").value)||7;
-  const maxDiff={famille:3,diner:4,romantique:4,grande:5}[occ]||4;
+  var rules=MENU_OCC_RULES[occ]||MENU_OCC_RULES.famille;
+  const maxDiff=rules.maxDiff;
+  const maxTime=rules.maxTime;
   let pool={};
   ["Entrée","Plat","Dessert"].forEach(cat=>{
     pool[cat]=RECIPES.filter(r=>{
-      if(r.cat!==cat)return false;if(r.diff>maxDiff)return false;
+      if(r.cat!==cat)return false;
+      if(r.diff>maxDiff)return false;
+      if(totTime(r)>maxTime)return false;
       if(regime==="vege"&&!isVege(r))return false;if(regime==="gluten"&&!isGlutenFree(r))return false;if(regime==="lactose"&&!isLactoseFree(r))return false;if(regime==="seafood"&&!isSeafoodFree(r))return false;if(regime==="fish"&&!isFishFree(r))return false;
       return true;
     });
   });
   const jrs=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"].slice(0,jours);
   const usedIds=new Set();
-  function pick(cat){const avail=pool[cat].filter(r=>!usedIds.has(r.id));const r=avail.length?avail[Math.floor(Math.random()*avail.length)]:pool[cat][Math.floor(Math.random()*pool[cat].length)];if(r)usedIds.add(r.id);return r;}
-  MENU_DATA={pers,jours:jrs.map(j=>({day:j,entree:pick("Entrée"),plat:pick("Plat"),dessert:pick("Dessert")})).filter(j=>j.entree&&j.plat&&j.dessert)};
+  function pick(cat){
+    const avail=pool[cat].filter(r=>!usedIds.has(r.id));
+    const r=avail.length?avail[Math.floor(Math.random()*avail.length)]:(pool[cat][Math.floor(Math.random()*pool[cat].length)]||null);
+    if(r)usedIds.add(r.id);
+    return r;
+  }
+  MENU_DATA={
+    pers,occ,occLbl:rules.lbl,regime,
+    jours:jrs.map(j=>{
+      var day={day:j,plat:pick("Plat")};
+      if(!rules.noEntree)day.entree=pick("Entrée");
+      if(!rules.noDessert)day.dessert=pick("Dessert");
+      return day;
+    }).filter(j=>j.plat)
+  };
+  saveMenuHistory(MENU_DATA);
   renderMenuResult();
+}
+
+// ── MENU : HISTORIQUE ─────────────────────────────────────────────────────
+function loadMenuHistory(){return lsGet('sn5_menu_history',[])||[];}
+function saveMenuHistory(menu){
+  if(!menu||!menu.jours||!menu.jours.length)return;
+  var hist=loadMenuHistory();
+  var entry={
+    date:new Date().toISOString(),
+    occ:menu.occ,
+    occLbl:menu.occLbl||'',
+    regime:menu.regime||'',
+    pers:menu.pers||4,
+    days:menu.jours.length,
+    // Stocker uniquement les IDs pour rester léger
+    ids:menu.jours.map(function(j){
+      return{
+        day:j.day,
+        entree:j.entree&&j.entree.id,
+        plat:j.plat&&j.plat.id,
+        dessert:j.dessert&&j.dessert.id
+      };
+    })
+  };
+  hist.unshift(entry);
+  if(hist.length>5)hist=hist.slice(0,5);
+  lsSet('sn5_menu_history',hist);
+}
+function restoreMenuFromHistory(idx){
+  var hist=loadMenuHistory();
+  var h=hist[idx];if(!h)return;
+  MENU_DATA={
+    pers:h.pers,occ:h.occ,occLbl:h.occLbl,regime:h.regime,
+    jours:h.ids.map(function(d){
+      return{
+        day:d.day,
+        entree:d.entree?RECIPES.find(function(r){return r.id===d.entree;}):null,
+        plat:d.plat?RECIPES.find(function(r){return r.id===d.plat;}):null,
+        dessert:d.dessert?RECIPES.find(function(r){return r.id===d.dessert;}):null
+      };
+    }).filter(function(j){return j.plat;})
+  };
+  if(typeof renderMenuResult==='function')renderMenuResult();
+  if(typeof toast==='function')toast('📅 Menu restauré',2000);
+}
+function deleteMenuHistory(idx){
+  var hist=loadMenuHistory();
+  hist.splice(idx,1);
+  lsSet('sn5_menu_history',hist);
+  if(typeof renderMenuView==='function')renderMenuView();
 }
 
 // ── VARIANTES ─────────────────────────────────────────────────────────────
@@ -411,11 +489,11 @@ function _timerAlertSound(){
   }catch(e){}
 }
 
-function _fallbackCopy(text){
+function _fallbackCopy(text,okMsg){
   var ta=document.createElement('textarea');
   ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
   document.body.appendChild(ta);ta.focus();ta.select();
-  try{document.execCommand('copy');toast('🔗 Lien copié dans le presse-papiers !',2500,'success');}
-  catch(e){toast('URL : '+text,5000);}
+  try{document.execCommand('copy');toast(okMsg||'📋 Copié !',2500,'success');}
+  catch(e){toast('⚠ Impossible de copier',2500);}
   document.body.removeChild(ta);
 }
