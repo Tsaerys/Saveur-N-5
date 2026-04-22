@@ -195,6 +195,28 @@ function hasAnyFilter(includeFrigo){
   return !!(f.co||f.cat||f.diff||f.time||f.q||f.regime||f.qual||f.rayon||(includeFrigo&&S.frigo_active));
 }
 
+/* Réinitialise tous les filtres (hors frigo) */
+function clearAllFilters(){
+  S.filters.co="";S.filters.cat="";S.filters.diff="";S.filters.time="";
+  S.filters.q="";S.filters.regime="";S.filters.qual="";S.filters.rayon="";
+  S.filters.sort="";
+  var qi=document.getElementById('qi');if(qi)qi.value="";
+  renderFilters();renderMain();updateCount();
+}
+
+/* Tri post-filtrage — ne modifie pas le tableau d'origine */
+function sortRecipes(recs){
+  var s=S.filters.sort||"";
+  if(!s)return recs;
+  var arr=recs.slice();
+  if(s==="nom")arr.sort(function(a,b){return a.nom.localeCompare(b.nom,'fr');});
+  else if(s==="time")arr.sort(function(a,b){return totTime(a)-totTime(b);});
+  else if(s==="diff")arr.sort(function(a,b){return a.diff-b.diff;});
+  else if(s==="rate")arr.sort(function(a,b){return (RATINGS[b.id]||0)-(RATINGS[a.id]||0);});
+  else if(s==="qual")arr.sort(function(a,b){return (b.qual||0)-(a.qual||0);});
+  return arr;
+}
+
 function filtered(){
   const k=_filteredKey();
   if(_filteredMemo.has(k))return _filteredMemo.get(k);

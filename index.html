@@ -84,7 +84,7 @@
     <span class="gem">◆</span> Saveur N°5
   </div>
   <button id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Basculer thème clair/sombre" title="Thème clair/sombre">🌙</button>
-  <div class="topbar-search" id="search-zone" style="display:none">
+  <div class="topbar-search" id="search-zone">
     <span class="si" aria-hidden="true">⌕</span>
     <input type="text" id="qi" placeholder="Plat, chef, ingrédient…" aria-label="Rechercher une recette">
     <button class="voice-btn" id="voice-btn"
@@ -114,6 +114,7 @@
     <button class="nav-btn" id="nav-frigo" onclick="toggleFrigo()"
       aria-label="Filtrer par ingrédients du frigo">
       <span aria-hidden="true">🧊</span><span class="nav-lbl"> Frigo</span>
+      <span class="badge" id="frigo-badge" style="display:none" aria-live="polite">0</span>
     </button>
     <button class="nav-btn" id="nav-settings" onclick="setView('settings')"
       aria-label="Paramètres, sauvegarde et statistiques">
@@ -186,6 +187,25 @@
 
 <!-- Bannière détection DevTools -->
 <div id="devtools-banner">🔒 Code source protégé · © Teva L. — Tous droits réservés</div>
+
+<!-- Raccourcis clavier (overlay — touche ?) -->
+<div id="shortcuts-overlay" role="dialog" aria-modal="true" aria-label="Raccourcis clavier">
+  <div class="shortcuts-modal">
+    <h2>⌨️ Raccourcis clavier</h2>
+    <div class="shortcuts-row"><span>Rechercher</span><span class="shortcuts-keys"><kbd>/</kbd></span></div>
+    <div class="shortcuts-row"><span>Recettes</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>R</kbd></span></div>
+    <div class="shortcuts-row"><span>Favoris</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>F</kbd></span></div>
+    <div class="shortcuts-row"><span>Courses</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>C</kbd></span></div>
+    <div class="shortcuts-row"><span>Menu</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>M</kbd></span></div>
+    <div class="shortcuts-row"><span>Recette aléatoire</span><span class="shortcuts-keys"><kbd>R</kbd></span></div>
+    <div class="shortcuts-row"><span>Retour</span><span class="shortcuts-keys"><kbd>Esc</kbd></span></div>
+    <div class="shortcuts-row"><span>Étape suivante (Focus)</span><span class="shortcuts-keys"><kbd>→</kbd></span></div>
+    <div class="shortcuts-row"><span>Lire à voix haute</span><span class="shortcuts-keys"><kbd>Espace</kbd></span></div>
+    <div class="shortcuts-row"><span>Thème clair/sombre</span><span class="shortcuts-keys"><kbd>T</kbd></span></div>
+    <div class="shortcuts-row"><span>Afficher cette aide</span><span class="shortcuts-keys"><kbd>?</kbd></span></div>
+    <button class="shortcuts-close" onclick="hideShortcuts()">Fermer</button>
+  </div>
+</div>
 
 <!-- Changelog — s'affiche au premier lancement après chaque MAJ -->
 <div id="changelog-overlay" role="dialog" aria-modal="true" aria-label="Nouveautés de la mise à jour">

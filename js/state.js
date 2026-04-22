@@ -18,6 +18,38 @@ const RAYON_MAP={
   "Divers":["sel","poivre","épice","bouquet garni","noix de muscade","cannelle","cumin","curcuma","safran","paprika","piment","genévrier","clou de girofle","herbes","qs","quantité suffisante"]
 };
 const CAT_COLORS={Entrée:"#1a5a9a",Plat:"#9a1a1a",Dessert:"#1a6a1a","Sauce / Base":"#8a6010"};
+// Teintes par cuisine — accent discret sur les cartes pour différencier les pays
+const COUNTRY_COLORS={
+  "France":"#1f5aa8",
+  "Italie":"#2a8a3b",
+  "Grèce":"#0b6ec8",
+  "Espagne":"#e8a814",
+  "Asie":"#b72a1f",
+  "États-Unis":"#2b4f9a",
+  "Mexique":"#cc5a1a",
+  "Maroc":"#8a3a1a",
+  "Liban":"#2a8862",
+  "Portugal":"#206a3a",
+  "Scandinavie":"#4b7ca8",
+  "Allemagne":"#3a3a3a",
+  "Royaume-Uni":"#8a1a2a",
+  "Argentine":"#4fa0d8",
+  "Moyen-Orient":"#a06a1a",
+  "Tunisie":"#c04040",
+  "Éthiopie":"#c07020",
+  "Pérou":"#b02a2a",
+  "Brésil":"#3aa06a",
+  "Amérique du Sud":"#7a4a10",
+  "Cuba":"#c09020",
+  "Caraïbes":"#2aa0a0",
+  "Pologne":"#a02a3a",
+  "Hongrie":"#a06030",
+  "Europe Centrale":"#3a5a8a",
+  "Afrique":"#b07030",
+  "Sénégal":"#5aa050",
+  "Canada":"#c0402a",
+  "Turquie":"#8a2020"
+};
 const PHOTO_EMOJIS={"Entrée":"🥗","Plat":"🍽","Dessert":"🍰","Sauce / Base":"🫙"};
 const UNIT_DEC=["g","cl","ml","kg","L"];
 const UNIT_HALF=["pièces","pièce","cs","cc","gousses","gousse","feuilles","feuille","branches","branche","tiges","tranche","tranches","pincée","bouquet","cm"];
@@ -30,7 +62,9 @@ const REGIME_KW={
 
 // ── STATE APPLICATIF ───────────────────────────────────────────────────────
 var _wakeLock=null;
-let S={view:"browse",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:""},frigo_active:false,frigo_ings:[],frigo_strict:false,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null};
+// Restauration du frigo depuis localStorage (persistence session)
+var _frigoSaved=(function(){try{return JSON.parse(localStorage.getItem('sn5_frigo'))||{};}catch{return{};}})();
+let S={view:"browse",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid')};
 
 // ── MINUTEUR FLOTTANT (état) ────────────────────────────────────────────────
 let FT={interval:null,remaining:0,running:false,label:""};
@@ -58,6 +92,8 @@ const saveCart=()=>lsSet("gc",[...CART]);
 const saveNotes=()=>lsSet("gn",NOTES);
 const saveRatings=()=>lsSet("gr2",RATINGS);
 const saveRecent=()=>lsSet("grec",RECENT);
+const saveFrigo=()=>lsSet("sn5_frigo",{ings:S.frigo_ings,strict:S.frigo_strict});
+const saveViewMode=()=>lsSet("sn5_viewmode",S.view_mode);
 function getLastBackup(){var d=lsGet("sn5_bk",null);if(!d)return null;return new Date(d);}
 function saveUserRecipes(){lsSet('sn5_user_recipes',USER_RECIPES);}
 

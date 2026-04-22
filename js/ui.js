@@ -62,9 +62,10 @@ function toast(msg,dur,type){
 }
 
 function updateBadges(){
-  const fb=document.getElementById("fav-badge"),cb=document.getElementById("cart-badge");
+  const fb=document.getElementById("fav-badge"),cb=document.getElementById("cart-badge"),gb=document.getElementById("frigo-badge");
   if(FAVS.size){fb.style.display="flex";fb.textContent=FAVS.size;}else fb.style.display="none";
   if(CART.size){cb.style.display="flex";cb.textContent=CART.size;}else cb.style.display="none";
+  if(gb){if(S.frigo_ings&&S.frigo_ings.length){gb.style.display="flex";gb.textContent=S.frigo_ings.length;}else gb.style.display="none";}
 }
 
 function rateRecipe(id,n){
@@ -127,11 +128,23 @@ function setView(v){
   const sz=document.getElementById("search-zone");
   const fz=document.getElementById("filters-zone");
   const rz=document.getElementById("recent-zone");
-  if(v==="browse"){sz.style.display="";fz.style.display="";rz.style.display="";renderFilters();renderRecent();renderMain();}
-  else{sz.style.display="none";fz.style.display="none";rz.style.display="none";
+  // Search toujours visible sur les vues principales (browse + favs), masqué ailleurs
+  var showSearch=(v==="browse"||v==="favs");
+  sz.style.display=showSearch?"":"none";
+  if(v==="browse"){fz.style.display="";rz.style.display="";renderFilters();renderRecent();renderMain();}
+  else{fz.style.display="none";rz.style.display="none";
     if(v==="favs")renderFavs();else if(v==="courses")renderCourses();else if(v==="menu")renderMenuView();else if(v==="settings")renderSettings();
   else if(v==="create")renderCreateRecipe();
   else if(v==="edit"&&S._editId)renderCreateRecipe(S._editId);}
+  // Rebind le champ de recherche global pour qu'il route correctement selon la vue
+  var qi=document.getElementById("qi");
+  if(qi){
+    qi.oninput=debounce(function(e){
+      var val=e.target.value;
+      if(S.view==="favs"){renderFavs(val);}
+      else{S.filters.q=val;if(S.view!=="browse"){setView("browse");}else{renderMain();updateCount();}}
+    },300);
+  }
 }
 function toggleFrigo(){
   S.frigo_active=!S.frigo_active;
@@ -153,7 +166,7 @@ function startVoice(){
 
 // ── FILTRES RENDER ────────────────────────────────────────────────────────
 function renderFilters(){
-  var f=S.filters;var co=f.co,cat=f.cat,diff=f.diff,time=f.time,regime=f.regime,qual=f.qual,rayon=f.rayon;
+  var f=S.filters;var co=f.co,cat=f.cat,diff=f.diff,time=f.time,regime=f.regime,qual=f.qual,rayon=f.rayon,sort=f.sort||"";
   var hasFilter=hasAnyFilter(false);
   if(hasFilter) _filtersOpen=true;
   var countsByCo={};RECIPES.forEach(function(r){countsByCo[r.co]=(countsByCo[r.co]||0)+1;});
@@ -163,6 +176,7 @@ function renderFilters(){
   const timeOpts=[["30","−30 min"],["60","−1 h"],["120","−2 h"]].map(([v,l])=>`<option value="${v}"${time===v?" selected":""}>${l}</option>`).join("");
   const qualOpts=[1,2,3,4,5].map(d=>`<option value="${d}"${qual==d?" selected":""}>${d} — ${QUAL_LABELS[d]||""}</option>`).join("");
   const rayonOpts=RAYON_ORDER.map(r=>`<option value="${r}"${rayon===r?" selected":""}>${r}</option>`).join("");
+  const sortOpts=[["nom","A → Z"],["time","⏱ Plus rapide"],["diff","⭐ Plus facile"],["qual","🏆 Meilleure qualité"],["rate","★ Ma note"]].map(([v,l])=>`<option value="${v}"${sort===v?" selected":""}>${l}</option>`).join("");
   const ratedCount=Object.keys(RATINGS).filter(id=>RATINGS[id]>0).length;
   const n=filtered().length;
   var summaryParts=[];
@@ -174,9 +188,14 @@ function renderFilters(){
   var summaryTxt = summaryParts.length ? summaryParts.join(' · ') : (n+' recette'+(n>1?'s':''));
   var openClass = _filtersOpen ? ' open' : '';
   var hasClass  = hasFilter ? ' has-filter' : '';
+  var clearBtn  = hasFilter ? `<button class="filters-clear-btn" onclick="clearAllFilters()" aria-label="Effacer tous les filtres">✕ Tout effacer</button>` : '';
+  var vm=S.view_mode||'grid';
   document.getElementById("filters-zone").innerHTML=`
     <div class="filters-toggle-row">
       <span class="filters-summary">${summaryTxt}</span>
+      ${clearBtn}
+      <button class="view-mode-btn${vm==='grid'?' active':''}" onclick="setViewMode('grid')" aria-label="Vue grille" aria-pressed="${vm==='grid'}" title="Vue grille">▦</button>
+      <button class="view-mode-btn${vm==='list'?' active':''}" onclick="setViewMode('list')" aria-label="Vue liste" aria-pressed="${vm==='list'}" title="Vue liste">☰</button>
       <button class="filters-toggle-btn${openClass}${hasClass}" onclick="toggleFilters()" aria-expanded="${_filtersOpen}" aria-label="Afficher ou masquer les filtres">
         🔍 Filtres <span class="filters-toggle-chevron">▼</span>
       </button>
@@ -189,6 +208,7 @@ function renderFilters(){
         <div class="filter-grp"><label>Temps</label><select id="ftime"><option value="">Tout</option>${timeOpts}</select></div>
         <div class="filter-grp"><label>Qualité</label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
         <div class="filter-grp"><label>Rayon</label><select id="frayon"><option value="">Tous</option>${rayonOpts}</select></div>
+        <div class="filter-grp"><label>Trier par</label><select id="fsort"><option value="">Pertinence</option>${sortOpts}</select></div>
         <div class="regime-filters">
           <button class="regime-btn${regime==="vege"?" active":""}" aria-pressed="${regime==="vege"}" onclick="setRegime('vege')">🌿 Végétarien</button>
           <button class="regime-btn${regime==="gluten"?" active":""}" aria-pressed="${regime==="gluten"}" onclick="setRegime('gluten')">🌾 Sans gluten</button>
@@ -200,31 +220,61 @@ function renderFilters(){
         <div class="filter-count">${n} recette${n>1?"s":""}</div>
       </div>
     </div>`;
-  document.getElementById("fco").onchange=e=>{S.filters.co=e.target.value;renderMain();updateCount();};
-  document.getElementById("fcat").onchange=e=>{S.filters.cat=e.target.value;renderMain();updateCount();};
-  document.getElementById("fdiff").onchange=e=>{S.filters.diff=e.target.value;renderMain();updateCount();};
-  document.getElementById("ftime").onchange=e=>{S.filters.time=e.target.value;renderMain();updateCount();};
-  document.getElementById("fqual").onchange=e=>{S.filters.qual=e.target.value;renderMain();updateCount();};
-  document.getElementById("frayon").onchange=e=>{S.filters.rayon=e.target.value;renderMain();updateCount();};
+  document.getElementById("fco").onchange=e=>{S.filters.co=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("fcat").onchange=e=>{S.filters.cat=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("fdiff").onchange=e=>{S.filters.diff=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("ftime").onchange=e=>{S.filters.time=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("fqual").onchange=e=>{S.filters.qual=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("frayon").onchange=e=>{S.filters.rayon=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("fsort").onchange=e=>{S.filters.sort=e.target.value;renderMain();};
   document.getElementById("qi").oninput=debounce(e=>{S.filters.q=e.target.value;renderMain();updateCount();},300);
+}
+
+function setViewMode(m){
+  S.view_mode=m;
+  saveViewMode();
+  renderFilters();
+  renderMain();
 }
 function setRegime(r){S.filters.regime=S.filters.regime===r?"":r;renderFilters();renderMain();}
 function updateCount(){const el=document.querySelector(".filter-count");if(!el)return;let recs=filtered();if(S.filters.regime==="rated")recs=recs.filter(r=>(RATINGS[r.id]||0)>0);const n=recs.length;el.textContent=`${n} recette${n>1?"s":""}`;}
 
 // ── FRIGO ─────────────────────────────────────────────────────────────────
+// Cache du datalist (construit une fois)
+var _frigoSuggestions=null;
+function _buildFrigoSuggestions(){
+  if(_frigoSuggestions)return _frigoSuggestions;
+  var set=new Set();
+  // Mots-clés de RAYON_MAP (déjà normalisés)
+  Object.keys(RAYON_MAP).forEach(function(r){
+    RAYON_MAP[r].forEach(function(k){set.add(k.toLowerCase());});
+  });
+  // Noms d'ingrédients de toutes les recettes (mot principal)
+  RECIPES.forEach(function(r){
+    (r.ig||[]).forEach(function(ig){
+      var n=(ig[0]||'').toLowerCase().trim();
+      if(n&&n.length<=30&&!/\d/.test(n))set.add(n);
+    });
+  });
+  _frigoSuggestions=Array.from(set).sort();
+  return _frigoSuggestions;
+}
+
 function renderFrigo(){
   const tags=S.frigo_ings.map((ing,i)=>`<span class="frigo-tag">${ing}<button aria-label="Retirer ${ing}" onclick="removeIng(${i})">×</button></span>`).join("");
+  var opts=_buildFrigoSuggestions().map(function(s){return'<option value="'+s.replace(/"/g,'&quot;')+'">';}).join('');
   document.getElementById("frigo-zone").innerHTML=`
     <div class="frigo-bar">
       <div class="frigo-row-top">
         <span class="frigo-title">🧊 Mon frigo</span>
         <div class="frigo-input-wrap">
-          <input type="text" id="frigo-input" placeholder="agneau, tomates… (virgule ou Entrée)" onkeydown="if(event.key==='Enter')addIng()" aria-label="Ajouter un ingrédient">
+          <input type="text" id="frigo-input" list="frigo-ing-list" placeholder="agneau, tomates… (virgule ou Entrée)" onkeydown="if(event.key==='Enter')addIng()" aria-label="Ajouter un ingrédient" autocomplete="off">
+          <datalist id="frigo-ing-list">${opts}</datalist>
           <button class="btn-add-ing" onclick="addIng()">Ajouter</button>
         </div>
       </div>
       <label class="frigo-strict-label">
-        <input type="checkbox" id="frigo-strict-cb" ${S.frigo_strict?"checked":""} onchange="S.frigo_strict=this.checked;renderMain();updateCount()">
+        <input type="checkbox" id="frigo-strict-cb" ${S.frigo_strict?"checked":""} onchange="S.frigo_strict=this.checked;saveFrigo();renderMain();updateCount()">
         <span>Je n'ai <strong>QUE</strong> ces ingrédients</span>
       </label>
       ${S.frigo_ings.length?`
@@ -234,9 +284,9 @@ function renderFrigo(){
       </div>`:''}
     </div>`;
 }
-function addIng(){var inp=document.getElementById("frigo-input");var raw=inp.value.trim();if(!raw)return;raw.split(/[,\n]+/).map(function(s){return s.trim().toLowerCase();}).filter(Boolean).forEach(function(v){if(!S.frigo_ings.includes(v))S.frigo_ings.push(v);});inp.value="";renderFrigo();renderMain();updateCount();}
-function removeIng(i){S.frigo_ings.splice(i,1);renderFrigo();renderMain();updateCount();}
-function clearIngs(){S.frigo_ings=[];renderFrigo();renderMain();updateCount();}
+function addIng(){var inp=document.getElementById("frigo-input");var raw=inp.value.trim();if(!raw)return;raw.split(/[,\n]+/).map(function(s){return s.trim().toLowerCase();}).filter(Boolean).forEach(function(v){if(!S.frigo_ings.includes(v))S.frigo_ings.push(v);});inp.value="";saveFrigo();renderFrigo();renderMain();updateCount();updateBadges();}
+function removeIng(i){S.frigo_ings.splice(i,1);saveFrigo();renderFrigo();renderMain();updateCount();updateBadges();}
+function clearIngs(){S.frigo_ings=[];saveFrigo();renderFrigo();renderMain();updateCount();updateBadges();}
 
 // ── PHOTO HELPERS ─────────────────────────────────────────────────────────
 var _PH='images/placeholder.webp';
@@ -320,10 +370,11 @@ function renderMain(){
 
   let recs=filtered();
   if(S.filters.regime==="rated")recs=recs.filter(r=>(RATINGS[r.id]||0)>0);
+  recs=sortRecipes(recs);
 
   // reset pagination if filters changed
   var k;
-  try{k=JSON.stringify({f:S.filters,fr:S.frigo_active?{a:1,ings:S.frigo_ings,strict:S.frigo_strict}:null});}catch{k="x";}
+  try{k=JSON.stringify({f:S.filters,fr:S.frigo_active?{a:1,ings:S.frigo_ings,strict:S.frigo_strict}:null,vm:S.view_mode});}catch{k="x";}
   if(k!==_sn5MainLastKey){_sn5MainLastKey=k;_sn5MainLimit=20;}
   const main=document.getElementById("main");
   var bkc=lsGet("sn5_bkc",0)+1;lsSet("sn5_bkc",bkc);
@@ -334,14 +385,36 @@ function renderMain(){
     return;
   }
   const viewRecs=recs.slice(0,_sn5MainLimit);
+  var isList=(S.view_mode==='list');
   const cards=viewRecs.map(r=>{
     const isFav=FAVS.has(r.id),inCart=CART.has(r.id);
+    const rating=RATINGS[r.id]||0;
+    const coCol=COUNTRY_COLORS[r.co]||"#9a6f2a";
+    if(isList){
+      // Format liste compact : photo miniature + infos linéaires
+      return`<div class="list-card" role="article" aria-label="${r.nom}" data-id="${r.id}" style="--co-accent:${coCol}">
+        ${buildCardPhoto(r).replace('class="card-photo"','class="list-card-photo"')}
+        <div class="list-card-body">
+          <div class="list-card-top">
+            <span class="cat-badge cat-${catClass(r.cat)}">${r.cat}</span>
+            <span class="list-card-co"><span class="card-co-dot" style="background:${coCol}"></span>${FLAGS[r.co]||""} ${r.co}</span>
+            ${rating?`<span class="card-rate-sum">★ ${rating}/5</span>`:""}
+          </div>
+          <div class="list-card-nom">${r.nom}</div>
+          <div class="list-card-meta">${r.chef} · ⏲ ${totTime(r)} min · ${diffLabel(r.diff)} · ${r.bp} pers.</div>
+        </div>
+        <div class="list-card-actions">
+          <button class="card-fav-btn${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
+          <button class="card-cart-btn${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
+        </div>
+      </div>`;
+    }
     let matchExtra="";
     if(S.frigo_active&&r._match!==undefined){const pct=Math.round(r._mr*100);matchExtra=`<div class="match-strip"><div class="match-fill" style="width:${pct}%"></div></div><div class="match-label">${r._match}/${S.frigo_ings.length} ingr. correspondant${r._match>1?"s":""}</div>`;}
-    const rating=RATINGS[r.id]||0;
     const ratingHtml=`<div class="card-rating" role="group" aria-label="Ma note" data-id="${r.id}">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" role="button" tabindex="0" aria-label="${i} étoile${i>1?'s':''}" aria-pressed="${i<=rating}" onclick="event.stopPropagation();rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>`;
     const qlbl=r.qual?`<span class="qual-pill" style="border-color:${QUAL_COLORS[r.qual]||"#aaa"};color:${QUAL_COLORS[r.qual]||"#aaa"}">${QUAL_LABELS[r.qual]||""}</span>`:"";
-    return`<div class="card" role="article" aria-label="${r.nom}" data-id="${r.id}">
+    const ratingFoot=rating?`<span class="card-rate-sum">★ ${rating}/5</span>`:"";
+    return`<div class="card" role="article" aria-label="${r.nom}" data-id="${r.id}" style="--co-accent:${coCol}">
       ${buildCardPhoto(r)}
       <button class="card-fav-btn${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
       <button class="card-cart-btn${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
@@ -362,14 +435,15 @@ function renderMain(){
           <div class="meta-item"><strong>${r.bp}</strong> pers.</div>
           <div class="meta-item meta-diff-${r.diff}">${diffLabel(r.diff)}</div>
         </div>
-        <div class="card-foot">${FLAGS[r.co]||""} ${r.co} ${rating?`· ${"★".repeat(rating)}`:""}</div>
+        <div class="card-foot"><span class="card-co"><span class="card-co-dot" style="background:${coCol}"></span>${FLAGS[r.co]||""} ${r.co}</span> ${ratingFoot}</div>
         ${matchExtra}
       </div>
     </div>`;
   }).join("");
   const more=recs.length>_sn5MainLimit;
-  main.innerHTML=`<div class="main-content"><div class="grid">${cards}</div>${more?'<div id="sn5-sentinel" style="height:1px"></div>':''}</div>`;
-  document.querySelectorAll(".card[data-id]").forEach(c=>c.onclick=()=>openRecipe(c.dataset.id));
+  var wrapCls=isList?'list':'grid';
+  main.innerHTML=`<div class="main-content"><div class="${wrapCls}">${cards}</div>${more?'<div id="sn5-sentinel" style="height:1px"></div>':''}</div>`;
+  document.querySelectorAll(".card[data-id],.list-card[data-id]").forEach(c=>c.onclick=()=>openRecipe(c.dataset.id));
 
   if(more){
     if(!_sn5MainObserver){
@@ -392,6 +466,16 @@ function renderMain(){
   clearTimeout(loaderTid);
   _sn5MainBusy=false;
   _sn5HideLoader();
+}
+
+// ── RECETTE ALÉATOIRE ("Surprise") ────────────────────────────────────────
+function openRandom(){
+  // Utilise la liste filtrée pour proposer une recette cohérente avec le contexte
+  var pool=filtered();
+  if(S.filters.regime==="rated")pool=pool.filter(function(r){return (RATINGS[r.id]||0)>0;});
+  if(!pool||!pool.length)pool=RECIPES;
+  var r=pool[Math.floor(Math.random()*pool.length)];
+  if(r)openRecipe(r.id);
 }
 
 // ── DETAIL ────────────────────────────────────────────────────────────────
@@ -529,6 +613,11 @@ function goBack(){
   document.getElementById("recent-zone").style.display="";
   document.getElementById("nav-browse").classList.add("active");
   renderFilters();renderRecent();renderMain();updateCount();
+  // Restore search input binding for browse view
+  var qi=document.getElementById("qi");
+  if(qi){
+    qi.oninput=debounce(function(e){S.filters.q=e.target.value;renderMain();updateCount();},300);
+  }
 }
 function toggleFav(id){
   if(FAVS.has(id)){FAVS.delete(id);toast("Retiré des favoris");}else{FAVS.add(id);toast("♥ Ajouté aux favoris");}
@@ -697,11 +786,22 @@ function renderFavs(q){
   var main=document.getElementById("main");
   var searchBar=`<div style="padding:12px 16px 0"><input type="text" value="${q}" placeholder="Rechercher dans mes favoris…" oninput="renderFavs(this.value)" style="width:100%;background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:8px 14px;font-size:13px;font-family:inherit;color:var(--text);outline:none"></div>`;
   if(!favRecs.length){
-    main.innerHTML=searchBar+`<div class="empty"><div class="empty-ico">♡</div><p style="font-size:15px;margin-bottom:6px">${FAVS.size?"Aucun résultat":"Aucun favori pour le moment"}</p><small style="font-size:13px;color:var(--text4)">${FAVS.size?"Essayez un autre terme":"Cliquez ♡ sur une carte pour ajouter ici"}</small></div>`;
+    var emptyBody=FAVS.size
+      ? `<p style="font-size:15px;margin-bottom:6px">Aucun résultat</p><small style="font-size:13px;color:var(--text4)">Essayez un autre terme de recherche</small>`
+      : `<p style="font-size:17px;margin-bottom:10px;color:var(--text2)">Aucun favori pour le moment</p>
+         <p style="font-size:13px;color:var(--text4);max-width:340px;margin:0 auto 18px auto;line-height:1.5">Cliquez sur ♡ sur n'importe quelle recette pour la sauvegarder ici. Vos favoris sont synchronisés entre tous les appareils via la sauvegarde.</p>
+         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+           <button class="act-btn" onclick="setView('browse')">🍽 Parcourir les recettes</button>
+           <button class="act-btn" onclick="openRandom()">🎲 Surprise</button>
+         </div>`;
+    main.innerHTML=searchBar+`<div class="empty"><div class="empty-ico">♡</div>${emptyBody}</div>`;
     return;
   }
-  const cards=favRecs.map(r=>`
-    <div class="card" data-id="${r.id}">
+  const cards=favRecs.map(r=>{
+    var coCol=COUNTRY_COLORS[r.co]||"#9a6f2a";
+    var rt=RATINGS[r.id]||0;
+    return`
+    <div class="card" data-id="${r.id}" style="--co-accent:${coCol}">
       ${buildCardPhoto(r)}
       <button class="card-fav-btn active" onclick="event.stopPropagation();toggleFav('${r.id}')">♥</button>
       <div class="card-body">
@@ -709,9 +809,9 @@ function renderFavs(q){
         <div class="card-nom">${r.nom}</div>
         <div class="card-chef">${r.chef}</div>
         <div class="card-meta"><div class="meta-item"><strong>${totTime(r)}</strong> min</div><div class="meta-item"><strong>${r.bp}</strong> pers.</div><div class="meta-item meta-diff-${r.diff}">${diffLabel(r.diff)}</div></div>
-        <div class="card-foot">${FLAGS[r.co]||""} ${r.co} ${RATINGS[r.id]?`· ${"★".repeat(RATINGS[r.id])}`:""}</div>
+        <div class="card-foot"><span class="card-co"><span class="card-co-dot" style="background:${coCol}"></span>${FLAGS[r.co]||""} ${r.co}</span> ${rt?`<span class="card-rate-sum">★ ${rt}/5</span>`:""}</div>
       </div>
-    </div>`).join("");
+    </div>`;}).join("");
   main.innerHTML=`<div class="page-header"><div class="page-title">Mes favoris</div><div style="font-size:13px;color:var(--text3);margin-bottom:20px">${favRecs.length} recette${favRecs.length>1?"s":""} sauvegardée${favRecs.length>1?"s":""}</div></div><div style="padding:0 20px"><div class="grid">${cards}</div></div>`;
   document.querySelectorAll(".card[data-id]").forEach(c=>c.onclick=()=>openRecipe(c.dataset.id));
 }
@@ -868,11 +968,11 @@ function shareRecipe(id){
   }else{_fallbackCopy(url);}
 }
 
-// ── VUE PARAMETRES ────────────────────────────────────────────────────────
+// ── VUE PARAMÈTRES ────────────────────────────────────────────────────────
 function renderSettings(){
   var lastBk=lsGet('sn5_bk',null);
   var lastBkStr=lastBk
-    ?new Date(lastBk).toLocaleDateString('fr-FR')+' a '+new Date(lastBk).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
+    ?new Date(lastBk).toLocaleDateString('fr-FR')+' à '+new Date(lastBk).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
     :'Jamais';
   var byCountry={};var byCat={};
   RECIPES.forEach(function(r){
@@ -884,38 +984,138 @@ function renderSettings(){
   var catPills=Object.keys(byCat).map(function(c){
     return'<span class="cat-badge cat-'+catClass(c)+'">'+c+' <strong>'+byCat[c]+'</strong></span>';
   }).join(' ');
+
+  // Statistiques personnelles
+  var ratedCount=Object.keys(RATINGS).filter(function(k){return RATINGS[k]>0;}).length;
+  var avgRating=0;
+  if(ratedCount){
+    var sum=0;Object.keys(RATINGS).forEach(function(k){if(RATINGS[k]>0)sum+=RATINGS[k];});
+    avgRating=(sum/ratedCount).toFixed(1);
+  }
+  var notesCount=Object.keys(NOTES).filter(function(k){return NOTES[k]&&NOTES[k].trim();}).length;
+  var viewsCount=lsGet('sn5_bkc',0);
+  var customCount=USER_RECIPES.length;
+
+  // Préférence auto-save
+  var autoBkOn=lsGet('sn5_autobk',false);
+
   document.getElementById('main').innerHTML=`
     <div style="max-width:600px;margin:0 auto;padding:24px 20px">
-      <div class="page-title" style="margin-bottom:20px">Parametres</div>
+      <div class="page-title" style="margin-bottom:20px">⚙️ Paramètres</div>
+
       <div class="detail-card" style="margin-bottom:14px">
-        <div class="setting-section-head">Sauvegarde des donnees</div>
+        <div class="setting-section-head">📊 Mes statistiques</div>
         <div class="setting-section-body">
-          <p class="setting-desc">Exporte favoris, notes, evaluations et historique. Restaure sur n'importe quel appareil.</p>
-          <div class="setting-last-backup">Derniere sauvegarde : <strong>${lastBkStr}</strong></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-            <button class="act-btn" onclick="exportBackup()">Exporter</button>
-            <button class="act-btn" onclick="importBackup()">Restaurer</button>
+          <div class="stats-grid">
+            <div class="stat-tile"><div class="stat-num">${FAVS.size}</div><div class="stat-lbl">Favoris</div></div>
+            <div class="stat-tile"><div class="stat-num">${ratedCount}</div><div class="stat-lbl">Notées</div></div>
+            <div class="stat-tile"><div class="stat-num">${avgRating||'—'}</div><div class="stat-lbl">Note moyenne</div></div>
+            <div class="stat-tile"><div class="stat-num">${notesCount}</div><div class="stat-lbl">Mémos</div></div>
+            <div class="stat-tile"><div class="stat-num">${CART.size}</div><div class="stat-lbl">Panier</div></div>
+            <div class="stat-tile"><div class="stat-num">${customCount}</div><div class="stat-lbl">Mes recettes</div></div>
           </div>
         </div>
       </div>
+
       <div class="detail-card" style="margin-bottom:14px">
-        <div class="setting-section-head">Catalogue des recettes</div>
+        <div class="setting-section-head">💾 Sauvegarde des données</div>
         <div class="setting-section-body">
-          <p class="setting-desc">${RECIPES.length} recettes au total.</p>
+          <p class="setting-desc">Exporte favoris, notes, évaluations et historique. Restaure sur n'importe quel appareil.</p>
+          <div class="setting-last-backup">Dernière sauvegarde : <strong>${lastBkStr}</strong></div>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:13px;color:var(--text2)">
+            <input type="checkbox" id="auto-bk-cb" ${autoBkOn?'checked':''} onchange="toggleAutoBackup(this.checked)" style="accent-color:var(--gold-l)">
+            <span>Rappel auto de sauvegarde (hebdomadaire)</span>
+          </label>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-            <button class="act-btn" onclick="exportCatalogue('csv')">CSV</button>
-            <button class="act-btn" onclick="exportCatalogue('json')">JSON</button>
+            <button class="act-btn" onclick="exportBackup()">📤 Exporter</button>
+            <button class="act-btn" onclick="importBackup()">📥 Restaurer</button>
           </div>
         </div>
       </div>
-      <div class="detail-card">
-        <div class="setting-section-head">Statistiques</div>
+
+      <div class="detail-card" style="margin-bottom:14px">
+        <div class="setting-section-head">🎨 Apparence</div>
+        <div class="setting-section-body">
+          <p class="setting-desc">Thème clair ou sombre. Le thème système est utilisé par défaut.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="act-btn" onclick="toggleTheme()">🌓 Basculer thème</button>
+            <button class="act-btn" onclick="resetTheme()">↺ Réinitialiser</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card" style="margin-bottom:14px">
+        <div class="setting-section-head">📚 Catalogue des recettes</div>
+        <div class="setting-section-body">
+          <p class="setting-desc">${RECIPES.length} recettes au total (dont ${customCount} personnelle${customCount>1?'s':''}).</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="act-btn" onclick="exportCatalogue('csv')">📄 CSV</button>
+            <button class="act-btn" onclick="exportCatalogue('json')">🗂 JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card" style="margin-bottom:14px">
+        <div class="setting-section-head">🌍 Répartition par pays</div>
         <div class="setting-section-body">
           <div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px">${catPills}</div>
           ${countryRows}
         </div>
       </div>
+
+      <div class="detail-card" style="margin-bottom:14px">
+        <div class="setting-section-head">⌨️ Raccourcis clavier</div>
+        <div class="setting-section-body">
+          <p class="setting-desc">Appuyez sur <kbd>?</kbd> n'importe où dans l'app pour afficher l'aide rapide.</p>
+          <button class="act-btn" onclick="showShortcuts()">Voir les raccourcis</button>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <div class="setting-section-head">ℹ️ À propos</div>
+        <div class="setting-section-body">
+          <p class="setting-desc" style="margin-bottom:8px"><strong>Saveur N°5</strong> — Base de recettes gastronomiques.</p>
+          <p class="setting-desc" style="margin-bottom:8px">Version ${_SN5_VER||'—'} · ${RECIPES.length} recettes · Mode hors-ligne</p>
+          <p class="setting-desc" style="margin-bottom:8px">Conçu et développé par <strong>Teva L.</strong></p>
+          <p class="setting-desc" style="margin-bottom:8px;font-size:12px;color:var(--text4)">Aucune publicité, aucun tracking, aucune collecte de données. Toutes vos données restent sur votre appareil.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="act-btn" onclick="showChangelog()">📋 Nouveautés</button>
+          </div>
+        </div>
+      </div>
     </div>`;
+}
+
+function toggleAutoBackup(on){
+  lsSet('sn5_autobk',on);
+  toast(on?'✅ Rappel hebdomadaire activé':'Rappel désactivé',2200);
+}
+
+function resetTheme(){
+  lsSet('sn5_theme',null);
+  localStorage.removeItem('sn5_theme');
+  document.documentElement.removeAttribute('data-theme');
+  if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches){
+    document.documentElement.setAttribute('data-theme','dark');
+  }
+  _updateThemeBtn();
+  toast('Thème système restauré',2000);
+}
+
+function showChangelog(){
+  var entry=_SN5_LOG.find(function(e){return e.v===_SN5_VER;});
+  if(!entry){toast('Aucun historique',1800);return;}
+  var body=document.getElementById('changelog-body');
+  if(body){
+    body.innerHTML=
+      '<div class="changelog-version-tag">'+entry.v+' · '+entry.date+'</div>'
+      +'<div class="changelog-titre">'+entry.titre+'</div>'
+      +'<ul class="changelog-list">'
+      +entry.items.map(function(i){return'<li>'+i+'</li>';}).join('')
+      +'</ul>';
+  }
+  var ov=document.getElementById('changelog-overlay');
+  if(ov)ov.classList.add('active');
 }
 
 // ── THEME CLAIR / SOMBRE ──────────────────────────────────────────────────

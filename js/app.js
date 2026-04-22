@@ -71,7 +71,16 @@ function init(){
   _initCardEffects();
   _initMagnetic();
   _initRipple();
+  _initKeyboardShortcuts();
   render();
+
+  // Si le frigo contient des ingrédients sauvegardés, réactiver la zone
+  if(S.frigo_ings&&S.frigo_ings.length){
+    S.frigo_active=true;
+    var nf=document.getElementById('nav-frigo');if(nf)nf.classList.add('active');
+    var fz=document.getElementById('frigo-zone');if(fz){fz.style.display='';renderFrigo();}
+  }
+
   setTimeout(checkChangelog, 500);
 }
 
@@ -462,6 +471,73 @@ function _initMagnetic(){
       setTimeout(function(){ btn.style.transition=''; },400);
     });
   });
+}
+
+/* ─ Raccourcis clavier globaux ─ */
+function showShortcuts(){var ov=document.getElementById('shortcuts-overlay');if(ov)ov.classList.add('active');}
+function hideShortcuts(){var ov=document.getElementById('shortcuts-overlay');if(ov)ov.classList.remove('active');}
+
+function _initKeyboardShortcuts(){
+  var _gPressed=false; var _gTimer=null;
+  document.addEventListener('keydown',function(e){
+    // Ignorer si on tape dans un champ
+    var t=e.target;
+    var inField=t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable);
+    // Ignorer si overlay modal ouvert (sauf Esc pour le fermer)
+    var anyModalOpen=document.querySelector('#focus-overlay.active,#shortcuts-overlay.active,#changelog-overlay.active');
+
+    if(e.key==='Escape'){
+      if(anyModalOpen){
+        document.querySelectorAll('#shortcuts-overlay.active,#changelog-overlay.active').forEach(function(o){o.classList.remove('active');});
+        return;
+      }
+      if(S.view==='recipe'){goBack();return;}
+    }
+
+    if(inField){
+      // En champ : laisser passer Escape pour blur
+      if(e.key==='Escape')t.blur();
+      return;
+    }
+    if(anyModalOpen)return;
+
+    // Touche "?" (Shift+/ sur AZERTY/QWERTY FR) affiche les raccourcis
+    if(e.key==='?'||(e.shiftKey&&e.key==='/')){ e.preventDefault(); showShortcuts(); return; }
+
+    // "/" met le focus sur la recherche
+    if(e.key==='/'&&!e.shiftKey){
+      var qi=document.getElementById('qi');
+      if(qi){e.preventDefault();qi.focus();qi.select&&qi.select();}
+      return;
+    }
+
+    // "r" : recette aléatoire
+    if(e.key==='r'||e.key==='R'){ if(typeof openRandom==='function'){e.preventDefault();openRandom();} return; }
+    // "t" : thème
+    if(e.key==='t'||e.key==='T'){ if(typeof toggleTheme==='function'){e.preventDefault();toggleTheme();} return; }
+
+    // Mode Gmail-like : "g" puis lettre
+    if(e.key==='g'||e.key==='G'){
+      _gPressed=true;
+      clearTimeout(_gTimer);
+      _gTimer=setTimeout(function(){_gPressed=false;},1200);
+      return;
+    }
+    if(_gPressed){
+      _gPressed=false;clearTimeout(_gTimer);
+      if(e.key==='r'||e.key==='R'){e.preventDefault();setView('browse');}
+      else if(e.key==='f'||e.key==='F'){e.preventDefault();setView('favs');}
+      else if(e.key==='c'||e.key==='C'){e.preventDefault();setView('courses');}
+      else if(e.key==='m'||e.key==='M'){e.preventDefault();setView('menu');}
+      else if(e.key==='s'||e.key==='S'){e.preventDefault();setView('settings');}
+    }
+  });
+
+  // Fermer overlay shortcuts au clic extérieur
+  var ov=document.getElementById('shortcuts-overlay');
+  if(ov){
+    ov.addEventListener('click',function(e){if(e.target===ov)hideShortcuts();});
+  }
 }
 
 /* ─ Ripple au clic ─ */

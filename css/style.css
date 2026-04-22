@@ -113,7 +113,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .card-meta{display:flex;gap:14px;padding-top:10px;border-top:1px solid var(--bord)}
 .meta-item{font-size:12px;color:var(--text3)}
 .meta-item strong{color:var(--text2);font-weight:600}
-.card-foot{font-size:11px;color:var(--text4);margin-top:6px;display:flex;align-items:center;justify-content:space-between}
+.card-foot{font-size:11px;color:var(--text4);margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card-co{display:inline-flex;align-items:center;gap:5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-co-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1.5px rgba(255,255,255,.55)}
+.card-rate-sum{color:var(--gold);font-weight:600;flex-shrink:0;font-size:11px}
+/* Accent coloré discret sur la carte selon le pays */
+.card{position:relative}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--co-accent,transparent);z-index:2;border-radius:var(--rx) var(--rx) 0 0;opacity:.85}
 .match-strip{height:3px;background:var(--bord);border-radius:2px;margin-top:10px;overflow:hidden}
 .match-fill{height:100%;background:var(--gold-l);border-radius:2px;transition:width .3s}
 .match-label{font-size:11px;color:var(--gold);margin-top:4px;font-weight:500}
@@ -903,10 +909,249 @@ body {
     max-height: 2000px; /* assez grand pour n'importe quel contenu futur */
   }
 }
-/* Desktop: toggle masqué */
+/* Desktop: le bouton toggle + le résumé sont masqués mais la row reste visible pour clear/view-mode */
 @media (min-width: 640px) {
-  .filters-toggle-row { display: none; }
+  .filters-toggle-btn { display: none; }
+  .filters-summary { display: none; }
 }
+
+/* Bouton "Tout effacer" visible quand des filtres sont actifs */
+.filters-clear-btn {
+  background: transparent;
+  border: 1.5px solid var(--bord);
+  border-radius: var(--rx);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.filters-clear-btn:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+  background: rgba(192,57,43,.08);
+}
+
+/* Bouton bascule grille/liste */
+.view-mode-btn {
+  background: var(--bg3);
+  border: 1.5px solid var(--bord);
+  border-radius: var(--rx);
+  padding: 5px 10px;
+  font-size: 14px;
+  color: var(--text3);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color .15s, color .15s, background .15s;
+  line-height: 1;
+  min-height: 32px;
+}
+.view-mode-btn.active {
+  background: var(--gold-faint);
+  border-color: var(--gold-l);
+  color: var(--gold);
+}
+.view-mode-btn:hover { border-color: var(--gold-l); color: var(--gold); }
+
+/* ── VUE LISTE ── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.list-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg);
+  border: 1.5px solid var(--bord);
+  border-radius: var(--rx);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+  position: relative;
+  gap: 0;
+}
+.list-card::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--co-accent, transparent);
+  opacity: .9;
+}
+.list-card:hover {
+  border-color: var(--gold-l);
+  box-shadow: 0 3px 14px rgba(80,60,30,.1);
+  transform: translateY(-1px);
+}
+.list-card-photo {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.list-card-body {
+  flex: 1;
+  padding: 10px 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.list-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text4);
+  flex-wrap: wrap;
+}
+.list-card-co {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.list-card-nom {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.25;
+}
+.list-card-meta {
+  font-size: 12px;
+  color: var(--text3);
+}
+.list-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  flex-shrink: 0;
+}
+.list-card-actions .card-fav-btn,
+.list-card-actions .card-cart-btn {
+  position: static;
+  width: 34px;
+  height: 34px;
+}
+@media (max-width: 540px) {
+  .list-card-photo { width: 72px; height: 72px; }
+  .list-card-nom { font-size: 15px; }
+  .list-card-body { padding: 8px 10px; }
+  .list-card-meta { font-size: 11px; }
+  .list-card-actions { padding: 6px 6px; }
+  .list-card-actions .card-fav-btn,
+  .list-card-actions .card-cart-btn { width: 30px; height: 30px; font-size: 13px; }
+}
+
+/* ── Tiles statistiques (paramètres) ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+}
+.stat-tile {
+  background: var(--bg3);
+  border: 1px solid var(--bord);
+  border-radius: var(--rx);
+  padding: 12px 8px;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gold);
+  line-height: 1.1;
+}
+.stat-lbl {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* ── Raccourcis clavier (overlay + dans paramètres) ── */
+kbd {
+  display: inline-block;
+  background: var(--bg3);
+  border: 1px solid var(--bord);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: var(--text2);
+  box-shadow: 0 1px 0 var(--bord);
+  min-width: 20px;
+  text-align: center;
+}
+#shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40,30,15,.55);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+#shortcuts-overlay.active { display: flex; }
+.shortcuts-modal {
+  background: var(--bg);
+  border-radius: 12px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px 22px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.3);
+  -webkit-overflow-scrolling: touch;
+}
+.shortcuts-modal h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 14px 0;
+}
+.shortcuts-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bord);
+  font-size: 13px;
+  color: var(--text2);
+  gap: 12px;
+}
+.shortcuts-row:last-child { border-bottom: none; }
+.shortcuts-keys { display: flex; gap: 4px; flex-shrink: 0; }
+.shortcuts-close {
+  margin-top: 14px;
+  width: 100%;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: var(--rx);
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.shortcuts-close:hover { background: var(--gold-l); }
 
 /* ═══════════════════════════════════════════════════════
    SAVEUR N°5 v14 — Formulaire Créer Recette
