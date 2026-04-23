@@ -979,8 +979,6 @@ function renderCourses(){
     <div class="courses-wrap">
       <div class="page-title">🛒 Liste de courses</div>
       <input type="text" id="courses-search" placeholder="Rechercher un ingrédient..." oninput="filterCoursesDisplay()" style="width:100%;background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:8px 14px;font-size:13px;font-family:inherit;color:var(--text);outline:none;margin-bottom:12px">
-      <div style="font-size:13px;color:var(--text3);margin-bottom:18px">Sélectionnez des recettes — les ingrédients sont consolidés automatiquement</div>
-      <div class="cs-selector"><div class="cs-lbl">Choisir les recettes</div>${pillsHtml}</div>
       <div class="courses-card">
         <div class="courses-card-hdr">
           <span>${cartRecs.length>0?`Ingrédients — ${cartRecs.length} recette${cartRecs.length>1?"s":""}`:""}<span id="courses-count" class="courses-count"></span></span>
@@ -992,8 +990,10 @@ function renderCourses(){
             <button class="btn-export" onclick="window.print()" title="Imprimer">🖨</button>
           </div>
         </div>
-        ${cartRecs.length>0?html:`<div class="courses-empty">Sélectionnez des recettes ci-dessus pour générer la liste</div>`}
+        ${cartRecs.length>0?html:`<div class="courses-empty">Sélectionnez des recettes ci-dessous pour générer la liste</div>`}
       </div>
+      <div style="font-size:13px;color:var(--text3);margin:22px 0 14px">Sélectionnez des recettes — les ingrédients sont consolidés automatiquement</div>
+      <div class="cs-selector"><div class="cs-lbl">Choisir les recettes</div>${pillsHtml}</div>
     </div>`;
 }
 
