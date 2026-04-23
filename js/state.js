@@ -85,6 +85,7 @@ let NOTES=lsGet("gn",{});
 let RATINGS=lsGet("gr2",{});
 let CHECKED_ITEMS=lsGet("gci",{});
 let RECENT=lsGet("grec",[]);
+let STEPS_DONE=lsGet("gsd",{});// {recipeId:[stepNum,…]}
 
 function saveCheckedItems(){lsSet("gci",CHECKED_ITEMS);}
 const saveFavs=()=>lsSet("gf",[...FAVS]);
@@ -92,6 +93,7 @@ const saveCart=()=>lsSet("gc",[...CART]);
 const saveNotes=()=>lsSet("gn",NOTES);
 const saveRatings=()=>lsSet("gr2",RATINGS);
 const saveRecent=()=>lsSet("grec",RECENT);
+const saveStepsDone=()=>lsSet("gsd",STEPS_DONE);
 const saveFrigo=()=>lsSet("sn5_frigo",{ings:S.frigo_ings,strict:S.frigo_strict});
 const saveViewMode=()=>lsSet("sn5_viewmode",S.view_mode);
 function getLastBackup(){var d=lsGet("sn5_bk",null);if(!d)return null;return new Date(d);}

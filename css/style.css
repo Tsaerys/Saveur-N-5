@@ -3,7 +3,7 @@
   --gold:#9a6f2a;--gold-l:#b8892a;--gold-xl:#d4aa55;--gold-faint:#fdf6e8;
   --bg:#f8f4ef;--bg2:#ffffff;--bg3:#f2ede6;
   --surf:#ffffff;--surf2:#faf7f3;
-  --text:#2c2218;--text2:#3d3428;--text3:#7a6e5e;--text4:#b0a490;
+  --text:#2c2218;--text2:#3d3428;--text3:#6d6250;--text4:#8a7a5e;
   --bord:#e8e0d4;--bord2:#d4c8b8;
   --cat-e-bg:#e8f2fb;--cat-e:#1a5a9a;
   --cat-p-bg:#fbe8e8;--cat-p:#9a1a1a;
@@ -16,6 +16,13 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.65;overflow-x:hidden}
+/* ── FOCUS CLAVIER GLOBAL (WCAG 2.4.7) ── */
+:focus{outline:none}
+:focus-visible{outline:2.5px solid var(--gold-l);outline-offset:2px;border-radius:4px;box-shadow:0 0 0 4px rgba(154,111,42,.18)}
+button:focus-visible,a:focus-visible,[role=button]:focus-visible,[tabindex]:focus-visible{outline-offset:3px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1px}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--gold);color:#fff;padding:10px 18px;border-radius:0 0 8px 0;font-weight:600;z-index:1000;text-decoration:none}
+.skip-link:focus{left:0}
 /* ── LOADER ── */
 .sn5-loader{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(248,244,239,.55);backdrop-filter:blur(2px);z-index:999}
 .sn5-loader.show{display:flex}
@@ -23,7 +30,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sn5-loader-txt{font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 @keyframes sn5spin{to{transform:rotate(360deg)}}
 
-.qual-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.85);border:1.5px solid var(--bord2);border-radius:var(--rx);padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.03em;white-space:nowrap}
+.qual-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.85);border:1.5px solid var(--bord2);border-radius:var(--rx);padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.03em;white-space:nowrap;cursor:help}
+.qual-info-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--bg3);border:1px solid var(--bord2);color:var(--text3);font-size:10px;font-weight:700;cursor:pointer;padding:0;margin-left:4px;line-height:1;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
+.qual-info-btn:hover{background:var(--gold-faint);color:var(--gold);border-color:var(--gold-l)}
+.qual-legend-overlay{position:fixed;inset:0;background:rgba(44,34,24,.55);backdrop-filter:blur(3px);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;animation:ql-fade .2s ease-out}
+.qual-legend-card{background:var(--surf);border-radius:14px;max-width:460px;width:100%;box-shadow:var(--shadow-lg);border:1px solid var(--bord);overflow:hidden}
+.qual-legend-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--bord);background:var(--bg3);color:var(--text)}
+.qual-legend-head strong{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600}
+.qual-legend-close{background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:6px;line-height:1}
+.qual-legend-close:hover{background:var(--bord);color:var(--text)}
+.qual-legend-body{padding:10px 18px 18px}
+@keyframes ql-fade{from{opacity:0}to{opacity:1}}
 /* ── TOPBAR ── */
 .topbar{position:sticky;top:0;z-index:200;background:rgba(248,244,239,.78);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(232,224,212,.5);padding:0 10px;height:54px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 0 rgba(80,60,30,.04);transition:box-shadow .3s,border-color .3s}
 .logo{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--text);white-space:nowrap;display:flex;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;letter-spacing:-.02em}
@@ -42,6 +59,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nav-btn:hover{color:var(--text);background:var(--bg3)}
 .nav-btn.active{color:var(--gold);background:var(--gold-faint)}
 .nav-btn .badge{position:absolute;top:3px;right:3px;background:var(--gold-l);color:#fff;font-size:9px;font-weight:700;border-radius:10px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;pointer-events:none}
+.nav-btn .badge.pulse{animation:badge-pop .42s cubic-bezier(.34,1.56,.64,1)}
+@keyframes badge-pop{0%{transform:scale(1)}40%{transform:scale(1.45);background:#e8a020}100%{transform:scale(1)}}
+.card-fav-btn.just-pop{animation:heart-pop .42s ease-out}
+.card-cart-btn.just-pop{animation:cart-pop .42s ease-out}
+@keyframes heart-pop{0%{transform:scale(1)}35%{transform:scale(1.4)}60%{transform:scale(.92)}100%{transform:scale(1)}}
+@keyframes cart-pop{0%{transform:scale(1) rotate(0)}40%{transform:scale(1.25) rotate(-12deg)}70%{transform:scale(.95) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){.nav-btn .badge.pulse,.card-fav-btn.just-pop,.card-cart-btn.just-pop{animation:none}}
 /* ── FILTRES ── */
 .filters-bar{background:var(--bg2);border-bottom:1px solid var(--bord);padding:10px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .filter-grp{display:flex;align-items:center;gap:6px}
@@ -78,8 +102,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .recent-card img{width:100%;height:75px;object-fit:cover;display:block;background:var(--bg3)}
 .recent-card-photo{width:100%;height:75px;object-fit:cover;display:block;background:var(--bg3);border-radius:10px 10px 0 0}
 .recent-card-body{padding:7px}
-.recent-card-nom{font-size:11px;font-weight:500;color:var(--text2);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.recent-card-co{font-size:10px;color:var(--text4);margin-top:2px}
+.recent-card-nom{font-size:11px;font-weight:500;color:var(--text2);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;min-height:28px}
+.recent-card-co{font-size:10px;color:var(--text3);margin-top:2px}
 /* ── GRILLE ── */
 .main-content{padding:20px}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -182,13 +206,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pnotes-save{margin-top:6px;background:var(--gold-faint);border:1.5px solid var(--gold-l);border-radius:var(--rx);padding:6px 14px;font-size:12px;color:var(--gold);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .15s}
 .pnotes-save:hover{background:#fdefc8}
 .pnotes-saved{font-size:11px;color:#2a8a2a;margin-left:8px;opacity:0;transition:opacity .3s}
-.etape-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--bord);font-size:13px;color:var(--text2);line-height:1.7}
+.etape-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--bord);font-size:13px;color:var(--text2);line-height:1.7;align-items:flex-start}
 .etape-item:last-child{border-bottom:none}
 .etape-item.section-head{font-weight:600;color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding-top:16px;border-bottom:none}
-.step-num{min-width:26px;height:26px;background:var(--gold-faint);border:1.5px solid #e0c080;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:2px}
+.etape-item.step-done .step-num{background:#eaf5ea;border-color:#9ac09a;color:#4a884a}
+.etape-item.step-done .step-text{color:var(--text4);text-decoration:line-through;text-decoration-color:rgba(74,136,74,.5);text-decoration-thickness:1.5px}
+.step-check{flex-shrink:0;width:24px;height:24px;border-radius:6px;border:1.5px solid var(--bord2);background:var(--bg2);cursor:pointer;font-size:14px;font-weight:700;color:#4a884a;display:flex;align-items:center;justify-content:center;margin-top:3px;transition:background .15s,border-color .15s,transform .12s;padding:0;line-height:1}
+.step-check:hover{border-color:#9ac09a;background:#f5faf5}
+.step-check.on{background:#eaf5ea;border-color:#9ac09a}
+.step-check.on:active{transform:scale(.9)}
+.step-check.big{width:32px;height:32px;border-radius:8px;font-size:18px;margin-top:0}
+.cooking-step-row{display:flex;gap:12px;align-items:flex-start}
+.cooking-step-row .cooking-step-text{flex:1}
+.cooking-step-row .cooking-step-text.step-done{color:var(--text4);text-decoration:line-through;text-decoration-color:rgba(74,136,74,.5);text-decoration-thickness:1.5px}
+.step-num{min-width:26px;height:26px;background:var(--gold-faint);border:1.5px solid #e0c080;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:2px;transition:background .2s,border-color .2s,color .2s}
 .step-text{flex:1}
 .step-timer-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bord2);border-radius:var(--rx);padding:3px 10px;font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;margin-top:5px;font-weight:500}
 .step-timer-btn:hover{border-color:var(--gold-l);color:var(--gold)}
+.step-reset-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bord2);border-radius:var(--rx);padding:3px 10px;font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:500;text-transform:none;letter-spacing:0}
+.step-reset-btn:hover{border-color:var(--gold-l);color:var(--gold);background:var(--gold-faint)}
 .prepav-block{background:#f0f8f0;border:1px solid #c8e8c8;border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
 .prepav-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#2a6a2a;font-weight:600;margin-bottom:8px}
 .prepav-item{display:flex;gap:8px;font-size:12px;color:#3a5a3a;padding:4px 0;border-bottom:1px solid #d8e8d8;line-height:1.5}
@@ -777,47 +813,89 @@ body {
   .filters-toggle-btn { min-height: 40px; }
 }
 
-/* ── PRINT — Mode impression A4 parfait ── */
+/* ── PRINT — Mode impression A4 optimisé ── */
 @media print {
-  @page { size: A4; margin: 1.5cm 2cm; }
+  @page { size: A4; margin: 1.5cm 1.8cm; }
+  @page :first { margin-top: 1.2cm; }
 
-  /* Masquer tous les éléments interactifs */
-  .topbar, .filters-bar, .back-btn, .detail-actions-bar, .detail-actions,
-  .step-timer-btn, .cooking-mode, .accords-section, .recent-section,
+  /* Masquer tous les éléments interactifs et décoratifs */
+  .topbar, .topbar-nav, .filters-bar, .filters-zone, .filters-toggle-row,
+  .back-btn, .detail-actions-bar, .detail-actions,
+  .step-timer-btn, .step-check, .step-reset-btn, .step-done-only-print,
+  .cooking-mode, .accords-section, .recent-section, .recent-zone,
   .detail-rating-bar, .unit-toggle-bar, .pnotes-lbl, .pnotes-ta,
-  .pnotes-save, .floating-timer, .frigo-zone, .recent-zone,
+  .pnotes-save, .floating-timer, .frigo-zone, .filters-body, .filters-toggle-btn,
   #scroll-top-btn, #theme-toggle-btn, .card-fav-btn, .card-cart-btn,
   .offline-banner, .toast, #cooking-overlay, .portions-ctrl,
-  .var-btn, .act-btn { display: none !important; }
+  .var-btn, .act-btn, .voice-btn, .topbar-search, .view-mode-btn,
+  .card-rating, #devtools-banner, #nav-install-btn, .filter-count,
+  .detail-meta-action, .detail-photo-overlay { display: none !important; }
 
-  /* Base */
-  body { background: #fff !important; color: #111; font-size: 11pt;
+  /* Base typographie impression */
+  html, body { background: #fff !important; color: #000; font-size: 10.5pt;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    padding-bottom: 0; }
-  .content-area { height: auto; overflow: visible; max-width: 100%; padding: 0; }
+    padding-bottom: 0; line-height: 1.55; }
+  body { font-family: Georgia, 'Cormorant Garamond', serif; }
+  h1, h2, h3, .detail-photo-title, .sec-lbl { font-family: 'Cormorant Garamond', Georgia, serif; }
+  .content-area, .main-content { height: auto; overflow: visible; max-width: 100%; padding: 0; }
+  a { color: #000; text-decoration: none; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 8pt; color: #666; }
 
-  /* Fiche recette — mise en page A4 */
-  .detail-card { border: none; box-shadow: none; page-break-inside: avoid; }
-  .detail-photo-wrap { height: 180px; }
-  .detail-photo-title { font-size: 22pt; }
-  .detail-body { display: grid; grid-template-columns: 40% 1fr; gap: 24px; }
-  .col-l { border-right: 1px solid #ddd; border-bottom: none;
-    padding-bottom: 0; margin-bottom: 0; padding-right: 16px; }
+  /* En-tête recette */
+  .detail-card { border: none; box-shadow: none; page-break-inside: avoid; background: transparent; padding: 0; }
+  .detail-photo-wrap { height: 160px; page-break-inside: avoid; overflow: hidden; border-radius: 4px; }
+  .detail-photo-title { font-size: 24pt; line-height: 1.1; font-weight: 600; }
+  .detail-photo-chef { font-size: 11pt; font-style: italic; }
+
+  /* Bandeau métadonnées */
+  .detail-meta { border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;
+    padding: 6px 0; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 18px;
+    font-size: 10pt; font-family: Georgia, serif; }
+  .detail-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* Corps : 2 colonnes */
+  .detail-body { display: grid; grid-template-columns: 36% 1fr; gap: 22px; margin-top: 8px; }
+  .col-l { border-right: 1px solid #999; border-bottom: none;
+    padding-bottom: 0; margin-bottom: 0; padding-right: 14px; }
   .col-r { padding-top: 0; }
+  .sec-lbl { font-size: 13pt; font-weight: 600; margin-bottom: 8px;
+    text-transform: none; letter-spacing: 0; border-bottom: 1px solid #000; padding-bottom: 3px; }
 
-  /* Ingrédients en 2 colonnes pour A4 */
-  .ingr-list { columns: 2; column-gap: 12px; }
-  .ingr-item { break-inside: avoid; }
-  .ingr-qty { color: #8b6914; }
+  /* Ingrédients : 1 col si peu, sinon 2 cols dans col-l */
+  .ingr-list { columns: 1; list-style: none; padding: 0; }
+  .ingr-item { break-inside: avoid; padding: 2.5px 0; border-bottom: 1px dotted #bbb;
+    display: flex; justify-content: space-between; gap: 8px; font-size: 10pt; }
+  .ingr-qty { color: #000; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-  /* Étapes : éviter les coupures de page */
-  .etape-item { page-break-inside: avoid; break-inside: avoid; }
+  /* Étapes : numérotation claire */
+  .etape-item { page-break-inside: avoid; break-inside: avoid;
+    padding: 7px 0; border-bottom: 1px solid #e0e0e0; gap: 10px; }
+  .etape-item:last-child { border-bottom: none; }
+  .etape-item.section-head { border-bottom: none; color: #000; font-weight: 700;
+    padding-top: 10px; text-transform: uppercase; font-size: 10pt; letter-spacing: .05em; }
   .section-head { page-break-after: avoid; break-after: avoid; }
+  .step-num { background: #000; color: #fff; border: none;
+    min-width: 22px; height: 22px; font-size: 9pt; }
+  .step-text { font-size: 10.5pt; }
+  .etape-item.step-done .step-text { color: #666; text-decoration: line-through; }
+
+  /* Encarts secondaires */
+  .prepav-block, .qual-pill { border: 1px solid #999; background: transparent !important; }
+  .qual-pill { color: #000 !important; }
+  .variante-block { page-break-inside: avoid; }
 
   /* Liste de courses */
-  .courses-wrap .cs-selector { display: none; }
   .courses-wrap { padding: 0; }
+  .courses-wrap .cs-selector, .courses-wrap .courses-actions,
+  .courses-wrap #courses-search { display: none; }
+  .cs-item { page-break-inside: avoid; padding: 3px 0; border-bottom: 1px dotted #bbb; }
+
+  /* Pied de page impression */
+  .print-footer { display: block !important; margin-top: 16px; padding-top: 6px;
+    border-top: 1px solid #000; font-size: 8.5pt; color: #555;
+    font-family: Georgia, serif; text-align: center; }
 }
+.print-footer { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════
    PREMIUM UI/UX v14.1
@@ -1360,7 +1438,7 @@ kbd {
 /* ══════════════════════════════════════════════
    v18 — ACCUEIL INTELLIGENT (SAISONNALITÉ)
    ══════════════════════════════════════════════ */
-.seasonal-section { padding: 4px 0 14px; }
+.seasonal-section { padding: 4px 0 18px; margin-bottom: 16px; border-bottom: 1px solid var(--bord); }
 .seasonal-header { padding: 4px 0 10px; }
 .seasonal-title {
   font-family: 'Cormorant Garamond', serif;
@@ -1368,13 +1446,13 @@ kbd {
 }
 .seasonal-sub { font-size: 12px; color: var(--text3); }
 .seasonal-scroll {
-  display: flex; gap: 10px; overflow-x: auto;
-  scroll-snap-type: x mandatory; padding-bottom: 6px;
+  display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; padding: 4px 0 10px;
   -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 .seasonal-scroll::-webkit-scrollbar { display: none; }
 .seasonal-card {
-  flex-shrink: 0; width: 148px;
+  flex-shrink: 0; width: 162px;
   background: var(--surf); border-radius: var(--r);
   box-shadow: var(--shadow); overflow: hidden; cursor: pointer;
   transition: transform .2s, box-shadow .2s; scroll-snap-align: start;
@@ -1382,16 +1460,17 @@ kbd {
 }
 .seasonal-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .seasonal-photo {
-  width: 100%; height: 90px; object-fit: cover;
+  width: 100%; height: 96px; object-fit: cover;
   display: block; background: var(--bg3);
 }
-.seasonal-card-body { padding: 8px 10px 10px; }
+.seasonal-card-body { padding: 8px 10px 10px; min-height: 56px; }
 .seasonal-card-nom {
-  font-size: 12px; font-weight: 600; color: var(--text);
+  font-size: 12.5px; font-weight: 600; color: var(--text);
   overflow: hidden; display: -webkit-box;
-  -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4;
+  -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.35;
+  word-break: break-word;
 }
-.seasonal-card-chef { font-size: 10px; color: var(--text3); margin-top: 3px; }
+.seasonal-card-chef { font-size: 10px; color: var(--text3); margin-top: 4px; }
 
 /* ══════════════════════════════════════════════
    v18 — PHOTO UPLOAD
@@ -1530,9 +1609,10 @@ kbd {
   line-height: 1.28;
   margin-bottom: 4px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 .helix-card-chef {
   font-size: 10px;

@@ -255,16 +255,9 @@ function filtered(){
     }
     recs=recs.map(r=>{const rn=r.ig.map(([n])=>n.toLowerCase());const m=ings.filter(i=>rn.some(rni=>rni.includes(i)));return{...r,_match:m.length,_mr:m.length/ings.length};}).filter(r=>r._match>0).sort((a,b)=>b._mr-a._mr);
   } else if(q){
-    const sq=_sn5Norm(q);
-    if(sq){
-      recs=recs.filter(r=>{
-        const n=_sn5Norm(r.nom);
-        const c=_sn5Norm(r.chef);
-        const s=_sn5Norm(r.sous);
-        const ings=(r.ig||[]).some(([n])=>_sn5Norm(n).includes(sq));
-        const steps=_sn5Norm(r.et).includes(sq);
-        return n.includes(sq)||c.includes(sq)||s.includes(sq)||ings||steps;
-      });
+    const parsed=_parseSearchQuery(q);
+    if(parsed.terms.length||parsed.excludes.length||parsed.ops.length){
+      recs=recs.filter(r=>_matchSearch(r,parsed));
     }
   }
   _filteredMemo.set(k,recs);
@@ -274,6 +267,48 @@ function filtered(){
     _filteredMemo.delete(first);
   }
   return recs;
+}
+
+// ── RECHERCHE AVANCÉE ─────────────────────────────────────────────────────
+// Opérateurs supportés :
+//   chef:bocuse      → filtre sur le chef
+//   pays:france      → filtre sur le pays
+//   cat:plat         → filtre sur la catégorie
+//   ing:truffe       → filtre sur les ingrédients
+//   -word            → exclut les recettes contenant "word"
+//   "phrase exacte"  → recherche phrase exacte
+//   mot1 mot2        → recherche tous les mots (AND)
+function _parseSearchQuery(q){
+  var tokens=[],re=/(-?)(\w+):(?:"([^"]+)"|(\S+))|(-?)"([^"]+)"|(-?)(\S+)/g,m;
+  while((m=re.exec(q))!==null){
+    if(m[2]){tokens.push({op:m[2].toLowerCase(),val:(m[3]||m[4]||""),neg:m[1]==="-"});}
+    else if(m[6]){tokens.push({op:"text",val:m[6],neg:m[5]==="-",exact:true});}
+    else if(m[8]){tokens.push({op:"text",val:m[8],neg:m[7]==="-"});}
+  }
+  var terms=[],excludes=[],ops=[];
+  tokens.forEach(function(t){
+    if(t.op==="text"){(t.neg?excludes:terms).push({val:_sn5Norm(t.val),exact:!!t.exact});}
+    else{ops.push({op:t.op,val:_sn5Norm(t.val),neg:t.neg});}
+  });
+  return{terms:terms,excludes:excludes,ops:ops};
+}
+function _matchSearch(r,p){
+  var n=_sn5Norm(r.nom),c=_sn5Norm(r.chef),s=_sn5Norm(r.sous||""),co=_sn5Norm(r.co),cat=_sn5Norm(r.cat);
+  var igs=(r.ig||[]).map(function(x){return _sn5Norm(x[0]||"");});
+  var steps=_sn5Norm(r.et||"");
+  var hayAll=n+" "+c+" "+s+" "+igs.join(" ")+" "+steps;
+  for(var i=0;i<p.ops.length;i++){
+    var o=p.ops[i],match=false;
+    if(o.op==="chef")match=c.includes(o.val);
+    else if(o.op==="pays"||o.op==="co")match=co.includes(o.val);
+    else if(o.op==="cat")match=cat.includes(o.val);
+    else if(o.op==="ing")match=igs.some(function(x){return x.includes(o.val);});
+    else match=hayAll.includes(o.val);
+    if(match===o.neg)return false;
+  }
+  for(var j=0;j<p.terms.length;j++){if(!hayAll.includes(p.terms[j].val))return false;}
+  for(var k=0;k<p.excludes.length;k++){if(hayAll.includes(p.excludes[k].val))return false;}
+  return true;
 }
 
 // ── DÉTECTION PRÉPARATION À L'AVANCE ──────────────────────────────────────

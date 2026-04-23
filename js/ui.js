@@ -61,11 +61,17 @@ function toast(msg,dur,type){
   t._tid=setTimeout(function(){t.classList.remove("show");},dur||2800);
 }
 
+function _pulseBadge(el,n){
+  if(!el)return;
+  var prev=+el.dataset.prev||0;
+  if(n>prev){el.classList.remove("pulse");void el.offsetWidth;el.classList.add("pulse");}
+  el.dataset.prev=n;
+}
 function updateBadges(){
   const fb=document.getElementById("fav-badge"),cb=document.getElementById("cart-badge"),gb=document.getElementById("frigo-badge");
-  if(FAVS.size){fb.style.display="flex";fb.textContent=FAVS.size;}else fb.style.display="none";
-  if(CART.size){cb.style.display="flex";cb.textContent=CART.size;}else cb.style.display="none";
-  if(gb){if(S.frigo_ings&&S.frigo_ings.length){gb.style.display="flex";gb.textContent=S.frigo_ings.length;}else gb.style.display="none";}
+  if(FAVS.size){fb.style.display="flex";fb.textContent=FAVS.size;_pulseBadge(fb,FAVS.size);}else{fb.style.display="none";fb.dataset.prev=0;}
+  if(CART.size){cb.style.display="flex";cb.textContent=CART.size;_pulseBadge(cb,CART.size);}else{cb.style.display="none";cb.dataset.prev=0;}
+  if(gb){if(S.frigo_ings&&S.frigo_ings.length){gb.style.display="flex";gb.textContent=S.frigo_ings.length;_pulseBadge(gb,S.frigo_ings.length);}else{gb.style.display="none";gb.dataset.prev=0;}}
 }
 
 function rateRecipe(id,n){
@@ -206,7 +212,7 @@ function renderFilters(){
         <div class="filter-grp"><label>Catégorie</label><select id="fcat"><option value="">Toutes</option>${catOpts}</select></div>
         <div class="filter-grp"><label>Difficulté</label><select id="fdiff"><option value="">Toutes</option>${diffOpts}</select></div>
         <div class="filter-grp"><label>Temps</label><select id="ftime"><option value="">Tout</option>${timeOpts}</select></div>
-        <div class="filter-grp"><label>Qualité</label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
+        <div class="filter-grp"><label>Qualité <button type="button" class="qual-info-btn" onclick="showQualLegend()" aria-label="Voir l'échelle de qualité" title="Échelle de qualité des sources">ℹ</button></label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
         <div class="filter-grp"><label>Rayon</label><select id="frayon"><option value="">Tous</option>${rayonOpts}</select></div>
         <div class="filter-grp"><label>Trier par</label><select id="fsort"><option value="">Pertinence</option>${sortOpts}</select></div>
         <div class="regime-filters">
@@ -340,7 +346,7 @@ function renderRecent(){
       ${buildRecentPhoto(r)}
       <div class="recent-card-body">
         <div class="recent-card-nom">${r.nom}</div>
-        <div class="recent-card-co">${FLAGS[r.co]||""} ${r.co}</div>
+        <div class="recent-card-co"><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</div>
       </div>
     </div>`).join("");
   rz.innerHTML=`<div class="recent-section"><div class="recent-title">Récemment consultées</div><div class="recent-scroll">${cards}</div></div>`;
@@ -397,27 +403,27 @@ function renderMain(){
         <div class="list-card-body">
           <div class="list-card-top">
             <span class="cat-badge cat-${catClass(r.cat)}">${r.cat}</span>
-            <span class="list-card-co"><span class="card-co-dot" style="background:${coCol}"></span>${FLAGS[r.co]||""} ${r.co}</span>
+            <span class="list-card-co" aria-label="Pays : ${r.co}"><span class="card-co-dot" style="background:${coCol}" aria-hidden="true"></span><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</span>
             ${rating?`<span class="card-rate-sum">★ ${rating}/5</span>`:""}
           </div>
           <div class="list-card-nom">${r.nom}</div>
           <div class="list-card-meta">${r.chef} · ⏲ ${totTime(r)} min · ${diffLabel(r.diff)} · ${r.bp} pers.</div>
         </div>
         <div class="list-card-actions">
-          <button class="card-fav-btn${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
-          <button class="card-cart-btn${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
+          <button class="card-fav-btn${isFav?" active":""}${_popClassFav(r.id,isFav)}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
+          <button class="card-cart-btn${inCart?" active":""}${_popClassCart(r.id,inCart)}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
         </div>
       </div>`;
     }
     let matchExtra="";
     if(S.frigo_active&&r._match!==undefined){const pct=Math.round(r._mr*100);matchExtra=`<div class="match-strip"><div class="match-fill" style="width:${pct}%"></div></div><div class="match-label">${r._match}/${S.frigo_ings.length} ingr. correspondant${r._match>1?"s":""}</div>`;}
     const ratingHtml=`<div class="card-rating" role="group" aria-label="Ma note" data-id="${r.id}">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" role="button" tabindex="0" aria-label="${i} étoile${i>1?'s':''}" aria-pressed="${i<=rating}" onclick="event.stopPropagation();rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>`;
-    const qlbl=r.qual?`<span class="qual-pill" style="border-color:${QUAL_COLORS[r.qual]||"#aaa"};color:${QUAL_COLORS[r.qual]||"#aaa"}">${QUAL_LABELS[r.qual]||""}</span>`:"";
+    const qlbl=r.qual?`<span class="qual-pill" style="border-color:${QUAL_COLORS[r.qual]||"#aaa"};color:${QUAL_COLORS[r.qual]||"#aaa"}" title="${_qualTooltip(r.qual)}" aria-label="Niveau de qualité : ${QUAL_LABELS[r.qual]||''}">${QUAL_LABELS[r.qual]||""}</span>`:"";
     const ratingFoot=rating?`<span class="card-rate-sum">★ ${rating}/5</span>`:"";
     return`<div class="card" role="article" aria-label="${r.nom}" data-id="${r.id}" style="--co-accent:${coCol}">
       ${buildCardPhoto(r)}
-      <button class="card-fav-btn${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
-      <button class="card-cart-btn${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
+      <button class="card-fav-btn${isFav?" active":""}${_popClassFav(r.id,isFav)}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
+      <button class="card-cart-btn${inCart?" active":""}${_popClassCart(r.id,inCart)}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
       ${ratingHtml}
       <div class="card-body">
         <div class="card-top">
@@ -435,7 +441,7 @@ function renderMain(){
           <div class="meta-item"><strong>${r.bp}</strong> pers.</div>
           <div class="meta-item meta-diff-${r.diff}">${diffLabel(r.diff)}</div>
         </div>
-        <div class="card-foot"><span class="card-co"><span class="card-co-dot" style="background:${coCol}"></span>${FLAGS[r.co]||""} ${r.co}</span> ${ratingFoot}</div>
+        <div class="card-foot"><span class="card-co" aria-label="Pays : ${r.co}"><span class="card-co-dot" style="background:${coCol}" aria-hidden="true"></span><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</span> ${ratingFoot}</div>
         ${matchExtra}
       </div>
     </div>`;
@@ -501,6 +507,7 @@ function renderDetail(){
       <span class="ingr-qty">${u==="qs"?"q.s.":fmtQty(q*ratio,u)}</span>
     </li>`).join("");
 
+  const doneSteps=_getDoneSteps(r.id);
   let stepNum=0;
   const steps=r.et.split("\n").filter(s=>s.trim()).map(s=>{
     const isHead=!s.match(/^\d+[\.\)]/);
@@ -510,7 +517,8 @@ function renderDetail(){
     const tm=stepText.match(/(\d+)\s*(heures?|h\b|minutes?|min\b)/i);
     let timerBtn="";
     if(tm){const num=parseInt(tm[1]);const isH=/^h/i.test(tm[2]);const sec=isH?num*3600:num*60;const lbl=isH?(num>1?num+" heures":"1 heure"):(num>1?num+" min":"1 min");timerBtn=`<br><button class="step-timer-btn" onclick="ftStart(${sec},'Étape ${stepNum} — ${r.nom.split(' ').slice(0,3).join(' ')}')" aria-label="Lancer minuteur ${lbl}">⏱ ${lbl}</button>`;}
-    return`<div class="etape-item"><div class="step-num">${stepNum}</div><div class="step-text">${stepText}${timerBtn}</div></div>`;
+    const done=doneSteps.has(stepNum);
+    return`<div class="etape-item${done?' step-done':''}" data-step="${stepNum}"><button class="step-check${done?' on':''}" onclick="toggleStepDone('${r.id}',${stepNum},this)" aria-label="Marquer l'étape ${stepNum} comme ${done?'non faite':'faite'}" aria-pressed="${done}" title="${done?'Décocher':'Marquer cette étape comme faite'}">${done?'✓':''}</button><div class="step-num">${stepNum}</div><div class="step-text">${stepText}${timerBtn}</div></div>`;
   }).join("");
 
   var variantHtml=buildVariantHtml(r);
@@ -542,12 +550,12 @@ function renderDetail(){
           <div class="detail-photo-overlay"></div>
           <div class="detail-photo-title">${r.nom}</div>
           <div class="detail-photo-chef">${r.chef}</div>
-          ${r.qual?'<div class="qual-badge" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);border-radius:20px;padding:3px 11px;font-size:11px;color:#fff;letter-spacing:.3px">'+'★'.repeat(r.qual)+' '+(QUAL_LABELS[r.qual]||'')+'</div>':''}
+          ${r.qual?'<div class="qual-badge" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);border-radius:20px;padding:3px 11px;font-size:11px;color:#fff;letter-spacing:.3px;cursor:help" title="'+_qualTooltip(r.qual)+'" aria-label="Niveau de qualité : '+(QUAL_LABELS[r.qual]||'')+'">'+'★'.repeat(r.qual)+' '+(QUAL_LABELS[r.qual]||'')+'</div>':''}
 
           <div class="detail-rating-bar" role="group" aria-label="Ma note">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" role="button" tabindex="0" aria-label="${i} étoile${i>1?'s':''}" aria-pressed="${i<=rating}" onclick="rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>
         </div>
         <div class="detail-info-row">
-          <span class="info-pill">${FLAGS[r.co]||""} ${r.co}</span>
+          <span class="info-pill" aria-label="Pays : ${r.co}"><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</span>
           <span class="info-pill"><span class="cat-badge cat-${catClass(r.cat)}">${r.cat}</span></span>
           <span class="info-pill">⏲ Prépa : ${r.prep} min</span>
           <span class="info-pill">🔥 Cuisson : ${r.cui===0?"Aucune":r.cui+" min"}</span>
@@ -587,11 +595,15 @@ function renderDetail(){
             </div>
           </div>
           <div class="col-r">
-            <div class="sec-lbl">Étapes de préparation</div>
+            <div class="sec-lbl" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <span>Étapes de préparation</span>
+              ${doneSteps.size?`<button class="step-reset-btn" onclick="resetSteps('${r.id}')" aria-label="Réinitialiser toutes les étapes">↺ Réinitialiser (${doneSteps.size} faite${doneSteps.size>1?'s':''})</button>`:''}
+            </div>
             <div>${steps}</div>
           </div>
         </div>
         ${accordsHtml}
+        <div class="print-footer">Saveur N°5 · ${r.nom} · ${r.chef} · ${r.co} · Imprimé le ${new Date().toLocaleDateString('fr-FR')}</div>
       </div>
     </div>`;
 }
@@ -619,15 +631,71 @@ function goBack(){
     qi.oninput=debounce(function(e){S.filters.q=e.target.value;renderMain();updateCount();},300);
   }
 }
+function _haptic(added){if(navigator.vibrate)try{navigator.vibrate(added?[10,30,15]:10);}catch(e){}}
+function _qualTooltip(q){
+  var desc={
+    1:"★ Source locale : recette personnelle ou familiale",
+    2:"★★ Recette courante : version classique, non sourcée",
+    3:"★★★ Bonne source : chef reconnu ou livre fiable",
+    4:"★★★★ Référence reconnue : institution culinaire majeure",
+    5:"★★★★★ Référence absolue : maître ou ouvrage canonique"
+  };
+  return desc[q]||(QUAL_LABELS[q]||"");
+}
+function _qualLegendHTML(){
+  return[1,2,3,4,5].map(function(q){
+    return'<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bord)"><span style="color:'+(QUAL_COLORS[q]||"#aaa")+';font-weight:700;width:60px;flex-shrink:0">'+"★".repeat(q)+'</span><span style="font-size:13px">'+_qualTooltip(q).replace(/^★+\s+/,"")+'</span></div>';
+  }).join("");
+}
+function showQualLegend(){
+  var ov=document.createElement("div");
+  ov.className="qual-legend-overlay";
+  ov.innerHTML='<div class="qual-legend-card" role="dialog" aria-modal="true" aria-labelledby="ql-title"><div class="qual-legend-head"><strong id="ql-title">Échelle de qualité des sources</strong><button class="qual-legend-close" aria-label="Fermer">✕</button></div><div class="qual-legend-body">'+_qualLegendHTML()+'<p style="margin-top:10px;font-size:11.5px;color:var(--text3);font-style:italic">La qualité reflète la fiabilité et la reconnaissance de la source, pas la difficulté ni le goût.</p></div></div>';
+  document.body.appendChild(ov);
+  var close=function(){ov.remove();document.removeEventListener("keydown",onKey);};
+  var onKey=function(e){if(e.key==="Escape")close();};
+  ov.addEventListener("click",function(e){if(e.target===ov||e.target.classList.contains("qual-legend-close"))close();});
+  document.addEventListener("keydown",onKey);
+}
+function _getDoneSteps(id){var a=STEPS_DONE[id];return new Set(Array.isArray(a)?a:[]);}
+function _markStepDone(id,n,done){
+  var set=_getDoneSteps(id);
+  if(done)set.add(n);else set.delete(n);
+  if(set.size)STEPS_DONE[id]=[...set];else delete STEPS_DONE[id];
+  saveStepsDone();
+}
+function toggleStepDone(id,n,btn){
+  var cur=_getDoneSteps(id).has(n);
+  _markStepDone(id,n,!cur);
+  if(btn){
+    btn.classList.toggle("on",!cur);
+    btn.textContent=!cur?"✓":"";
+    btn.setAttribute("aria-pressed",!cur);
+    var item=btn.closest(".etape-item");if(item)item.classList.toggle("step-done",!cur);
+  }
+  _haptic(!cur);
+}
+function resetSteps(id){
+  delete STEPS_DONE[id];saveStepsDone();
+  if(S.view==="recipe")renderDetail();
+  toast("Étapes réinitialisées");
+}
+var _popFav=null,_popCart=null;
+function _popClassFav(id,isFav){return(isFav&&_popFav===id)?" just-pop":"";}
+function _popClassCart(id,inCart){return(inCart&&_popCart===id)?" just-pop":"";}
 function toggleFav(id){
-  if(FAVS.has(id)){FAVS.delete(id);toast("Retiré des favoris");}else{FAVS.add(id);toast("♥ Ajouté aux favoris");}
-  saveFavs();updateBadges();
+  var added=!FAVS.has(id);
+  if(added){FAVS.add(id);toast("♥ Ajouté aux favoris");_popFav=id;}else{FAVS.delete(id);toast("Retiré des favoris");_popFav=null;}
+  saveFavs();updateBadges();_haptic(added);
   if(S.view==="recipe")renderDetail();else if(S.view==="favs")renderFavs();else renderMain();
+  _popFav=null;
 }
 function toggleCart(id){
-  if(CART.has(id)){CART.delete(id);toast("Retiré de la liste de courses");}else{CART.add(id);toast("🛒 Ajouté à la liste de courses");}
-  saveCart();updateBadges();
+  var added=!CART.has(id);
+  if(added){CART.add(id);toast("🛒 Ajouté à la liste de courses");_popCart=id;}else{CART.delete(id);toast("Retiré de la liste de courses");_popCart=null;}
+  saveCart();updateBadges();_haptic(added);
   if(S.view==="recipe")renderDetail();else if(S.view==="courses")renderCourses();else renderMain();
+  _popCart=null;
 }
 function saveNote(id){
   NOTES[id]=document.getElementById("pnotes-ta").value;saveNotes();
@@ -651,6 +719,7 @@ function renderCooking(){
   const ratio=portions/r.bp;
   const si=S.cooking_step;const step=steps[si];
   const pct=Math.round(((si+1)/steps.length)*100);
+  const stepDone=_getDoneSteps(r.id).has(si+1);
   const tm=step?.match(/(\d+)\s*(heures?|h\b|minutes?|min\b)/i);
   let timerSec=0;if(tm){const n=parseInt(tm[1]);timerSec=/^h/i.test(tm[2])?n*3600:n*60;}
   if(S.timer_remaining===0&&timerSec>0)S.timer_remaining=timerSec;
@@ -673,7 +742,10 @@ function renderCooking(){
           <ul>${igList}</ul>
         </details>
         <div class="cooking-step-counter">Étape ${si+1} sur ${steps.length}</div>
-        <div class="cooking-step-text">${step?.replace(/^\d+[\.\)]\s*/,"")}</div>
+        <div class="cooking-step-row">
+          <button class="step-check big${stepDone?' on':''}" onclick="toggleStepDone('${r.id}',${si+1},this);renderCooking()" aria-label="${stepDone?'Décocher cette étape':'Marquer cette étape comme faite'}" aria-pressed="${stepDone}">${stepDone?'✓':''}</button>
+          <div class="cooking-step-text${stepDone?' step-done':''}">${step?.replace(/^\d+[\.\)]\s*/,"")}</div>
+        </div>
         ${timerSec>0?`<div class="cooking-timer-zone">
           <div class="timer-display ${tCls}" id="cm-timer">${tStr}</div>
           <div class="timer-btns">
@@ -691,8 +763,9 @@ function renderCooking(){
 }
 function sendToFloat(sec,label){ftStart(sec,label);}
 function cookStep(d){
-  const {steps}=S.cooking;const next=S.cooking_step+d;
+  const {recipe,steps}=S.cooking;const next=S.cooking_step+d;
   if(next<0)return;
+  if(d>0){_markStepDone(recipe.id,S.cooking_step+1,true);}
   if(next>=steps.length){closeCooking();toast("✓ Recette terminée ! Bon appétit !",3000);return;}
   if(S.timer_interval){clearInterval(S.timer_interval);S.timer_interval=null;}
   S.timer_running=false;S.timer_remaining=0;S.cooking_step=next;renderCooking();
@@ -854,7 +927,7 @@ function renderFavs(q){
         <div class="card-nom">${r.nom}</div>
         <div class="card-chef">${r.chef}</div>
         <div class="card-meta"><div class="meta-item"><strong>${totTime(r)}</strong> min</div><div class="meta-item"><strong>${r.bp}</strong> pers.</div><div class="meta-item meta-diff-${r.diff}">${diffLabel(r.diff)}</div></div>
-        <div class="card-foot"><span class="card-co"><span class="card-co-dot" style="background:${coCol}"></span>${FLAGS[r.co]||""} ${r.co}</span> ${rt?`<span class="card-rate-sum">★ ${rt}/5</span>`:""}</div>
+        <div class="card-foot"><span class="card-co" aria-label="Pays : ${r.co}"><span class="card-co-dot" style="background:${coCol}" aria-hidden="true"></span><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</span> ${rt?`<span class="card-rate-sum" aria-label="Note : ${rt} sur 5">★ ${rt}/5</span>`:""}</div>
       </div>
     </div>`;}).join("");
   main.innerHTML=`<div class="page-header"><div class="page-title">Mes favoris</div><div style="font-size:13px;color:var(--text3);margin-bottom:20px">${favRecs.length} recette${favRecs.length>1?"s":""} sauvegardée${favRecs.length>1?"s":""}</div></div><div style="padding:0 20px"><div class="grid">${cards}</div></div>`;

@@ -84,6 +84,7 @@
 </script>
 </head>
 <body>
+<a href="#main" class="skip-link">Aller au contenu</a>
 <div class="offline-banner" id="offline-banner">
   📴 Mode hors ligne — photos indisponibles, toutes les recettes restent accessibles
 </div>
@@ -95,7 +96,7 @@
   <button id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Basculer thème clair/sombre" title="Thème clair/sombre">🌙</button>
   <div class="topbar-search" id="search-zone">
     <span class="si" aria-hidden="true">⌕</span>
-    <input type="text" id="qi" placeholder="Plat, chef, ingrédient…" aria-label="Rechercher une recette">
+    <input type="text" id="qi" placeholder="Plat, chef:nom, pays:italie, -porc…" aria-label="Rechercher une recette (opérateurs : chef:, pays:, cat:, ing:, -mot)" title="Opérateurs : chef:, pays:, cat:, ing:, -motExclu, &quot;phrase exacte&quot;">
     <button class="voice-btn" id="voice-btn"
       title="Recherche vocale"
       aria-label="Recherche vocale"
@@ -195,7 +196,7 @@
 <div id="protect-toast">🔒 Application protégée — © Teva L.</div>
 
 <!-- Bannière détection DevTools -->
-<div id="devtools-banner">🔒 Code source protégé · © Teva L. — Tous droits réservés</div>
+<div id="devtools-banner">✨ Saveur N°5 · Bon appétit ! — © Teva L.</div>
 
 <!-- Raccourcis clavier (overlay — touche ?) -->
 <div id="shortcuts-overlay" role="dialog" aria-modal="true" aria-label="Raccourcis clavier">
