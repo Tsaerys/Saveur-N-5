@@ -1849,15 +1849,24 @@ kbd {
   color: var(--text);
   margin-bottom: 12px;
 }
+#changelog-body {
+  max-height: 62vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 16px;
+  padding-right: 4px;
+}
 .changelog-list {
   list-style: none;
-  padding: 0; margin: 0 0 20px;
+  padding: 0; margin: 0 0 14px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  max-height: 260px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+}
+.changelog-sep {
+  border: none;
+  border-top: 1px dashed var(--bord);
+  margin: 18px 0;
 }
 .changelog-list li {
   font-size: 13px;

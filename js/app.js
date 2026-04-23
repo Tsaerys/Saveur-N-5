@@ -1,7 +1,50 @@
-// Saveur N°5 — Orchestration (v18)
-// ── VERSION (à incrémenter à chaque déploiement) ──────────────────────────
-var _SN5_VER = 'v18';
+// Saveur N°5 — Orchestration
+// ── VERSION (à incrémenter à chaque déploiement, synchronisée avec sw.js) ─
+// Workflow à chaque mise à jour :
+//   1. Bumper CACHE_NAME dans sw.js
+//   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
+//   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
+//   4. Mettre à jour CHANGELOG.md à la racine du projet
+var _SN5_VER = 'v22';
 var _SN5_LOG = [
+  {
+    v: 'v22', date: '22 avril 2026', titre: 'Historique des mises à jour',
+    items: [
+      '📋 Notes de mise à jour complètes désormais visibles dans Réglages → « 📋 Nouveautés »',
+      '🆕 Popup automatique : affiche toutes les versions non vues depuis votre dernière visite',
+      '📄 CHANGELOG.md ajouté à la racine du projet'
+    ]
+  },
+  {
+    v: 'v21', date: '22 avril 2026', titre: 'Ajustement Courses',
+    items: [
+      '🟠 Vue Courses : ingrédients tout en haut, sélecteur de recettes en dessous'
+    ]
+  },
+  {
+    v: 'v20', date: '22 avril 2026', titre: 'UX, A11y, recherche avancée & impression',
+    items: [
+      '🔴 Carrousel Printemps : plus de chevauchement visuel',
+      '🔴 Titres sur 3 lignes avec coupure propre (fini l\'ellipse sauvage)',
+      '🔴 Contraste WCAG AA respecté partout',
+      '🟠 Animation pop sur ♥ / 🛒, pulse du badge, vibration haptique',
+      '🟠 Recherche avancée : chef: / pays: / cat: / ing: / -exclusion / "phrase"',
+      '🟡 Checkbox par étape (fiche + mode cuisine) avec persistence',
+      '🟡 Auto-cochage de l\'étape en avançant en mode cuisine',
+      '🟡 Impression A4 totalement refaite (typo serif, 2 colonnes, pied de page)',
+      '🟢 Focus clavier visible sur tout élément interactif',
+      '🟢 Skip link « Aller au contenu », labels ARIA drapeaux/notes',
+      '🔵 Bannière reformulée, modale ℹ « Échelle de qualité »'
+    ]
+  },
+  {
+    v: 'v19', date: '22 avril 2026', titre: 'Dev mode & mises à jour immédiates',
+    items: [
+      '🔵 Dev mode : ?dev=1 dans l\'URL pour débloquer DevTools',
+      '⚫ index.html en Network First — mises à jour immédiates en ligne',
+      '⚫ Bouton « 🔄 Forcer la mise à jour » dans Réglages → Maintenance'
+    ]
+  },
   {
     v: 'v18', date: 'Avril 2025', titre: 'Grande mise à jour',
     items: [
@@ -15,10 +58,18 @@ var _SN5_LOG = [
       '📸 Photo personnalisée par recette',
       '🔗 Mode Partage — lien direct vers une recette',
       '🍃 Accueil saisonnier intelligent',
-      '♿ Accessibilité ARIA enrichie sur tous les contrôles',
+      '♿ Accessibilité ARIA enrichie sur tous les contrôles'
     ]
   }
 ];
+// Rend le HTML d'une entrée de changelog (réutilisé par l'auto-popup et showChangelog)
+function _sn5LogEntryHTML(entry){
+  return'<div class="changelog-version-tag">'+entry.v+' · '+entry.date+'</div>'
+    +'<div class="changelog-titre">'+entry.titre+'</div>'
+    +'<ul class="changelog-list">'
+    +entry.items.map(function(i){return'<li>'+i+'</li>';}).join('')
+    +'</ul>';
+}
 
 // ── Mode Partage (détecté avant init) ────────────────────────────────────
 (function(){
@@ -384,21 +435,19 @@ function renderSeasonal(){
 }
 
 // ── CHANGELOG ─────────────────────────────────────────────────────────────
+// Affiche automatiquement toutes les versions non vues depuis `sn5_version_seen`.
 function checkChangelog(){
   try{
     var seen=lsGet('sn5_version_seen','');
     if(seen===_SN5_VER) return;
     lsSet('sn5_version_seen',_SN5_VER);
-    var entry=_SN5_LOG.find(function(e){ return e.v===_SN5_VER; });
-    if(!entry) return;
+    var seenIdx=_SN5_LOG.findIndex(function(e){return e.v===seen;});
+    // Si inconnu (nouveau user ou version disparue) → montre uniquement la plus récente
+    var entries=(seenIdx<0)?_SN5_LOG.slice(0,1):_SN5_LOG.slice(0,seenIdx);
+    if(!entries.length) return;
     var body=document.getElementById('changelog-body');
     if(!body) return;
-    body.innerHTML=
-      '<div class="changelog-version-tag">'+entry.v+' · '+entry.date+'</div>'
-      +'<div class="changelog-titre">'+entry.titre+'</div>'
-      +'<ul class="changelog-list">'
-      +entry.items.map(function(i){ return '<li>'+i+'</li>'; }).join('')
-      +'</ul>';
+    body.innerHTML=entries.map(_sn5LogEntryHTML).join('<hr class="changelog-sep">');
     var ov=document.getElementById('changelog-overlay');
     if(ov) ov.classList.add('active');
   }catch(e){}

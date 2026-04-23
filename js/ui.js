@@ -1276,17 +1276,9 @@ function resetTheme(){
 }
 
 function showChangelog(){
-  var entry=_SN5_LOG.find(function(e){return e.v===_SN5_VER;});
-  if(!entry){toast('Aucun historique',1800);return;}
+  if(!_SN5_LOG.length){toast('Aucun historique',1800);return;}
   var body=document.getElementById('changelog-body');
-  if(body){
-    body.innerHTML=
-      '<div class="changelog-version-tag">'+entry.v+' · '+entry.date+'</div>'
-      +'<div class="changelog-titre">'+entry.titre+'</div>'
-      +'<ul class="changelog-list">'
-      +entry.items.map(function(i){return'<li>'+i+'</li>';}).join('')
-      +'</ul>';
-  }
+  if(body){body.innerHTML=_SN5_LOG.map(_sn5LogEntryHTML).join('<hr class="changelog-sep">');}
   var ov=document.getElementById('changelog-overlay');
   if(ov)ov.classList.add('active');
 }
