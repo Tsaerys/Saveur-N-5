@@ -64,7 +64,7 @@ const REGIME_KW={
 var _wakeLock=null;
 // Restauration du frigo depuis localStorage (persistence session)
 var _frigoSaved=(function(){try{return JSON.parse(localStorage.getItem('sn5_frigo'))||{};}catch{return{};}})();
-let S={view:"browse",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid')};
+let S={view:"browse",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:"",saison:"",chef:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid')};
 
 // ── MINUTEUR FLOTTANT (état) ────────────────────────────────────────────────
 let FT={interval:null,remaining:0,running:false,label:""};
@@ -86,6 +86,7 @@ let RATINGS=lsGet("gr2",{});
 let CHECKED_ITEMS=lsGet("gci",{});
 let RECENT=lsGet("grec",[]);
 let STEPS_DONE=lsGet("gsd",{});// {recipeId:[stepNum,…]}
+let FAV_TAGS=lsGet("gft",{});// {recipeId:[tag1,tag2,…]}
 
 function saveCheckedItems(){lsSet("gci",CHECKED_ITEMS);}
 const saveFavs=()=>lsSet("gf",[...FAVS]);
@@ -94,6 +95,7 @@ const saveNotes=()=>lsSet("gn",NOTES);
 const saveRatings=()=>lsSet("gr2",RATINGS);
 const saveRecent=()=>lsSet("grec",RECENT);
 const saveStepsDone=()=>lsSet("gsd",STEPS_DONE);
+const saveFavTags=()=>lsSet("gft",FAV_TAGS);
 const saveFrigo=()=>lsSet("sn5_frigo",{ings:S.frigo_ings,strict:S.frigo_strict});
 const saveViewMode=()=>lsSet("sn5_viewmode",S.view_mode);
 function getLastBackup(){var d=lsGet("sn5_bk",null);if(!d)return null;return new Date(d);}

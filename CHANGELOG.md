@@ -5,6 +5,41 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v23 — 2026-04-24
+
+### 🔴 Critique
+- **Carrousel Hélice** : titres latéraux désormais lisibles. Plancher d'opacité relevé à 0.78, suppression complète du flou, masquage anticipé des cartes les plus éloignées (`depth < 0.20`), fond opaque sur `.helix-card-body`.
+- **Fiche recette** : suppression du « titre fantôme » qui apparaissait derrière le titre principal. Les zones `helix-zone` et `seasonal-zone` (sœurs de `<main>`, donc non couvertes par le changement de vue) sont désormais explicitement masquées dans `openRecipe()` / `setView()` et restaurées dans `goBack()`.
+
+### 🟠 Ergonomie
+- **Aide à la recherche** : nouveau bouton `?` à côté du micro vocal. Ouvre une modale avec exemples cliquables (`chef:Bocuse`, `pays:Italie`, `cat:Dessert`, `"crème brûlée"`, `-poisson`, `ing:safran`).
+- **Filtres saison** : Printemps / Été / Automne / Hiver (basé sur les tags des recettes + détection mois courant).
+- **Filtre chef** : dropdown dédié, alimenté par les chefs présents dans la base.
+- **Fil d'Ariane** sur la fiche recette : `Recettes › <Pays> › <Catégorie> › <Titre>`. Chaque segment ramène à la liste filtrée correspondante.
+
+### 🟡 Fonctionnalités
+- **Vue Favoris** refondue :
+  - Onglets « Tous » / « Notés » (`_favsMode`)
+  - Barre de filtre par tag, alimentée par tous les tags utilisateur
+  - Bouton 🏷 d'édition de tags par carte (modale dédiée)
+  - Affichage des tags sous chaque carte
+- **Vue Courses** enrichie :
+  - Recherche interne dans la liste de recettes utilisée
+  - Modes « Toutes » / « Favoris » / « Menu » (chips)
+  - Boutons d'import « Ajouter mes favoris » et « Ajouter le menu de la semaine »
+- **Filtre multi-sélection** : nouvelle modale qui permet de cumuler plusieurs pays / catégories / chefs (stockage en chaîne pipe-séparée `France|Italie` — compatible avec les dropdowns existants pour la sélection unique).
+- **Transfert QR** : nouveau bouton « 📱 Transférer (QR) » dans Réglages → Sauvegarde. Génère un QR code encodant favoris + notes + tags + évaluations en base64 dans l'URL. Scanné depuis un autre appareil, les données sont importées automatiquement (`handleImportHash` appelé à l'init). Fallback texte si l'API QR externe est inaccessible. Limite ~2800 chars d'URL — au-delà, redirige vers l'export JSON classique.
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v23`
+- `S.filters` étend `saison` et `chef`
+- Nouveaux états : `FAV_TAGS` (`gft`), `_favsMode`, `_csRecFilter`
+- `filtered()` accepte les chaînes pipe-séparées sur `co`/`cat`/`chef`
+- Helpers saison : `_SEASON_MONTHS`, `_seasonTags()`, `_isInSeason()` avec cache mémo
+- Réutilisation de `.qual-legend-overlay` / `.qual-legend-card` pour les nouvelles modales (recherche-help, multi-filter, edit-tags, QR)
+
+---
+
 ## v22 — 2026-04-22
 
 ### 🔵 Contenu

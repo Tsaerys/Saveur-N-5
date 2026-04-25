@@ -150,6 +150,20 @@ function debounce(fn,delay){
   return function(...args){clearTimeout(t);t=setTimeout(()=>fn.apply(this,args),delay);}
 }
 
+// Échappement HTML pour insertion sûre dans innerHTML / valeurs d'attributs
+function attrEscape(s){return String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+// Comptes par pays / chef sur RECIPES — mémorisé (RECIPES est statique après init)
+var _recipeCountsCache=null;
+function getRecipeCounts(){
+  if(_recipeCountsCache)return _recipeCountsCache;
+  var byCo={},byChef={};
+  RECIPES.forEach(function(r){byCo[r.co]=(byCo[r.co]||0)+1;byChef[r.chef]=(byChef[r.chef]||0)+1;});
+  var chefList=Object.keys(byChef).sort(function(a,b){return a.localeCompare(b,'fr');});
+  _recipeCountsCache={byCo:byCo,byChef:byChef,chefList:chefList};
+  return _recipeCountsCache;
+}
+
 // ── RECHERCHE : NORMALISATION ──────────────────────────────────────────────
 function _sn5Norm(s){
   if(s==null)return "";
@@ -192,16 +206,40 @@ function _filteredKey(){
 /* Renvoie true si au moins un filtre est actif (includeFrigo = inclure le mode frigo) */
 function hasAnyFilter(includeFrigo){
   var f=S.filters;
-  return !!(f.co||f.cat||f.diff||f.time||f.q||f.regime||f.qual||f.rayon||(includeFrigo&&S.frigo_active));
+  return !!(f.co||f.cat||f.diff||f.time||f.q||f.regime||f.qual||f.rayon||f.saison||f.chef||(includeFrigo&&S.frigo_active));
 }
 
 /* Réinitialise tous les filtres (hors frigo) */
 function clearAllFilters(){
   S.filters.co="";S.filters.cat="";S.filters.diff="";S.filters.time="";
   S.filters.q="";S.filters.regime="";S.filters.qual="";S.filters.rayon="";
-  S.filters.sort="";
+  S.filters.sort="";S.filters.saison="";S.filters.chef="";
   var qi=document.getElementById('qi');if(qi)qi.value="";
   renderFilters();renderMain();updateCount();
+}
+
+// ── FILTRE SAISON ─────────────────────────────────────────────────────────
+// SEASON_DATA (app.js) regroupe les tags par mois ; SEASONS agrège par saison.
+const SEASONS=[
+  {key:"printemps",label:"Printemps",emoji:"🌸",months:[2,3,4]},
+  {key:"ete",      label:"Été",      emoji:"☀️",months:[5,6,7]},
+  {key:"automne",  label:"Automne",  emoji:"🍂",months:[8,9,10]},
+  {key:"hiver",    label:"Hiver",    emoji:"❄️",months:[11,0,1]}
+];
+const _SEASON_BY_KEY=Object.fromEntries(SEASONS.map(function(s){return[s.key,s];}));
+var _seasonTagsCache={};
+function _seasonTags(key){
+  if(_seasonTagsCache[key])return _seasonTagsCache[key];
+  var s=_SEASON_BY_KEY[key];if(!s)return _seasonTagsCache[key]=[];
+  var set=new Set();
+  s.months.forEach(function(m){var d=(typeof SEASON_DATA!=='undefined')&&SEASON_DATA[m];if(d&&d.tags)d.tags.forEach(function(t){set.add(t);});});
+  _seasonTagsCache[key]=[...set];
+  return _seasonTagsCache[key];
+}
+function _isInSeason(r,key){
+  var tags=_seasonTags(key);if(!tags.length)return true;
+  var h=(r.nom+' '+(r.sous||'')+' '+r.cat+' '+(r.et||'')).toLowerCase();
+  return tags.some(function(t){return h.includes(t);});
 }
 
 /* Tri post-filtrage — ne modifie pas le tableau d'origine */
@@ -221,10 +259,13 @@ function filtered(){
   const k=_filteredKey();
   if(_filteredMemo.has(k))return _filteredMemo.get(k);
 
-  const {co,cat,diff,time,q,regime,qual,rayon}=S.filters;
+  const {co,cat,diff,time,q,regime,qual,rayon,saison,chef}=S.filters;
+  const _arr=v=>v?String(v).split('|').filter(Boolean):[];
+  const coArr=_arr(co),catArr=_arr(cat),chefArr=_arr(chef);
   let recs=RECIPES.filter(r=>{
-    if(co&&r.co!==co)return false;
-    if(cat&&r.cat!==cat)return false;
+    if(coArr.length&&coArr.indexOf(r.co)<0)return false;
+    if(catArr.length&&catArr.indexOf(r.cat)<0)return false;
+    if(chefArr.length&&chefArr.indexOf(r.chef)<0)return false;
     if(diff&&r.diff!==+diff)return false;
     if(qual&&r.qual!==+qual)return false;
     if(time){const t=totTime(r);if(time==="30"&&t>30)return false;if(time==="60"&&t>60)return false;if(time==="120"&&t>120)return false;}
@@ -233,6 +274,7 @@ function filtered(){
     if(regime==="lactose"&&!isLactoseFree(r))return false;
     if(regime==="seafood"&&!isSeafoodFree(r))return false;
     if(regime==="fish"&&!isFishFree(r))return false;
+    if(saison&&!_isInSeason(r,saison))return false;
     if(rayon){
       try{
         const rs=(r.ig||[]).map(function(x){return getRayon((x&&x[0])||"");});

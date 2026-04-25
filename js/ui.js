@@ -137,6 +137,9 @@ function setView(v){
   // Search toujours visible sur les vues principales (browse + favs), masqué ailleurs
   var showSearch=(v==="browse"||v==="favs");
   sz.style.display=showSearch?"":"none";
+  var hz=document.getElementById("helix-zone"),ssz=document.getElementById("seasonal-zone");
+  if(hz)hz.style.display=(v==="browse")?"":"none";
+  if(ssz)ssz.style.display=(v==="browse")?"":"none";
   if(v==="browse"){fz.style.display="";rz.style.display="";renderFilters();renderRecent();renderMain();}
   else{fz.style.display="none";rz.style.display="none";
     if(v==="favs")renderFavs();else if(v==="courses")renderCourses();else if(v==="menu")renderMenuView();else if(v==="settings")renderSettings();
@@ -172,22 +175,26 @@ function startVoice(){
 
 // ── FILTRES RENDER ────────────────────────────────────────────────────────
 function renderFilters(){
-  var f=S.filters;var co=f.co,cat=f.cat,diff=f.diff,time=f.time,regime=f.regime,qual=f.qual,rayon=f.rayon,sort=f.sort||"";
+  var f=S.filters;var co=f.co,cat=f.cat,diff=f.diff,time=f.time,regime=f.regime,qual=f.qual,rayon=f.rayon,sort=f.sort||"",saison=f.saison||"",chef=f.chef||"";
   var hasFilter=hasAnyFilter(false);
   if(hasFilter) _filtersOpen=true;
-  var countsByCo={};RECIPES.forEach(function(r){countsByCo[r.co]=(countsByCo[r.co]||0)+1;});
-  const coOpts=COUNTRIES.map(function(c){var n=countsByCo[c]||0;return'<option value="'+c+'"'+(co===c?' selected':'')+'>'+(FLAGS[c]||"")+' '+c+' ('+n+')</option>';}).join("");
+  var counts=getRecipeCounts();
+  const coOpts=COUNTRIES.map(function(c){var n=counts.byCo[c]||0;return'<option value="'+attrEscape(c)+'"'+(co===c?' selected':'')+'>'+(FLAGS[c]||"")+' '+attrEscape(c)+' ('+n+')</option>';}).join("");
   const catOpts=CATS.map(c=>`<option value="${c}"${cat===c?" selected":""}>${c}</option>`).join("");
   const diffOpts=[1,2,3,4,5].map(d=>`<option value="${d}"${diff==d?" selected":""}>${"★".repeat(d)}</option>`).join("");
   const timeOpts=[["30","−30 min"],["60","−1 h"],["120","−2 h"]].map(([v,l])=>`<option value="${v}"${time===v?" selected":""}>${l}</option>`).join("");
   const qualOpts=[1,2,3,4,5].map(d=>`<option value="${d}"${qual==d?" selected":""}>${d} — ${QUAL_LABELS[d]||""}</option>`).join("");
   const rayonOpts=RAYON_ORDER.map(r=>`<option value="${r}"${rayon===r?" selected":""}>${r}</option>`).join("");
   const sortOpts=[["nom","A → Z"],["time","⏱ Plus rapide"],["diff","⭐ Plus facile"],["qual","🏆 Meilleure qualité"],["rate","★ Ma note"]].map(([v,l])=>`<option value="${v}"${sort===v?" selected":""}>${l}</option>`).join("");
+  const saisonOpts=SEASONS.map(function(s){return'<option value="'+s.key+'"'+(saison===s.key?' selected':'')+'>'+s.emoji+' '+s.label+'</option>';}).join("");
+  const chefOpts=counts.chefList.map(function(c){return'<option value="'+attrEscape(c)+'"'+(chef===c?' selected':'')+'>'+attrEscape(c)+' ('+counts.byChef[c]+')</option>';}).join("");
   const ratedCount=Object.keys(RATINGS).filter(id=>RATINGS[id]>0).length;
   const n=filtered().length;
   var summaryParts=[];
   if(co) summaryParts.push(co);
   if(cat) summaryParts.push(cat);
+  if(chef) summaryParts.push('👨‍🍳 '+chef.split(' ').slice(-1)[0]);
+  if(saison){var _s=_SEASON_BY_KEY[saison];if(_s)summaryParts.push(_s.emoji+' '+_s.label.toLowerCase());}
   if(regime) summaryParts.push(regime);
   if(diff) summaryParts.push('★'.repeat(Number(diff)));
   if(time) summaryParts.push('−'+time+' min');
@@ -214,6 +221,9 @@ function renderFilters(){
         <div class="filter-grp"><label>Temps</label><select id="ftime"><option value="">Tout</option>${timeOpts}</select></div>
         <div class="filter-grp"><label>Qualité <button type="button" class="qual-info-btn" onclick="showQualLegend()" aria-label="Voir l'échelle de qualité" title="Échelle de qualité des sources">ℹ</button></label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
         <div class="filter-grp"><label>Rayon</label><select id="frayon"><option value="">Tous</option>${rayonOpts}</select></div>
+        <div class="filter-grp"><label>Saison</label><select id="fsaison"><option value="">Toutes</option>${saisonOpts}</select></div>
+        <div class="filter-grp"><label>Chef</label><select id="fchef"><option value="">Tous</option>${chefOpts}</select></div>
+        <div class="filter-grp"><label>&nbsp;</label><button type="button" class="multi-filter-btn" onclick="openMultiFilter()" title="Sélectionner plusieurs pays, catégories ou chefs">🔀 Multi-sélection</button></div>
         <div class="filter-grp"><label>Trier par</label><select id="fsort"><option value="">Pertinence</option>${sortOpts}</select></div>
         <div class="regime-filters">
           <button class="regime-btn${regime==="vege"?" active":""}" aria-pressed="${regime==="vege"}" onclick="setRegime('vege')">🌿 Végétarien</button>
@@ -232,6 +242,8 @@ function renderFilters(){
   document.getElementById("ftime").onchange=e=>{S.filters.time=e.target.value;renderFilters();renderMain();updateCount();};
   document.getElementById("fqual").onchange=e=>{S.filters.qual=e.target.value;renderFilters();renderMain();updateCount();};
   document.getElementById("frayon").onchange=e=>{S.filters.rayon=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("fsaison").onchange=e=>{S.filters.saison=e.target.value;renderFilters();renderMain();updateCount();};
+  document.getElementById("fchef").onchange=e=>{S.filters.chef=e.target.value;renderFilters();renderMain();updateCount();};
   document.getElementById("fsort").onchange=e=>{S.filters.sort=e.target.value;renderMain();};
   document.getElementById("qi").oninput=debounce(e=>{S.filters.q=e.target.value;renderMain();updateCount();},300);
 }
@@ -489,7 +501,7 @@ function openRecipe(id){
   S.recipe=RECIPES.find(r=>r.id===id);
   S.portions=S.recipe.bp;S.view="recipe";S.unit_mode="metric";
   addRecent(id);
-  ["search-zone","filters-zone","frigo-zone","recent-zone"].forEach(z=>document.getElementById(z).style.display="none");
+  ["search-zone","filters-zone","frigo-zone","recent-zone","helix-zone","seasonal-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   window.location.hash = 'recette/' + id;
   renderDetail();window.scrollTo(0,0);
@@ -528,8 +540,10 @@ function renderDetail(){
   const accords=getAccords(r);
   const accordsHtml=accords.length?`<div class="accords-section"><div class="accords-title">✨ Recettes pour compléter le repas</div><div class="accords-grid">${accords.map(a=>`<div class="accord-card" role="button" tabindex="0" aria-label="Voir la recette ${a.nom}" onclick="openRecipe('${a.id}')">${buildAccordPhoto(a)}<div class="accord-card-info"><div class="accord-card-nom">${a.nom}</div><div class="accord-card-lbl"><span class="cat-badge cat-${catClass(a.cat)}" style="font-size:10px;padding:2px 7px">${a.cat}</span> · ${a.chef.split(' ').slice(-1)[0]}</div></div></div>`).join("")}</div></div>`:"";
 
+  const breadcrumb=`<nav class="detail-breadcrumb" aria-label="Fil d'Ariane"><button class="bc-seg" data-bc="">Recettes</button><span class="bc-sep" aria-hidden="true">›</span><button class="bc-seg" data-bc="co" data-bc-val="${attrEscape(r.co)}"><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${attrEscape(r.co)}</button><span class="bc-sep" aria-hidden="true">›</span><button class="bc-seg" data-bc="cat" data-bc-val="${attrEscape(r.cat)}">${attrEscape(r.cat)}</button><span class="bc-sep" aria-hidden="true">›</span><span class="bc-cur" aria-current="page">${attrEscape(r.nom)}</span></nav>`;
   document.getElementById("main").innerHTML=`
     <div class="detail-wrap">
+      ${breadcrumb}
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0">
         <button class="back-btn" onclick="goBack()" aria-label="Retour à la liste des recettes">← Retour</button>
         <div class="detail-actions-bar">
@@ -606,6 +620,11 @@ function renderDetail(){
         <div class="print-footer">Saveur N°5 · ${r.nom} · ${r.chef} · ${r.co} · Imprimé le ${new Date().toLocaleDateString('fr-FR')}</div>
       </div>
     </div>`;
+  var bc=document.querySelector(".detail-breadcrumb");
+  if(bc)bc.addEventListener("click",function(e){
+    var btn=e.target.closest(".bc-seg");if(!btn)return;
+    bcFilter(btn.dataset.bc||"",btn.dataset.bcVal||"");
+  });
 }
 
 function printRecipe(){window.print();}
@@ -623,6 +642,7 @@ function goBack(){
   document.getElementById("filters-zone").style.display="";
   if(S.frigo_active)document.getElementById("frigo-zone").style.display="";
   document.getElementById("recent-zone").style.display="";
+  ["helix-zone","seasonal-zone"].forEach(function(z){var el=document.getElementById(z);if(el)el.style.display="";});
   document.getElementById("nav-browse").classList.add("active");
   renderFilters();renderRecent();renderMain();updateCount();
   // Restore search input binding for browse view
@@ -630,6 +650,14 @@ function goBack(){
   if(qi){
     qi.oninput=debounce(function(e){S.filters.q=e.target.value;renderMain();updateCount();},300);
   }
+}
+function bcFilter(key,val){
+  clearAllFilters();
+  if(key==="co")S.filters.co=val;
+  else if(key==="cat")S.filters.cat=val;
+  else if(key==="chef")S.filters.chef=val;
+  goBack();
+  if(S.view==="browse"){renderFilters();renderMain();updateCount();}
 }
 function _haptic(added){if(navigator.vibrate)try{navigator.vibrate(added?[10,30,15]:10);}catch(e){}}
 function _qualTooltip(q){
@@ -647,15 +675,109 @@ function _qualLegendHTML(){
     return'<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bord)"><span style="color:'+(QUAL_COLORS[q]||"#aaa")+';font-weight:700;width:60px;flex-shrink:0">'+"★".repeat(q)+'</span><span style="font-size:13px">'+_qualTooltip(q).replace(/^★+\s+/,"")+'</span></div>';
   }).join("");
 }
-function showQualLegend(){
+// Modale générique réutilisée par toutes les boîtes de dialogue (qual, recherche, multi-filtre, QR).
+// `onMount` reçoit ({overlay, body, close}) pour câbler les listeners internes après insertion.
+function _makeModal(opts){
+  var titleId=opts.titleId||("modal-"+Math.random().toString(36).slice(2,8));
+  var maxW=opts.maxWidth?(' style="max-width:'+opts.maxWidth+'px"'):'';
   var ov=document.createElement("div");
   ov.className="qual-legend-overlay";
-  ov.innerHTML='<div class="qual-legend-card" role="dialog" aria-modal="true" aria-labelledby="ql-title"><div class="qual-legend-head"><strong id="ql-title">Échelle de qualité des sources</strong><button class="qual-legend-close" aria-label="Fermer">✕</button></div><div class="qual-legend-body">'+_qualLegendHTML()+'<p style="margin-top:10px;font-size:11.5px;color:var(--text3);font-style:italic">La qualité reflète la fiabilité et la reconnaissance de la source, pas la difficulté ni le goût.</p></div></div>';
+  ov.innerHTML='<div class="qual-legend-card" role="dialog" aria-modal="true" aria-labelledby="'+titleId+'"'+maxW+'><div class="qual-legend-head"><strong id="'+titleId+'">'+opts.title+'</strong><button class="qual-legend-close" aria-label="Fermer">✕</button></div><div class="qual-legend-body">'+(opts.body||"")+'</div></div>';
   document.body.appendChild(ov);
-  var close=function(){ov.remove();document.removeEventListener("keydown",onKey);};
+  var body=ov.querySelector(".qual-legend-body");
+  var close=function(){if(!ov.parentNode)return;ov.remove();document.removeEventListener("keydown",onKey);};
   var onKey=function(e){if(e.key==="Escape")close();};
   ov.addEventListener("click",function(e){if(e.target===ov||e.target.classList.contains("qual-legend-close"))close();});
   document.addEventListener("keydown",onKey);
+  ov._close=close;
+  if(typeof opts.onMount==="function")opts.onMount({overlay:ov,body:body,close:close});
+  return{overlay:ov,body:body,close:close};
+}
+function showQualLegend(){
+  _makeModal({
+    titleId:"ql-title",
+    title:"Échelle de qualité des sources",
+    body:_qualLegendHTML()+'<p style="margin-top:10px;font-size:11.5px;color:var(--text3);font-style:italic">La qualité reflète la fiabilité et la reconnaissance de la source, pas la difficulté ni le goût.</p>'
+  });
+}
+// Filtres multi-sélection (pays / cat / chef) — modale avec chips cochables
+function openMultiFilter(){
+  var counts=getRecipeCounts();
+  var renderBody=function(body){
+    var coArr=(S.filters.co||"").split('|').filter(Boolean);
+    var catArr=(S.filters.cat||"").split('|').filter(Boolean);
+    var chefArr=(S.filters.chef||"").split('|').filter(Boolean);
+    var section=function(lbl,items,arr,key,fmt){
+      var chips=items.map(function(v){
+        var on=arr.indexOf(v)>=0;
+        return'<button class="mf-chip'+(on?' active':'')+'" data-mf-key="'+key+'" data-mf-val="'+attrEscape(v)+'">'+(fmt?fmt(v):attrEscape(v))+'</button>';
+      }).join("");
+      return'<div class="mf-section"><div class="mf-lbl">'+lbl+'</div><div class="mf-chips">'+chips+'</div></div>';
+    };
+    body.innerHTML=section("🌍 Pays",COUNTRIES,coArr,"co",function(c){return(FLAGS[c]||"")+" "+attrEscape(c)+" ("+(counts.byCo[c]||0)+")";})
+      +section("🍽 Catégories",CATS,catArr,"cat")
+      +section("👨‍🍳 Chefs",counts.chefList,chefArr,"chef",function(c){return attrEscape(c)+" ("+counts.byChef[c]+")";})
+      +'<p style="margin-top:14px;font-size:11.5px;color:var(--text3);font-style:italic">Sélectionnez autant de valeurs que vous le souhaitez dans chaque catégorie.</p>';
+  };
+  _makeModal({
+    titleId:"mf-title",
+    title:"Filtres multi-sélection",
+    maxWidth:620,
+    onMount:function(m){
+      renderBody(m.body);
+      m.body.addEventListener("click",function(e){
+        var btn=e.target.closest(".mf-chip");if(!btn)return;
+        var key=btn.dataset.mfKey,val=btn.dataset.mfVal;
+        var cur=(S.filters[key]||"").split('|').filter(Boolean);
+        var i=cur.indexOf(val);
+        if(i>=0)cur.splice(i,1);else cur.push(val);
+        S.filters[key]=cur.join('|');
+        renderFilters();renderMain();updateCount();
+        renderBody(m.body);
+      });
+    }
+  });
+}
+// Aide recherche avancée — exemples cliquables
+var _SEARCH_EXAMPLES=[
+  {op:"chef:ducasse",   desc:"Toutes les recettes du chef Ducasse"},
+  {op:"pays:italie",    desc:"Cuisine italienne"},
+  {op:"cat:dessert",    desc:"Catégorie desserts"},
+  {op:"ing:truffe",     desc:"Recettes avec de la truffe"},
+  {op:"-porc",          desc:"Exclure les recettes contenant « porc »"},
+  {op:"\"crème brûlée\"", desc:"Recherche d'une phrase exacte"},
+  {op:"chef:bocuse pays:france", desc:"Combinaison d'opérateurs"},
+  {op:"ing:chocolat -sucre", desc:"Chocolat, sans mot « sucre »"}
+];
+function runSearchExample(q){
+  var ov=document.querySelector(".qual-legend-overlay");
+  if(ov&&typeof ov._close==="function")ov._close();else if(ov)ov.remove();
+  var qi=document.getElementById("qi");if(!qi)return;
+  qi.value=q;
+  S.filters.q=q;
+  if(S.view!=="browse")setView("browse");
+  else{renderMain();updateCount();}
+  qi.focus();
+}
+function showSearchHelp(){
+  var rows=_SEARCH_EXAMPLES.map(function(e){
+    return'<div class="search-help-row" role="button" tabindex="0" data-q="'+attrEscape(e.op)+'"><code class="search-help-op">'+attrEscape(e.op)+'</code><span class="search-help-desc">'+attrEscape(e.desc)+'</span></div>';
+  }).join("");
+  _makeModal({
+    titleId:"sh-title",
+    title:"Aide — Recherche avancée",
+    maxWidth:520,
+    body:'<p style="margin:0 0 10px;font-size:12.5px;color:var(--text2)">Cliquez sur un exemple pour l\'essayer :</p>'+rows+'<p style="margin-top:12px;font-size:11.5px;color:var(--text3);font-style:italic">Combinez les opérateurs en les séparant par un espace.</p>',
+    onMount:function(m){
+      var act=function(row){if(row&&row.dataset&&row.dataset.q)runSearchExample(row.dataset.q);};
+      m.body.addEventListener("click",function(e){act(e.target.closest(".search-help-row"));});
+      m.body.addEventListener("keydown",function(e){
+        if(e.key!=="Enter"&&e.key!==" ")return;
+        var row=e.target.closest(".search-help-row");if(!row)return;
+        e.preventDefault();act(row);
+      });
+    }
+  });
 }
 function _getDoneSteps(id){var a=STEPS_DONE[id];return new Set(Array.isArray(a)?a:[]);}
 function _markStepDone(id,n,done){
@@ -685,7 +807,10 @@ function _popClassFav(id,isFav){return(isFav&&_popFav===id)?" just-pop":"";}
 function _popClassCart(id,inCart){return(inCart&&_popCart===id)?" just-pop":"";}
 function toggleFav(id){
   var added=!FAVS.has(id);
-  if(added){FAVS.add(id);toast("♥ Ajouté aux favoris");_popFav=id;}else{FAVS.delete(id);toast("Retiré des favoris");_popFav=null;}
+  if(added){FAVS.add(id);toast("♥ Ajouté aux favoris");_popFav=id;}
+  else{FAVS.delete(id);toast("Retiré des favoris");_popFav=null;
+    if(FAV_TAGS[id]){delete FAV_TAGS[id];saveFavTags();}
+  }
   saveFavs();updateBadges();_haptic(added);
   if(S.view==="recipe")renderDetail();else if(S.view==="favs")renderFavs();else renderMain();
   _popFav=null;
@@ -893,57 +1018,165 @@ function changeMenuSlot(ji,field,type){
 }
 
 // ── FAVORIS ───────────────────────────────────────────────────────────────
+var _favsMode="all";// "all" | "rated"
+var _favsTagFilter="";// tag actif ("" = tous)
+function setFavsMode(m){_favsMode=m;_favsTagFilter="";renderFavs();}
+function setFavsTagFilter(t){_favsTagFilter=(_favsTagFilter===t)?"":t;renderFavs();}
+function _getFavTags(id){var a=FAV_TAGS[id];return Array.isArray(a)?a:[];}
+function _setFavTags(id,tags){
+  var clean=tags.map(function(t){return(t||"").trim();}).filter(Boolean);
+  var uniq=[];clean.forEach(function(t){if(!uniq.some(function(u){return u.toLowerCase()===t.toLowerCase();}))uniq.push(t);});
+  if(uniq.length)FAV_TAGS[id]=uniq;else delete FAV_TAGS[id];
+  saveFavTags();
+}
+function _allFavTags(){
+  var set=new Set();
+  Object.keys(FAV_TAGS).forEach(function(id){if(FAVS.has(id))(FAV_TAGS[id]||[]).forEach(function(t){set.add(t);});});
+  return[...set].sort(function(a,b){return a.localeCompare(b,'fr');});
+}
+function editFavTags(id){
+  var cur=_getFavTags(id).join(", ");
+  var v=prompt("Tags (séparés par des virgules) — ex : À tester, Dîner de Noël, Rapide",cur);
+  if(v===null)return;
+  _setFavTags(id,v.split(",").map(function(t){return t.trim();}).filter(Boolean));
+  renderFavs();
+  toast("🏷 Tags mis à jour",1800);
+}
 function renderFavs(q){
   q=q||"";
   var ql=q.toLowerCase();
-  var favRecs=RECIPES.filter(function(r){
-    if(!FAVS.has(r.id))return false;
+  var ratedTotal=Object.keys(RATINGS).filter(function(id){return RATINGS[id]>0;}).length;
+  var mode=_favsMode;
+  var recs=RECIPES.filter(function(r){
+    if(mode==="rated"){if(!(RATINGS[r.id]>0))return false;}
+    else{if(!FAVS.has(r.id))return false;}
     if(ql&&!r.nom.toLowerCase().includes(ql)&&!r.co.toLowerCase().includes(ql))return false;
+    if(mode==="all"&&_favsTagFilter){
+      var tags=_getFavTags(r.id);
+      if(!tags.some(function(t){return t.toLowerCase()===_favsTagFilter.toLowerCase();}))return false;
+    }
     return true;
   });
+  if(mode==="rated")recs.sort(function(a,b){return (RATINGS[b.id]||0)-(RATINGS[a.id]||0);});
   var main=document.getElementById("main");
-  var searchBar=`<div style="padding:12px 16px 0"><input type="text" value="${q}" placeholder="Rechercher dans mes favoris…" oninput="renderFavs(this.value)" style="width:100%;background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:8px 14px;font-size:13px;font-family:inherit;color:var(--text);outline:none"></div>`;
-  if(!favRecs.length){
-    var emptyBody=FAVS.size
-      ? `<p style="font-size:15px;margin-bottom:6px">Aucun résultat</p><small style="font-size:13px;color:var(--text4)">Essayez un autre terme de recherche</small>`
-      : `<p style="font-size:17px;margin-bottom:10px;color:var(--text2)">Aucun favori pour le moment</p>
+  var tabs=`<div class="favs-tabs" role="tablist">
+    <button class="favs-tab${mode==='all'?' active':''}" role="tab" aria-selected="${mode==='all'}" onclick="setFavsMode('all')">♥ Favoris (${FAVS.size})</button>
+    <button class="favs-tab${mode==='rated'?' active':''}" role="tab" aria-selected="${mode==='rated'}" onclick="setFavsMode('rated')">⭐ Mes recettes notées (${ratedTotal})</button>
+  </div>`;
+  var tagsBar="";
+  if(mode==="all"){
+    var allTags=_allFavTags();
+    if(allTags.length){
+      tagsBar='<div class="favs-tagbar"><span class="favs-tagbar-lbl">🏷 Tags :</span>'
+        +'<button class="favs-tagchip'+(_favsTagFilter===""?' active':'')+'" onclick="setFavsTagFilter(\'\')">Tous</button>'
+        +allTags.map(function(t){
+          var safe=t.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+          var active=_favsTagFilter.toLowerCase()===t.toLowerCase();
+          return'<button class="favs-tagchip'+(active?' active':'')+'" onclick="setFavsTagFilter(\''+safe+'\')">'+t+'</button>';
+        }).join("")
+        +'</div>';
+    }
+  }
+  var placeholder=mode==="rated"?"Rechercher dans mes recettes notées…":"Rechercher dans mes favoris…";
+  var searchBar=`<div style="padding:12px 16px 0"><input type="text" value="${q}" placeholder="${placeholder}" oninput="renderFavs(this.value)" style="width:100%;background:var(--bg3);border:1.5px solid var(--bord);border-radius:var(--rx);padding:8px 14px;font-size:13px;font-family:inherit;color:var(--text);outline:none"></div>`;
+  if(!recs.length){
+    var hasAny=mode==="rated"?ratedTotal>0:FAVS.size>0;
+    var ico=mode==="rated"?"⭐":"♡";
+    var emptyBody;
+    if(hasAny){
+      emptyBody=`<p style="font-size:15px;margin-bottom:6px">Aucun résultat</p><small style="font-size:13px;color:var(--text4)">Essayez un autre terme de recherche</small>`;
+    }else if(mode==="rated"){
+      emptyBody=`<p style="font-size:17px;margin-bottom:10px;color:var(--text2)">Aucune recette notée</p>
+         <p style="font-size:13px;color:var(--text4);max-width:360px;margin:0 auto 18px auto;line-height:1.5">Notez vos recettes préférées en cliquant sur les étoiles ; elles apparaîtront ici triées par note.</p>
+         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+           <button class="act-btn" onclick="setView('browse')">🍽 Parcourir les recettes</button>
+         </div>`;
+    }else{
+      emptyBody=`<p style="font-size:17px;margin-bottom:10px;color:var(--text2)">Aucun favori pour le moment</p>
          <p style="font-size:13px;color:var(--text4);max-width:340px;margin:0 auto 18px auto;line-height:1.5">Cliquez sur ♡ sur n'importe quelle recette pour la sauvegarder ici. Vos favoris sont synchronisés entre tous les appareils via la sauvegarde.</p>
          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
            <button class="act-btn" onclick="setView('browse')">🍽 Parcourir les recettes</button>
            <button class="act-btn" onclick="openRandom()">🎲 Surprise</button>
          </div>`;
-    main.innerHTML=searchBar+`<div class="empty"><div class="empty-ico">♡</div>${emptyBody}</div>`;
+    }
+    main.innerHTML=tabs+searchBar+tagsBar+`<div class="empty"><div class="empty-ico">${ico}</div>${emptyBody}</div>`;
     return;
   }
-  const cards=favRecs.map(r=>{
+  const cards=recs.map(r=>{
     var coCol=COUNTRY_COLORS[r.co]||"#9a6f2a";
     var rt=RATINGS[r.id]||0;
+    var isFav=FAVS.has(r.id);
+    var tags=mode==="all"?_getFavTags(r.id):[];
+    var tagsHtml=tags.length?'<div class="card-tags">'+tags.map(function(t){return'<span class="card-tag">'+t+'</span>';}).join("")+'</div>':"";
+    var tagBtn=mode==="all"?`<button class="card-tag-btn" onclick="event.stopPropagation();editFavTags('${r.id}')" aria-label="Modifier les tags" title="Modifier les tags">🏷</button>`:"";
     return`
     <div class="card" data-id="${r.id}" style="--co-accent:${coCol}">
       ${buildCardPhoto(r)}
-      <button class="card-fav-btn active" onclick="event.stopPropagation();toggleFav('${r.id}')">♥</button>
+      <button class="card-fav-btn${isFav?' active':''}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?'♥':'♡'}</button>
+      ${tagBtn}
       <div class="card-body">
         <div class="card-top"><span class="cat-badge cat-${catClass(r.cat)}">${r.cat}</span><div class="diff-dots">${dots(r.diff)}</div></div>
         <div class="card-nom">${r.nom}</div>
         <div class="card-chef">${r.chef}</div>
+        ${tagsHtml}
         <div class="card-meta"><div class="meta-item"><strong>${totTime(r)}</strong> min</div><div class="meta-item"><strong>${r.bp}</strong> pers.</div><div class="meta-item meta-diff-${r.diff}">${diffLabel(r.diff)}</div></div>
         <div class="card-foot"><span class="card-co" aria-label="Pays : ${r.co}"><span class="card-co-dot" style="background:${coCol}" aria-hidden="true"></span><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</span> ${rt?`<span class="card-rate-sum" aria-label="Note : ${rt} sur 5">★ ${rt}/5</span>`:""}</div>
       </div>
     </div>`;}).join("");
-  main.innerHTML=`<div class="page-header"><div class="page-title">Mes favoris</div><div style="font-size:13px;color:var(--text3);margin-bottom:20px">${favRecs.length} recette${favRecs.length>1?"s":""} sauvegardée${favRecs.length>1?"s":""}</div></div><div style="padding:0 20px"><div class="grid">${cards}</div></div>`;
+  var title=mode==="rated"?"Mes recettes notées":"Mes favoris";
+  var subtitle=mode==="rated"
+    ? `${recs.length} recette${recs.length>1?"s":""} notée${recs.length>1?"s":""} · triées par note`
+    : `${recs.length} recette${recs.length>1?"s":""} sauvegardée${recs.length>1?"s":""}`;
+  main.innerHTML=tabs+searchBar+tagsBar+`<div class="page-header"><div class="page-title">${title}</div><div style="font-size:13px;color:var(--text3);margin-bottom:20px">${subtitle}</div></div><div style="padding:0 20px"><div class="grid">${cards}</div></div>`;
   document.querySelectorAll(".card[data-id]").forEach(c=>c.onclick=()=>openRecipe(c.dataset.id));
 }
 
 // ── LISTE DE COURSES ──────────────────────────────────────────────────────
-function renderCourses(){
-  const {cartRecs,groups,order}=buildCoursesAgg();
-  const main=document.getElementById("main");
+var _csRecFilter={q:"",mode:"all"};// mode: "all" | "favs" | "menu"
+function setCoursesRecMode(m){_csRecFilter.mode=m;renderCourses();}
+function coursesImportFavs(){
+  if(!FAVS.size){toast("Aucun favori à importer",2200);return;}
+  var n=0;FAVS.forEach(function(id){if(!CART.has(id)){CART.add(id);n++;}});
+  saveCart();updateBadges();renderCourses();
+  toast(n?"🛒 "+n+" favori"+(n>1?"s":"")+" ajouté"+(n>1?"s":"")+" aux courses":"Tous les favoris étaient déjà dans les courses",2500);
+}
+function coursesImportMenu(){
+  if(!MENU_DATA||!MENU_DATA.jours||!MENU_DATA.jours.length){toast("Aucun menu généré. Allez dans 📅 Menu.",2500);return;}
+  var n=0;
+  MENU_DATA.jours.forEach(function(j){
+    [j.entree,j.plat,j.dessert].filter(Boolean).forEach(function(r){if(!CART.has(r.id)){CART.add(r.id);n++;}});
+  });
+  saveCart();updateBadges();renderCourses();
+  toast(n?"🛒 "+n+" recette"+(n>1?"s":"")+" du menu ajoutée"+(n>1?"s":""):"Les recettes du menu étaient déjà dans les courses",2500);
+}
+function _csRecFilterInput(v){_csRecFilter.q=v;_csRenderPills();}
+function _csRenderPills(){
+  var zone=document.getElementById("cs-pills-zone");if(!zone)return;
+  zone.innerHTML=_buildCoursesPillsHtml();
+}
+function _buildCoursesPillsHtml(){
+  var q=(_csRecFilter.q||"").toLowerCase();
+  var mode=_csRecFilter.mode||"all";
+  var pool=RECIPES.filter(function(r){
+    if(mode==="favs"&&!FAVS.has(r.id))return false;
+    if(mode==="menu"){
+      if(!MENU_DATA||!MENU_DATA.jours)return false;
+      var inMenu=MENU_DATA.jours.some(function(j){return[j.entree,j.plat,j.dessert].some(function(x){return x&&x.id===r.id;});});
+      if(!inMenu)return false;
+    }
+    if(q&&!r.nom.toLowerCase().includes(q)&&!r.co.toLowerCase().includes(q)&&!r.chef.toLowerCase().includes(q))return false;
+    return true;
+  });
+  if(!pool.length){
+    var msg=mode==="favs"?"Aucun favori ne correspond.":mode==="menu"?"Aucune recette du menu ne correspond.":"Aucune recette ne correspond.";
+    return'<div style="padding:16px;font-size:13px;color:var(--text3);font-style:italic">'+msg+'</div>';
+  }
   var pillGroups={};
-  RECIPES.forEach(function(r){(pillGroups[r.cat]=pillGroups[r.cat]||[]).push(r);});
+  pool.forEach(function(r){(pillGroups[r.cat]=pillGroups[r.cat]||[]).push(r);});
   var preferred=["Entrée","Plat","Dessert","Sauce / Base","Accompagnement","Soupe","Assaisonnement","Entremet"];
   var otherCats=Object.keys(pillGroups).filter(function(c){return preferred.indexOf(c)<0;}).sort();
   var catOrder=preferred.filter(function(c){return pillGroups[c];}).concat(otherCats);
-  var pillsHtml=catOrder.map(function(cat){
+  return catOrder.map(function(cat){
     var col=CAT_COLORS[cat]||"#9a6f2a";
     var list=pillGroups[cat].slice().sort(function(a,b){return a.nom.localeCompare(b.nom);});
     var inner=list.map(function(r){
@@ -952,6 +1185,25 @@ function renderCourses(){
     }).join("");
     return'<div class="cs-pill-group"><div class="cs-pill-cat" style="color:'+col+'">'+cat+'</div><div class="cs-pills">'+inner+'</div></div>';
   }).join("");
+}
+function renderCourses(){
+  const {cartRecs,groups,order}=buildCoursesAgg();
+  const main=document.getElementById("main");
+  var pillsHtml=_buildCoursesPillsHtml();
+  var mode=_csRecFilter.mode||"all";
+  var hasFavs=FAVS.size>0, hasMenu=!!(MENU_DATA&&MENU_DATA.jours&&MENU_DATA.jours.length);
+  var recCtrls=`<div class="cs-rec-ctrls">
+      <input type="text" class="cs-rec-search" placeholder="Filtrer les recettes (nom, pays, chef)…" value="${(_csRecFilter.q||"").replace(/"/g,'&quot;')}" oninput="_csRecFilterInput(this.value)">
+      <div class="cs-rec-chips">
+        <button class="cs-chip${mode==='all'?' active':''}" aria-pressed="${mode==='all'}" onclick="setCoursesRecMode('all')">Toutes (${RECIPES.length})</button>
+        <button class="cs-chip${mode==='favs'?' active':''}" aria-pressed="${mode==='favs'}" onclick="setCoursesRecMode('favs')">♥ Favoris (${FAVS.size})</button>
+        <button class="cs-chip${mode==='menu'?' active':''}" aria-pressed="${mode==='menu'}" onclick="setCoursesRecMode('menu')">📅 Menu</button>
+      </div>
+      <div class="cs-rec-imports">
+        ${hasFavs?'<button class="btn-export" onclick="coursesImportFavs()" title="Ajouter tous mes favoris aux courses">+ Ajouter mes favoris</button>':''}
+        ${hasMenu?'<button class="btn-export" onclick="coursesImportMenu()" title="Ajouter les recettes du dernier menu">+ Ajouter le menu</button>':''}
+      </div>
+    </div>`;
   let html="";
   if(cartRecs.length){
     order.forEach(cat=>{
@@ -993,7 +1245,7 @@ function renderCourses(){
         ${cartRecs.length>0?html:`<div class="courses-empty">Sélectionnez des recettes ci-dessous pour générer la liste</div>`}
       </div>
       <div style="font-size:13px;color:var(--text3);margin:22px 0 14px">Sélectionnez des recettes — les ingrédients sont consolidés automatiquement</div>
-      <div class="cs-selector"><div class="cs-lbl">Choisir les recettes</div>${pillsHtml}</div>
+      <div class="cs-selector"><div class="cs-lbl">Choisir les recettes</div>${recCtrls}<div id="cs-pills-zone">${pillsHtml}</div></div>
     </div>`;
 }
 
@@ -1086,6 +1338,53 @@ function exportBackup() {
         + Object.keys(RATINGS).length + ' notes)');
 }
 
+function exportBackupQR(){
+  var payload={favs:[...FAVS],ratings:RATINGS,notes:NOTES,tags:FAV_TAGS};
+  var json=JSON.stringify(payload);
+  var b64;
+  try{b64=btoa(unescape(encodeURIComponent(json)));}catch(e){toast("❌ Impossible d'encoder les données");return;}
+  var url=window.location.origin+window.location.pathname+'#import='+b64;
+  if(url.length>2800){toast("⚠ Trop de données pour un QR code. Utilisez « 📤 Exporter » à la place.",4500);return;}
+  var qrSrc='https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data='+encodeURIComponent(url);
+  var body='<div style="text-align:center"><img id="qr-img" alt="QR code de transfert" src="'+attrEscape(qrSrc)+'" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;background:#fff;border-radius:8px;padding:10px"><div id="qr-fallback" style="display:none;padding:12px;background:var(--bg3);border-radius:8px;font-size:10.5px;font-family:monospace;word-break:break-all;text-align:left;max-height:180px;overflow-y:auto">'+attrEscape(url)+'</div><p style="font-size:12.5px;color:var(--text2);margin:12px 0 8px;line-height:1.5">Scannez ce code avec votre autre appareil pour importer <strong>'+FAVS.size+'</strong> favoris, <strong>'+Object.keys(RATINGS).length+'</strong> notes, tags et évaluations.</p><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="act-btn" id="qr-copy-btn">📋 Copier le lien</button></div><p style="margin-top:12px;font-size:11px;color:var(--text3);font-style:italic">Les données restent sur votre appareil. Le QR est généré localement à chaque ouverture.</p></div>';
+  _makeModal({
+    titleId:"qr-title",
+    title:"📱 Transférer mes données",
+    maxWidth:380,
+    body:body,
+    onMount:function(m){
+      var img=m.body.querySelector("#qr-img"),fb=m.body.querySelector("#qr-fallback");
+      if(img)img.addEventListener("error",function(){img.style.display="none";if(fb)fb.style.display="block";});
+      var btn=m.body.querySelector("#qr-copy-btn");
+      if(btn)btn.addEventListener("click",function(){
+        if(navigator.clipboard)navigator.clipboard.writeText(url).then(function(){toast("🔗 Lien copié");});
+      });
+    }
+  });
+}
+function handleImportHash(){
+  if(!location.hash||!location.hash.startsWith('#import='))return false;
+  var b64=location.hash.slice('#import='.length);
+  try{
+    var json=decodeURIComponent(escape(atob(b64)));
+    var p=JSON.parse(json);
+    var nFavs=p.favs?p.favs.length:0;
+    var nRatings=p.ratings?Object.keys(p.ratings).length:0;
+    if(!confirm("Importer "+nFavs+" favori(s) et "+nRatings+" note(s) depuis le QR code ?\n\nCeci remplace vos données actuelles."))return false;
+    if(p.favs){FAVS=new Set(p.favs);saveFavs();}
+    if(p.ratings){RATINGS=p.ratings;saveRatings();}
+    if(p.notes){NOTES=p.notes;saveNotes();}
+    if(p.tags){FAV_TAGS=p.tags;saveFavTags();}
+    history.replaceState('',document.title,location.pathname+location.search);
+    updateBadges();
+    if(S.view==="favs")renderFavs();
+    else if(S.view==="courses")renderCourses();
+    else if(S.view==="recipe")renderDetail();
+    else if(S.view==="browse")renderMain();
+    toast("✅ Données importées depuis le QR code ("+nFavs+" favoris, "+nRatings+" notes)",3500);
+    return true;
+  }catch(e){toast("❌ QR code invalide : "+e.message,3500);return false;}
+}
 function importBackup() {
   var inp = document.createElement('input');
   inp.type = 'file'; inp.accept = '.json';
@@ -1192,6 +1491,7 @@ function renderSettings(){
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
             <button class="act-btn" onclick="exportBackup()">📤 Exporter</button>
             <button class="act-btn" onclick="importBackup()">📥 Restaurer</button>
+            <button class="act-btn" onclick="exportBackupQR()">📱 Transférer (QR)</button>
           </div>
         </div>
       </div>

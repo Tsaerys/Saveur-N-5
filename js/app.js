@@ -5,8 +5,23 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v22';
+var _SN5_VER = 'v23';
 var _SN5_LOG = [
+  {
+    v: 'v23', date: '24 avril 2026', titre: 'Lisibilité, navigation & organisation',
+    items: [
+      '🔴 Carrousel Hélice : titres latéraux désormais lisibles (fond opaque, plus de flou)',
+      '🔴 Fiche recette : suppression du « titre fantôme » dupliqué en arrière-plan',
+      '🟠 Aide à la recherche : bouton « ? » avec exemples cliquables (chef: / pays: / cat: / "phrase" / -exclusion)',
+      '🟠 Filtres saison (Printemps / Été / Automne / Hiver) et chef',
+      '🟠 Fil d\'Ariane sur la fiche recette pour revenir aux filtres pays/catégorie',
+      '🟡 Vue Favoris : onglets « Tous » / « Notés », filtre par tag, édition de tags par carte',
+      '🟡 Vue Courses : recherche interne, import depuis Favoris ou Menu',
+      '🟡 Filtre multi-sélection : pays/cat/chef cumulables via modale dédiée',
+      '🟡 Transfert QR : exporter ses favoris/notes/tags vers un autre appareil par scan',
+      '⚫ SW v23'
+    ]
+  },
   {
     v: 'v22', date: '22 avril 2026', titre: 'Historique des mises à jour',
     items: [
@@ -114,6 +129,7 @@ function init(){
 
   if(typeof initUserRecipes==="function")initUserRecipes();
   else console.warn("[SN5] initUserRecipes manquant (cache SW ou script non chargé)");
+  if(typeof handleImportHash==="function")handleImportHash();
   if(typeof updateBadges==="function")updateBadges();
   if(typeof initTheme==="function")initTheme();
   if(typeof initScrollTop==="function")initScrollTop();
@@ -697,21 +713,21 @@ function _hlxRender(){
     var depth = (1 + cosA) / 2;
 
     /* masquer cartes trop loin ou tournées derrière */
-    if(depth < 0.04 || Math.abs(vp) > 4.5){
+    if(depth < 0.20 || Math.abs(vp) > 3.5){
       card.style.opacity      = '0';
       card.style.visibility   = 'hidden';
       card.style.pointerEvents= 'none';
       continue;
     }
 
-    var opacity  = (0.10 + 0.90 * depth).toFixed(2);
-    var blurPx   = Math.max(0, (1 - depth) * 5).toFixed(1);
-    var scaleFac = (0.70 + 0.30 * depth).toFixed(3);
+    /* titres latéraux lisibles : pas de blur, plancher d'opacité élevé */
+    var opacity  = (0.78 + 0.22 * depth).toFixed(2);
+    var scaleFac = (0.80 + 0.20 * depth).toFixed(3);
     var zIdx     = Math.round(depth * 100);
 
     card.style.visibility   = 'visible';
     card.style.opacity      = opacity;
-    card.style.filter       = depth < 0.95 ? 'blur('+blurPx+'px)' : 'none';
+    card.style.filter       = 'none';
     card.style.zIndex       = ''+zIdx;
     card.style.pointerEvents= depth > 0.14 ? 'auto' : 'none';
     card.style.transform    =
