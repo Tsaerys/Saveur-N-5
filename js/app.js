@@ -5,8 +5,16 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v23';
+var _SN5_VER = 'v24';
 var _SN5_LOG = [
+  {
+    v: 'v24', date: '25 avril 2026', titre: '+142 nouvelles recettes internationales',
+    items: [
+      '🌍 142 nouvelles recettes ajoutées (Japon, Mexique, Corée, Vietnam, Thaïlande, Inde, Pérou, Brésil, Argentine, Maroc, Tunisie, Éthiopie, Sénégal, Turquie, Liban, Iran, Scandinavie…)',
+      '📊 Base portée à 794 recettes au total',
+      '⚫ SW v24'
+    ]
+  },
   {
     v: 'v23', date: '24 avril 2026', titre: 'Lisibilité, navigation & organisation',
     items: [

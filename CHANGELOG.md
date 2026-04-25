@@ -5,6 +5,17 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v24 — 2026-04-25
+
+### 🌍 Contenu
+- +142 nouvelles recettes internationales incorporées dans `data.js` (Japon x17, Mexique x14, Corée du Sud x12, Vietnam x12, Thaïlande x11, Inde x15, Pérou x4, Brésil x1, Argentine x3, Maroc x9, Tunisie x3, Éthiopie x3, Sénégal, Scandinavie x20, Moyen-Orient, Turquie, Liban, Iran, États-Unis…)
+- Base totale portée à **794 recettes**
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v24`
+
+---
+
 ## v23 — 2026-04-24
 
 ### 🔴 Critique
