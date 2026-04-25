@@ -5,6 +5,34 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v25 — 2026-04-25
+
+### 🔵 Contenu — Audit qualité recettes
+- 23 recettes (FR039–FR056 + IT023–IT027) réécrites en versions chef étoilé élaborées
+- Attribution chef + technique signature pour chaque recette :
+  - **Vichyssoise** → Louis Diat (Ritz-Carlton NY, 1917)
+  - **Salade Niçoise** → Hélène Barale (charte de Nice, sans pommes de terre)
+  - **Gratin Dauphinois** → Anne-Sophie Pic (sans fromage, précuisson dans la crème infusée)
+  - **Ratatouille** → Alain Ducasse (méthode confit séparé, pelage des poivrons)
+  - **Daube Provençale** → Reine Sammut (couenne de porc, zeste d'orange amère, 24 h marinade)
+  - **Brandade de Morue** → Pierre Gagnaire (émulsion à chaud au mortier marbre)
+  - **Poulet Rôti** → Joël Robuchon (séchage 12 h frigo, repos brechet en bas)
+  - **Cassoulet de Toulouse** → Christian Constant (3 jours, 7 croûtes cassées)
+  - **Crêpes Suzette** → Henri Charpentier (Café de Paris, Monte-Carlo 1895)
+  - **Tarte aux Fraises** → Cédric Grolet (Le Meurice, crème diplomate)
+  - **Soufflé au Comté** → Michel Roux (Le Gavroche, rigole du pouce)
+  - **Œufs en Meurette** → Bernard Loiseau (vin flambé, beurre manié)
+  - **Aglio e olio + Risotto porcini** → Massimo Bottura (mantecatura hors feu, pangrattato)
+  - **Pizza Margherita** → Enzo Coccia (Pizza Napoletana STG, fermentation 24-48 h)
+  - …et 9 autres
+- Étapes développées 5–8× plus détaillées avec techniques professionnelles
+- Champ `qual:5` ajouté aux 23 recettes
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v25`
+
+---
+
 ## v24 — 2026-04-25
 
 ### 🌍 Contenu

@@ -5,8 +5,18 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v24';
+var _SN5_VER = 'v25';
 var _SN5_LOG = [
+  {
+    v: 'v25', date: '25 avril 2026', titre: 'Audit qualité recettes — versions chef étoilé',
+    items: [
+      '🔵 23 recettes réécrites en versions chef étoilé élaborées (FR039 à FR056 + IT023 à IT027)',
+      '👨‍🍳 Attributions : Louis Diat (Vichyssoise), Anne-Sophie Pic (Gratin Dauphinois, Clafoutis), Alain Ducasse (Ratatouille confite), Pierre Gagnaire (Brandade), Joël Robuchon (Poulet rôti), Christian Constant (Cassoulet 3 jours), Henri Charpentier (Crêpes Suzette 1895), Cédric Grolet (Tarte aux fraises), Michel Roux (Soufflé), Bernard Loiseau (Œufs en meurette), Massimo Bottura (Aglio e olio, Risotto porcini), Enzo Coccia (Pizza Margherita STG)…',
+      '📖 Étapes développées avec techniques professionnelles : confit séparé, mantecatura, salaison, fermentation longue, repos brechet en bas, beurre manié, etc.',
+      '🌟 Champ qualité (qual:5) ajouté aux 23 recettes',
+      '⚫ SW v25'
+    ]
+  },
   {
     v: 'v24', date: '25 avril 2026', titre: '+142 nouvelles recettes internationales',
     items: [
