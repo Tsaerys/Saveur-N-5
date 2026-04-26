@@ -2051,3 +2051,140 @@ kbd {
 .search-tip-more{display:block;margin-top:8px;background:none;border:none;color:var(--gold);font-size:12px;font-weight:500;cursor:pointer;padding:0;font-family:inherit;text-align:left}
 .search-tip-more:hover{text-decoration:underline}
 @media(max-width:600px){.search-tip{font-size:11.5px;padding:10px 12px}}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   VAGUE C (v28) — 21 polish items
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* #15 — Bouton "Surprise" plus discret dans la navbar */
+#nav-random{padding-left:10px!important;padding-right:10px!important;font-size:13px;opacity:.78;transition:opacity .18s}
+#nav-random:hover{opacity:1}
+#nav-random .nav-lbl{font-size:12px;font-weight:500}
+@media(max-width:900px){#nav-random .nav-lbl{display:none}}
+
+/* #16 — Couleurs catégories distinctes en mode sombre */
+[data-theme="dark"]{
+  --cat-e-bg:rgba(74,158,217,.18);--cat-e:#7bb8e6;
+  --cat-p-bg:rgba(217,93,93,.18);--cat-p:#e88989;
+  --cat-d-bg:rgba(110,189,124,.18);--cat-d:#a4d8b0;
+  --cat-s-bg:rgba(212,175,55,.18);--cat-s:#dcc275;
+}
+[data-theme="dark"] .cat-Entrée{background:var(--cat-e-bg);color:var(--cat-e);border:1px solid rgba(123,184,230,.3)}
+[data-theme="dark"] .cat-Plat{background:var(--cat-p-bg);color:var(--cat-p);border:1px solid rgba(232,137,137,.3)}
+[data-theme="dark"] .cat-Dessert{background:var(--cat-d-bg);color:var(--cat-d);border:1px solid rgba(164,216,176,.3)}
+[data-theme="dark"] .cat-Sauce{background:var(--cat-s-bg);color:var(--cat-s);border:1px solid rgba(220,194,117,.3)}
+
+/* #17 — Transition fluide changement de thème */
+html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.detail-photo-wrap,
+.list-card,.recent-card,.frigo-bar,.filter-grp select,.filter-grp input,.act-btn,
+.cat-badge,.qual-pill,.info-pill,.empty,.setting-section,.setting-section-body{
+  transition:background-color .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease;
+}
+
+/* #18 — Mode Focus : barre de progression bien visible */
+.focus-progress-wrap{height:8px!important;background:var(--bord);position:relative;flex-shrink:0;overflow:hidden}
+.focus-progress-bar{height:100%;background:linear-gradient(90deg,var(--gold) 0%,#e8a020 100%)!important;transition:width .55s cubic-bezier(.25,.46,.45,.94);box-shadow:0 0 12px rgba(232,160,32,.45);position:relative}
+.focus-progress-bar::after{content:"";position:absolute;top:0;right:0;bottom:0;width:24px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:focus-shimmer 1.6s infinite}
+@keyframes focus-shimmer{0%{transform:translateX(-30px)}100%{transform:translateX(0)}}
+
+/* #19 — Footer plus discret (fade quand scroll proche du bas) */
+.credit-badge{opacity:.32!important;font-size:9.5px!important;transition:opacity .25s}
+.credit-badge:hover{opacity:.72!important}
+
+/* #21 — Hover state cartes plus expressif */
+.card{transition:transform .22s cubic-bezier(.25,.46,.45,.94),box-shadow .22s,border-color .22s}
+.card:hover{transform:translateY(-4px) scale(1.012);box-shadow:0 12px 28px rgba(80,60,30,.18);border-color:var(--gold-l)}
+.card:hover .recipe-art-emoji{transform:scale(1.18) rotate(-4deg)}
+.card:hover .card-photo,.card:hover .recipe-art{filter:brightness(1.04) saturate(1.08)}
+.card::before{content:"Voir la recette";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;font-size:12px;padding:7px 16px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .22s;z-index:5;letter-spacing:.04em;font-weight:500}
+.card:hover::before{opacity:.92}
+
+/* #22 — Tooltips visuels boutons fav/cart sur cartes */
+.card-fav-btn,.card-cart-btn{position:relative}
+.card-fav-btn::before,.card-cart-btn::before{content:attr(data-tip);position:absolute;top:calc(100% + 6px);right:0;background:rgba(0,0,0,.85);color:#fff;font-size:11px;padding:4px 8px;border-radius:5px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:10}
+.card-fav-btn:hover::before,.card-cart-btn:hover::before,.card-fav-btn:focus-visible::before,.card-cart-btn:focus-visible::before{opacity:1}
+
+/* #24 — Breadcrumb fiche recette : plus contrasté */
+.detail-breadcrumb{font-size:13px!important;color:var(--text2)!important}
+.detail-breadcrumb .bc-seg{color:var(--text2)!important;font-weight:500;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;transition:text-decoration-color .15s,color .15s,background .15s}
+.detail-breadcrumb .bc-seg:hover{color:var(--gold)!important;text-decoration-color:var(--gold-l);background:var(--gold-faint)}
+.detail-breadcrumb .bc-cur{color:var(--text)!important;font-weight:600}
+.detail-breadcrumb .bc-sep{color:var(--text3)!important;font-weight:300}
+
+/* #25 — Mode Focus : opacité réduite + blur backdrop pour laisser transparaître l'image */
+#focus-overlay{background:rgba(248,244,239,.78)!important;backdrop-filter:blur(28px) saturate(150%);-webkit-backdrop-filter:blur(28px) saturate(150%)}
+[data-theme="dark"] #focus-overlay{background:rgba(26,26,46,.82)!important}
+
+/* #26 — Sélecteur de portions : boutons − + tactiles 44px */
+.qty-btn{min-width:44px;min-height:44px;font-size:20px;font-weight:600}
+.qty-val{min-width:48px;text-align:center;font-size:18px;font-weight:600}
+@media(max-width:600px){.qty-btn{min-width:48px;min-height:48px}}
+
+/* #27 — Accord Vin / Boisson : meilleur contraste et mise en valeur */
+.vin-block{background:linear-gradient(135deg,var(--gold-faint) 0%,rgba(212,175,55,.04) 100%);border-left:3px solid var(--gold);border-radius:6px;padding:12px 14px;margin:14px 0}
+.vin-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:5px}
+.vin-txt{font-size:13.5px;color:var(--text)!important;font-style:normal!important;line-height:1.5;font-weight:500}
+
+/* #28 — Notes personnelles : indicateur de sauvegarde automatique */
+.pnotes-status-row{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;min-height:22px}
+.pnotes-status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:14px;font-weight:500;font-size:11.5px;letter-spacing:.02em;transition:all .25s}
+.pnotes-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.pnotes-status-idle{background:var(--bg3);color:var(--text3)}
+.pnotes-status-idle .pnotes-dot{background:var(--text4)}
+.pnotes-status-typing{background:rgba(232,160,32,.12);color:#b07020}
+.pnotes-status-typing .pnotes-dot{background:#e8a020;animation:pnotes-pulse 1s infinite}
+.pnotes-status-saved{background:rgba(34,139,67,.12);color:#1f7a3f}
+.pnotes-status-saved .pnotes-dot{background:#22a14a}
+@keyframes pnotes-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* #29 — Cartes "Pour compléter le repas" agrandies */
+.accords-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))!important;gap:14px!important}
+.accord-card{padding:0!important;flex-direction:column!important;align-items:stretch!important;min-height:170px}
+.accord-card-photo,.accord-card .recipe-art{width:100%!important;height:120px!important;border-radius:0!important;flex-shrink:0!important}
+.accord-card .recipe-art .recipe-art-emoji{font-size:42px!important}
+.accord-card-info{padding:10px 12px}
+.accord-card-nom{font-size:14px;line-height:1.3;margin-bottom:5px}
+.accord-card-lbl{font-size:11px;color:var(--text3)}
+
+/* #30 — Page Courses : pills mieux groupées par catégorie */
+.cs-pill-group{margin-bottom:18px;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:12px}
+.cs-pill-cat{font-size:11px!important;letter-spacing:.08em!important;margin-bottom:10px!important;padding-bottom:8px;border-bottom:1.5px solid var(--bord);opacity:1!important}
+.cs-pills{gap:6px!important}
+
+/* #31 — Page Frigo : chips d'ingrédients plus visuels (déjà des frigo-tag) */
+.frigo-tag{display:inline-flex!important;align-items:center;gap:6px;background:var(--gold-faint)!important;border:1.5px solid var(--gold-l)!important;color:var(--gold)!important;padding:5px 6px 5px 11px!important;border-radius:18px!important;font-size:12.5px;font-weight:500;transition:all .15s}
+.frigo-tag:hover{background:rgba(212,175,55,.18)!important;transform:translateY(-1px)}
+.frigo-tag button{background:rgba(154,111,42,.12);color:var(--gold);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s}
+.frigo-tag button:hover{background:var(--gold);color:#fff;transform:rotate(90deg)}
+
+/* #32 — Stats settings : couleurs distinctes par tile + icône */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.stat-tile{background:var(--surf);border:1.5px solid var(--bord);border-radius:10px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .18s,box-shadow .18s}
+.stat-tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.stat-ico{font-size:22px;line-height:1;margin-bottom:2px}
+.stat-num{font-size:22px;font-weight:700;font-family:'Cormorant Garamond',serif;color:var(--text);line-height:1}
+.stat-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:600}
+.stat-tile.stat-favs{border-color:rgba(217,93,93,.5);background:rgba(217,93,93,.05)}
+.stat-tile.stat-favs .stat-ico{color:#d95d5d}
+.stat-tile.stat-rated{border-color:rgba(232,160,32,.5);background:rgba(232,160,32,.05)}
+.stat-tile.stat-rated .stat-ico{color:#e8a020}
+.stat-tile.stat-avg{border-color:rgba(154,111,42,.5);background:rgba(154,111,42,.05)}
+.stat-tile.stat-avg .stat-ico{color:var(--gold)}
+.stat-tile.stat-notes{border-color:rgba(74,158,217,.5);background:rgba(74,158,217,.05)}
+.stat-tile.stat-cart{border-color:rgba(110,189,124,.5);background:rgba(110,189,124,.05)}
+.stat-tile.stat-custom{border-color:rgba(170,120,200,.5);background:rgba(170,120,200,.05)}
+.stat-tile.stat-custom .stat-ico{color:#9a64c0}
+
+/* #33 — Vue liste enrichie : meta plus visible, pays plus mis en avant */
+.list-card{transition:transform .15s,box-shadow .15s,border-color .15s}
+.list-card:hover{transform:translateX(2px);border-color:var(--gold-l);box-shadow:var(--shadow-md)}
+.list-card-meta{font-size:12.5px!important;color:var(--text2)!important;font-weight:500;line-height:1.45}
+.list-card-meta::before{content:"👨‍🍳 "}
+
+/* #34 — Badge compteur filtres actifs */
+.filters-active-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:var(--gold);color:#fff;border-radius:9px;font-size:10.5px;font-weight:700;padding:0 5px;margin-left:2px;line-height:1}
+
+/* #35 — Sections settings : meilleur contraste fond / cards */
+[data-theme="dark"] .setting-section{background:var(--bg2)!important;border:1px solid var(--bord)!important;border-radius:var(--rs);overflow:hidden;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+[data-theme="dark"] .setting-section-head{background:linear-gradient(135deg,var(--bg3) 0%,var(--bg2) 100%);border-bottom:1px solid var(--bord)}
+[data-theme="dark"] .setting-section-body{background:var(--bg2)}

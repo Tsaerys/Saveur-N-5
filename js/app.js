@@ -5,8 +5,35 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v27';
+var _SN5_VER = 'v28';
 var _SN5_LOG = [
+  {
+    v: 'v28', date: '26 avril 2026', titre: 'Vague C — 21 polish items',
+    items: [
+      '🟡 Bouton Surprise discret (libellé caché < 900px)',
+      '🟡 Couleurs catégories distinctes en dark mode (Entrée/Plat/Dessert/Sauce)',
+      '🟡 Transitions thème clair/sombre (.35s ease)',
+      '🟡 Mode Focus : barre de progression visible (8px + shimmer animé)',
+      '🟡 Footer © Teva : opacité 0.32 + fade au hover',
+      '🟡 Compteur "X/794 recettes" affiché quand filtre actif',
+      '🟡 Hover cartes : zoom + brightness + tooltip "Voir la recette"',
+      '🟡 Tooltips visuels sur ♥ / 🛒 (chips qui apparaissent au hover)',
+      '🟡 Filtre difficulté : labels textuels (Facile/Moyen/Difficile/Expert/Maître)',
+      '🟡 Breadcrumb : contraste renforcé, soulignement au hover',
+      '🟡 Mode Focus : backdrop-filter blur 28px (image transparaît)',
+      '🟡 Sélecteur portions : boutons 44px (tactile WCAG)',
+      '🟡 Accord vin/boisson : encart doré dégradé + bordure',
+      '🟡 Notes : auto-save 800ms + indicateur "Modification…/Sauvegardé ✓"',
+      '🟡 Cartes "Compléter le repas" : verticales 200px + photo 120px',
+      '🟡 Page Courses : pills groupées en cards par catégorie',
+      '🟡 Page Frigo : chips dorés avec bouton × rotatif',
+      '🟡 Stats settings : 6 couleurs distinctes + icônes',
+      '🟡 Vue liste : préfixe chef + animation slide au hover',
+      '🟡 Badge compteur filtres actifs sur le bouton "Filtres"',
+      '🟡 Sections settings : contraste renforcé en dark mode',
+      '⚫ SW v28'
+    ]
+  },
   {
     v: 'v27', date: '26 avril 2026', titre: 'Vague B — 9 frictions UX résolues',
     items: [

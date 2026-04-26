@@ -5,6 +5,98 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v28 — 2026-04-26
+
+### 🟡 Vague C — 21 polish items
+
+**15. Bouton « Surprise » plus discret**
+- Padding réduit à 10 px ; opacité 0.78 → 1 au hover ; libellé masqué sous 900 px
+
+**16. Couleurs catégories distinctes en dark mode**
+- Variables CSS overridées en `[data-theme="dark"]`
+- Entrée bleu clair, Plat rouge clair, Dessert vert clair, Sauce or
+- Border subtle pour mieux délimiter chaque badge
+
+**17. Transition fluide changement de thème**
+- 30+ sélecteurs avec `transition: background-color .35s, color .35s, border-color .35s, box-shadow .35s`
+
+**18. Mode Focus : barre de progression visible**
+- Hauteur 4 px → 8 px ; gradient or + shadow rayonnant ; `::after` shimmer animé 1.6 s
+
+**19. Footer © Teva atténué**
+- `opacity: .5` → `.32`, font-size `10 px` → `9.5 px`, hover .72
+
+**20. Compteur recettes affichées / total**
+- `updateCount()` détecte si filtre actif → affiche `X / 794 recettes` au lieu de juste `X recettes`
+
+**21. Hover state cartes plus expressif**
+- `transform: translateY(-4px) scale(1.012)` + box-shadow plus marquée
+- `brightness(1.04) saturate(1.08)` sur la photo
+- `::before` "Voir la recette" qui apparaît centré sur la carte
+
+**22. Tooltips boutons fav/cart sur cartes**
+- Attribut `data-tip` ajouté en JS (sed batch)
+- `::before` qui affiche le texte du tooltip au hover/focus avec animation
+
+**23. Filtre difficulté avec labels textuels**
+- `★★★ — Difficile`, `★★★★ — Expert`, etc. (labels Facile/Moyen/Difficile/Expert/Maître)
+
+**24. Breadcrumb plus contrasté**
+- `font-size: 13px`, color `--text2`, soulignement transparent qui apparaît au hover en doré
+
+**25. Mode Focus : opacité réduite + blur**
+- Background `rgba(248,244,239,.78)` au lieu de `var(--bg)` opaque
+- `backdrop-filter: blur(28px) saturate(150%)` → l'image hero transparaît
+
+**26. Sélecteur portions tactile**
+- `.qty-btn { min-width: 44px; min-height: 44px }` (WCAG 2.5.5 minimum)
+- Sur mobile (≤600 px), 48 px
+
+**27. Accord vin/boisson visible**
+- Block dédié : gradient or, border-left 3 px or, padding 12-14 px
+- Texte `font-style: normal`, `font-weight: 500`, color full `--text`
+
+**28. Notes auto-save**
+- Nouveau handler `_pnotesAutoSave(id)` avec debounce 800 ms
+- Statuts visuels : 🔘 Idle "Sauvegarde automatique" / 🟡 Typing pulse / 🟢 Saved ✓
+- Bouton "Sauvegarder" remplacé par un indicateur passif
+
+**29. Cartes "Pour compléter le repas" agrandies**
+- Layout vertical (column), min-height 170 px, photo 120 px en haut
+- Emoji art passé à 42 px
+
+**30. Pills Courses groupées en cards**
+- Chaque `.cs-pill-group` est maintenant un panneau avec border + padding 12 px
+- Header de catégorie avec border-bottom
+
+**31. Frigo : chips d'ingrédients**
+- `.frigo-tag` redessinés en chips dorés (background `--gold-faint`, border `--gold-l`)
+- Bouton × dans un cercle qui pivote 90° au hover
+
+**32. Stats settings différenciées**
+- 6 tiles avec couleur de bordure/fond/icône distincte (Favoris rouge, Notées or, Moyenne or foncé, Mémos bleu, Panier vert, Recettes violet)
+- Police Cormorant Garamond pour les chiffres
+- Hover lift
+
+**33. Vue liste enrichie**
+- `::before "👨‍🍳 "` devant le meta
+- Slide horizontal léger au hover (translateX 2 px)
+- Border-left dorée au hover
+
+**34. Badge compteur filtres actifs**
+- Sur le bouton "🔍 Filtres", badge rond doré avec le compte de filtres actifs
+- Calculé depuis `summaryParts.length`
+
+**35. Sections settings contrastées en dark**
+- `[data-theme="dark"] .setting-section` : background `--bg2`, border + shadow distinct du fond `--bg`
+- `.setting-section-head` : gradient subtil
+- Plus de "fonte dans le fond"
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v28`
+
+---
+
 ## v27 — 2026-04-26
 
 ### 🟠 Vague B — 9 frictions UX résolues

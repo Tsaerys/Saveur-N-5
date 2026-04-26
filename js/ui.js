@@ -192,7 +192,9 @@ function renderFilters(){
   var counts=getRecipeCounts();
   const coOpts=COUNTRIES.map(function(c){var n=counts.byCo[c]||0;return'<option value="'+attrEscape(c)+'"'+(co===c?' selected':'')+'>'+(FLAGS[c]||"")+' '+attrEscape(c)+' ('+n+')</option>';}).join("");
   const catOpts=CATS.map(c=>`<option value="${c}"${cat===c?" selected":""}>${c}</option>`).join("");
-  const diffOpts=[1,2,3,4,5].map(d=>`<option value="${d}"${diff==d?" selected":""}>${"★".repeat(d)}</option>`).join("");
+  // #23 — Labels textuels parlants pour la difficulté
+  const _diffLabels={1:"Facile",2:"Moyen",3:"Difficile",4:"Expert",5:"Maître"};
+  const diffOpts=[1,2,3,4,5].map(d=>`<option value="${d}"${diff==d?" selected":""}>${"★".repeat(d)} — ${_diffLabels[d]}</option>`).join("");
   const timeOpts=[["30","−30 min"],["60","−1 h"],["120","−2 h"]].map(([v,l])=>`<option value="${v}"${time===v?" selected":""}>${l}</option>`).join("");
   const qualOpts=[1,2,3,4,5].map(d=>`<option value="${d}"${qual==d?" selected":""}>${d} — ${QUAL_LABELS[d]||""}</option>`).join("");
   const rayonOpts=RAYON_ORDER.map(r=>`<option value="${r}"${rayon===r?" selected":""}>${r}</option>`).join("");
@@ -222,7 +224,7 @@ function renderFilters(){
       <button class="view-mode-btn${vm==='grid'?' active':''}" onclick="setViewMode('grid')" aria-label="Vue grille" aria-pressed="${vm==='grid'}" title="Vue grille">▦</button>
       <button class="view-mode-btn${vm==='list'?' active':''}" onclick="setViewMode('list')" aria-label="Vue liste" aria-pressed="${vm==='list'}" title="Vue liste">☰</button>
       <button class="filters-toggle-btn${openClass}${hasClass}" onclick="toggleFilters()" aria-expanded="${_filtersOpen}" aria-label="Afficher ou masquer les filtres">
-        🔍 Filtres <span class="filters-toggle-chevron">▼</span>
+        🔍 Filtres${summaryParts.length?` <span class="filters-active-badge" aria-label="${summaryParts.length} filtre${summaryParts.length>1?'s':''} actif${summaryParts.length>1?'s':''}">${summaryParts.length}</span>`:''} <span class="filters-toggle-chevron">▼</span>
       </button>
     </div>
     <div class="filters-body${openClass}">
@@ -274,7 +276,14 @@ function setViewMode(m){
   renderMain();
 }
 function setRegime(r){S.filters.regime=S.filters.regime===r?"":r;renderFilters();renderMain();}
-function updateCount(){const el=document.querySelector(".filter-count");if(!el)return;let recs=filtered();if(S.filters.regime==="rated")recs=recs.filter(r=>(RATINGS[r.id]||0)>0);const n=recs.length;el.textContent=`${n} recette${n>1?"s":""}`;}
+function updateCount(){
+  const el=document.querySelector(".filter-count");if(!el)return;
+  let recs=filtered();if(S.filters.regime==="rated")recs=recs.filter(r=>(RATINGS[r.id]||0)>0);
+  const n=recs.length;const total=RECIPES.length;
+  // #20 : afficher /TOTAL quand un filtre est actif, sinon X recettes seulement
+  const filtered_active = hasAnyFilter(true) || S.filters.regime==="rated";
+  el.textContent = filtered_active ? `${n} / ${total} recettes` : `${n} recette${n>1?"s":""}`;
+}
 
 // ── FRIGO ─────────────────────────────────────────────────────────────────
 // Cache du datalist (construit une fois)
@@ -457,8 +466,8 @@ function renderMain(){
           <div class="list-card-meta">${r.chef} · ⏲ ${totTime(r)} min · ${diffLabel(r.diff)} · ${r.bp} pers.</div>
         </div>
         <div class="list-card-actions">
-          <button class="card-fav-btn${isFav?" active":""}${_popClassFav(r.id,isFav)}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
-          <button class="card-cart-btn${inCart?" active":""}${_popClassCart(r.id,inCart)}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
+          <button class="card-fav-btn${isFav?" active":""}${_popClassFav(r.id,isFav)}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" title="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" data-tip="${isFav?'Retirer ♥':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
+          <button class="card-cart-btn${inCart?" active":""}${_popClassCart(r.id,inCart)}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" title="${inCart?'Retirer des courses':'Ajouter aux courses'}" data-tip="${inCart?'Retirer 🛒':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
         </div>
       </div>`;
     }
@@ -469,8 +478,8 @@ function renderMain(){
     const ratingFoot=rating?`<span class="card-rate-sum">★ ${rating}/5</span>`:"";
     return`<div class="card" role="article" aria-label="${r.nom}" data-id="${r.id}" style="--co-accent:${coCol}">
       ${buildCardPhoto(r)}
-      <button class="card-fav-btn${isFav?" active":""}${_popClassFav(r.id,isFav)}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
-      <button class="card-cart-btn${inCart?" active":""}${_popClassCart(r.id,inCart)}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
+      <button class="card-fav-btn${isFav?" active":""}${_popClassFav(r.id,isFav)}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" title="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" data-tip="${isFav?'Retirer ♥':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="event.stopPropagation();toggleFav('${r.id}')">${isFav?"♥":"♡"}</button>
+      <button class="card-cart-btn${inCart?" active":""}${_popClassCart(r.id,inCart)}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" title="${inCart?'Retirer des courses':'Ajouter aux courses'}" data-tip="${inCart?'Retirer 🛒':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="event.stopPropagation();toggleCart('${r.id}')">🛒</button>
       ${ratingHtml}
       <div class="card-body">
         <div class="card-top">
@@ -583,8 +592,8 @@ function renderDetail(){
         <button class="back-btn" onclick="goBack()" aria-label="Retour à la liste des recettes">← Retour</button>
         <div class="detail-actions-bar">
           <button class="act-btn act-primary" onclick="startCooking()" aria-label="Mode cuisine">👨‍🍳 <span class="act-lbl">Mode cuisine</span></button>
-          <button class="act-btn act-primary${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥":"♡"} <span class="act-lbl">${isFav?'Favori':'Favoris'}</span></button>
-          <button class="act-btn act-primary${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">🛒 <span class="act-lbl">${inCart?'Dans la liste':'Courses'}</span></button>
+          <button class="act-btn act-primary${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" title="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" data-tip="${isFav?'Retirer ♥':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥":"♡"} <span class="act-lbl">${isFav?'Favori':'Favoris'}</span></button>
+          <button class="act-btn act-primary${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" title="${inCart?'Retirer des courses':'Ajouter aux courses'}" data-tip="${inCart?'Retirer 🛒':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">🛒 <span class="act-lbl">${inCart?'Dans la liste':'Courses'}</span></button>
           <button class="act-btn act-secondary" onclick="printRecipe()" aria-label="Imprimer la recette" title="Imprimer">🖨</button>
           <button class="act-btn act-secondary" onclick="shareRecipe(S.recipe.id)" aria-label="Partager ou copier le lien" title="Partager">🔗</button>
           <div class="act-menu-wrap">
@@ -640,10 +649,9 @@ function renderDetail(){
             <div class="notes-box">${r.notes}</div>
             <div style="margin-top:12px">
               <div class="pnotes-lbl">Mes notes personnelles</div>
-              <textarea class="pnotes-ta" id="pnotes-ta" placeholder="Vos variantes, observations, astuces personnelles…">${note}</textarea>
-              <div style="display:flex;align-items:center">
-                <button class="pnotes-save" aria-label="Sauvegarder mes notes personnelles" onclick="saveNote('${r.id}')">Sauvegarder</button>
-                <span id="pnotes-saved" class="pnotes-saved">✓ Sauvegardé</span>
+              <textarea class="pnotes-ta" id="pnotes-ta" placeholder="Vos variantes, observations, astuces personnelles…" oninput="_pnotesAutoSave('${r.id}')">${note}</textarea>
+              <div class="pnotes-status-row">
+                <span id="pnotes-status" class="pnotes-status pnotes-status-idle"><span class="pnotes-dot"></span> <span class="pnotes-status-txt">Sauvegarde automatique</span></span>
               </div>
             </div>
           </div>
@@ -882,9 +890,23 @@ function toggleCart(id){
   if(S.view==="recipe")renderDetail();else if(S.view==="courses")renderCourses();else renderMain();
   _popCart=null;
 }
+// #28 — Auto-save notes : feedback visuel "Modification…" → "Sauvegardé ✓"
+var _pnotesTimer=null;
+function _pnotesAutoSave(id){
+  var ta=document.getElementById("pnotes-ta");if(!ta)return;
+  var st=document.getElementById("pnotes-status");
+  if(st){st.className="pnotes-status pnotes-status-typing";st.querySelector(".pnotes-status-txt").textContent="Modification en cours…";}
+  if(_pnotesTimer)clearTimeout(_pnotesTimer);
+  _pnotesTimer=setTimeout(function(){
+    NOTES[id]=ta.value;saveNotes();
+    if(st){st.className="pnotes-status pnotes-status-saved";st.querySelector(".pnotes-status-txt").textContent="✓ Sauvegardé";}
+    setTimeout(function(){if(st&&!ta.matches(":focus")){st.className="pnotes-status pnotes-status-idle";st.querySelector(".pnotes-status-txt").textContent="Sauvegarde automatique";}},2200);
+  },800);
+}
 function saveNote(id){
   NOTES[id]=document.getElementById("pnotes-ta").value;saveNotes();
-  const el=document.getElementById("pnotes-saved");el.style.opacity=1;setTimeout(()=>el.style.opacity=0,1800);
+  const el=document.getElementById("pnotes-status");
+  if(el){el.className="pnotes-status pnotes-status-saved";el.querySelector(".pnotes-status-txt").textContent="✓ Sauvegardé";}
 }
 
 // ── MODE CUISINE ──────────────────────────────────────────────────────────
@@ -1597,12 +1619,12 @@ function renderSettings(){
         <div class="setting-section-head">📊 Mes statistiques</div>
         <div class="setting-section-body">
           <div class="stats-grid">
-            <div class="stat-tile"><div class="stat-num">${FAVS.size}</div><div class="stat-lbl">Favoris</div></div>
-            <div class="stat-tile"><div class="stat-num">${ratedCount}</div><div class="stat-lbl">Notées</div></div>
-            <div class="stat-tile"><div class="stat-num">${avgRating||'—'}</div><div class="stat-lbl">Note moyenne</div></div>
-            <div class="stat-tile"><div class="stat-num">${notesCount}</div><div class="stat-lbl">Mémos</div></div>
-            <div class="stat-tile"><div class="stat-num">${CART.size}</div><div class="stat-lbl">Panier</div></div>
-            <div class="stat-tile"><div class="stat-num">${customCount}</div><div class="stat-lbl">Mes recettes</div></div>
+            <div class="stat-tile stat-favs"><div class="stat-ico" aria-hidden="true">♥</div><div class="stat-num">${FAVS.size}</div><div class="stat-lbl">Favoris</div></div>
+            <div class="stat-tile stat-rated"><div class="stat-ico" aria-hidden="true">★</div><div class="stat-num">${ratedCount}</div><div class="stat-lbl">Notées</div></div>
+            <div class="stat-tile stat-avg"><div class="stat-ico" aria-hidden="true">⌀</div><div class="stat-num">${avgRating||'—'}</div><div class="stat-lbl">Note moyenne</div></div>
+            <div class="stat-tile stat-notes"><div class="stat-ico" aria-hidden="true">📝</div><div class="stat-num">${notesCount}</div><div class="stat-lbl">Mémos</div></div>
+            <div class="stat-tile stat-cart"><div class="stat-ico" aria-hidden="true">🛒</div><div class="stat-num">${CART.size}</div><div class="stat-lbl">Panier</div></div>
+            <div class="stat-tile stat-custom"><div class="stat-ico" aria-hidden="true">✨</div><div class="stat-num">${customCount}</div><div class="stat-lbl">Mes recettes</div></div>
           </div>
         </div>
       </div>
