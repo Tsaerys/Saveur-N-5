@@ -5,6 +5,41 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v26 — 2026-04-25
+
+### 🔴 Critique — Vague A (5 bugs critiques UI/UX)
+
+**1. Images génériques sur 794 recettes → cartes visuelles uniques**
+- Cause : `source.unsplash.com` déprécié par Unsplash en juin 2024 ; toutes les images retournaient 404 → fallback placeholder uniforme (cloche dorée)
+- Solution : système d'art CSS génératif — chaque recette a un gradient unique calculé à partir d'un hash 32 bits de son ID + couleur primaire du pays + emoji catégorie + drapeau pays
+- Avantages : 100% offline (PWA-friendly), pas d'appel réseau, unique par ID, joli et cohérent
+- Pattern : `linear-gradient(<angle>deg, <color_pays>, hsl(<hue>, <sat>, <lum>))` avec emoji centré + drapeau coin bas-droit
+
+**2. Bouton « Créer » → routing nettoyé**
+- Cause : chaîne `if/else if` mal indentée dans `setView()`, fragile
+- Solution : refactor en `switch` explicite avec cases dédiés (favs, courses, menu, settings, create, edit) + `default` qui log un warning
+- Sécurisation : test de présence des zones DOM (filters-zone, recent-zone) avant accès
+
+**3. Titre fantôme sur hero recette**
+- Cause : image hero cassée → `alt="r.nom"` rendu visible par certains navigateurs (avant le `<img>` cassé) en plus du `.detail-photo-title` overlay
+- Solution : remplacement par `<div role="img" aria-label>` → plus de fallback `alt` rendu
+
+**4. Contraste hero insuffisant**
+- `.detail-photo-overlay` : gradient renforcé `rgba(0,0,0,.85)` en bas → `transparent` en haut (au lieu de `.65` → `transparent` à 55%)
+- `.detail-photo-title` : double text-shadow `0 2px 12px rgba(0,0,0,.7), 0 1px 3px rgba(0,0,0,.9)`
+- `.detail-photo-chef` : opacité texte 0.92 (au lieu de 0.75) + text-shadow
+
+**5. Dropdown CHEF avec 300+ entrées**
+- Cause : `<select>` avec liste très longue, intitulés interminables, navigation impossible
+- Solution : `<input type="search" list="chef-datalist">` + `<datalist>` natif → autocomplete avec recherche live, croix d'effacement, debounce sur l'input
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v26`
+- `_recipeArt(r)` mémorisé par ID dans `_artCache`
+- `getPhotoUrl()` retourne `null` (compat backups) ; `_userPhoto()` reste prioritaire pour photos uploadées
+
+---
+
 ## v25 — 2026-04-25
 
 ### 🔵 Contenu — Audit qualité recettes

@@ -136,15 +136,26 @@ function setView(v){
   const rz=document.getElementById("recent-zone");
   // Search toujours visible sur les vues principales (browse + favs), masqué ailleurs
   var showSearch=(v==="browse"||v==="favs");
-  sz.style.display=showSearch?"":"none";
+  if(sz)sz.style.display=showSearch?"":"none";
+  if(!fz||!rz){console.warn("[SN5] zones manquantes");return;}
   var hz=document.getElementById("helix-zone"),ssz=document.getElementById("seasonal-zone");
   if(hz)hz.style.display=(v==="browse")?"":"none";
   if(ssz)ssz.style.display=(v==="browse")?"":"none";
-  if(v==="browse"){fz.style.display="";rz.style.display="";renderFilters();renderRecent();renderMain();}
-  else{fz.style.display="none";rz.style.display="none";
-    if(v==="favs")renderFavs();else if(v==="courses")renderCourses();else if(v==="menu")renderMenuView();else if(v==="settings")renderSettings();
-  else if(v==="create")renderCreateRecipe();
-  else if(v==="edit"&&S._editId)renderCreateRecipe(S._editId);}
+  if(v==="browse"){
+    fz.style.display="";rz.style.display="";
+    renderFilters();renderRecent();renderMain();
+  }else{
+    fz.style.display="none";rz.style.display="none";
+    switch(v){
+      case "favs":     renderFavs();break;
+      case "courses":  renderCourses();break;
+      case "menu":     renderMenuView();break;
+      case "settings": renderSettings();break;
+      case "create":   renderCreateRecipe();break;
+      case "edit":     if(S._editId)renderCreateRecipe(S._editId);break;
+      default:         console.warn("[SN5] Vue inconnue:",v);
+    }
+  }
   // Rebind le champ de recherche global pour qu'il route correctement selon la vue
   var qi=document.getElementById("qi");
   if(qi){
@@ -187,7 +198,8 @@ function renderFilters(){
   const rayonOpts=RAYON_ORDER.map(r=>`<option value="${r}"${rayon===r?" selected":""}>${r}</option>`).join("");
   const sortOpts=[["nom","A → Z"],["time","⏱ Plus rapide"],["diff","⭐ Plus facile"],["qual","🏆 Meilleure qualité"],["rate","★ Ma note"]].map(([v,l])=>`<option value="${v}"${sort===v?" selected":""}>${l}</option>`).join("");
   const saisonOpts=SEASONS.map(function(s){return'<option value="'+s.key+'"'+(saison===s.key?' selected':'')+'>'+s.emoji+' '+s.label+'</option>';}).join("");
-  const chefOpts=counts.chefList.map(function(c){return'<option value="'+attrEscape(c)+'"'+(chef===c?' selected':'')+'>'+attrEscape(c)+' ('+counts.byChef[c]+')</option>';}).join("");
+  // Chef : datalist avec autocomplete (300+ chefs → input cherchable au lieu d'un select monstrueux)
+  const chefDatalist=counts.chefList.map(function(c){return'<option value="'+attrEscape(c)+'">'+attrEscape(c)+' ('+counts.byChef[c]+')</option>';}).join("");
   const ratedCount=Object.keys(RATINGS).filter(id=>RATINGS[id]>0).length;
   const n=filtered().length;
   var summaryParts=[];
@@ -222,7 +234,7 @@ function renderFilters(){
         <div class="filter-grp"><label>Qualité <button type="button" class="qual-info-btn" onclick="showQualLegend()" aria-label="Voir l'échelle de qualité" title="Échelle de qualité des sources">ℹ</button></label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
         <div class="filter-grp"><label>Rayon</label><select id="frayon"><option value="">Tous</option>${rayonOpts}</select></div>
         <div class="filter-grp"><label>Saison</label><select id="fsaison"><option value="">Toutes</option>${saisonOpts}</select></div>
-        <div class="filter-grp"><label>Chef</label><select id="fchef"><option value="">Tous</option>${chefOpts}</select></div>
+        <div class="filter-grp"><label>Chef</label><div class="chef-input-wrap"><input id="fchef" list="chef-datalist" type="search" placeholder="Tous les chefs…" value="${attrEscape(chef)}" autocomplete="off" aria-label="Filtrer par chef"><datalist id="chef-datalist">${chefDatalist}</datalist>${chef?'<button type="button" class="chef-clear-btn" onclick="document.getElementById(\'fchef\').value=\'\';S.filters.chef=\'\';renderFilters();renderMain();updateCount();" aria-label="Effacer le filtre chef">✕</button>':''}</div></div>
         <div class="filter-grp"><label>&nbsp;</label><button type="button" class="multi-filter-btn" onclick="openMultiFilter()" title="Sélectionner plusieurs pays, catégories ou chefs">🔀 Multi-sélection</button></div>
         <div class="filter-grp"><label>Trier par</label><select id="fsort"><option value="">Pertinence</option>${sortOpts}</select></div>
         <div class="regime-filters">
@@ -243,7 +255,14 @@ function renderFilters(){
   document.getElementById("fqual").onchange=e=>{S.filters.qual=e.target.value;renderFilters();renderMain();updateCount();};
   document.getElementById("frayon").onchange=e=>{S.filters.rayon=e.target.value;renderFilters();renderMain();updateCount();};
   document.getElementById("fsaison").onchange=e=>{S.filters.saison=e.target.value;renderFilters();renderMain();updateCount();};
-  document.getElementById("fchef").onchange=e=>{S.filters.chef=e.target.value;renderFilters();renderMain();updateCount();};
+  // Chef : input autocomplete — réagit sur change (option choisie) ou input debounced
+  var _chefInput=document.getElementById("fchef");
+  _chefInput.addEventListener("change",function(e){S.filters.chef=e.target.value.trim();renderFilters();renderMain();updateCount();});
+  _chefInput.addEventListener("input",debounce(function(e){
+    var v=e.target.value.trim();
+    // Ne déclenche le filtre que si la valeur correspond exactement à un chef de la liste
+    if(!v||counts.chefList.indexOf(v)>=0){S.filters.chef=v;renderMain();updateCount();}
+  },350));
   document.getElementById("fsort").onchange=e=>{S.filters.sort=e.target.value;renderMain();};
   document.getElementById("qi").oninput=debounce(e=>{S.filters.q=e.target.value;renderMain();updateCount();},300);
 }
@@ -307,46 +326,57 @@ function removeIng(i){S.frigo_ings.splice(i,1);saveFrigo();renderFrigo();renderM
 function clearIngs(){S.frigo_ings=[];saveFrigo();renderFrigo();renderMain();updateCount();updateBadges();}
 
 // ── PHOTO HELPERS ─────────────────────────────────────────────────────────
-var _PH='images/placeholder.webp';
-
-// getPhotoUrl : Unsplash source avec les mots-clés PHOTO_KW exacts.
-// Retourne null si aucun mot-clé disponible → les build* utilisent placeholder.
-function getPhotoUrl(r){
-  var id=typeof r==='string'?r:r.id;
-  if(typeof PHOTO_KW==='undefined'||!PHOTO_KW[id])return null;
-  var kw=PHOTO_KW[id].trim().replace(/\s+/g,'+');
-  return'https://source.unsplash.com/480x320/?'+encodeURIComponent(PHOTO_KW[id].trim());
-}
+// v26 : remplace les images Unsplash dépréciées par des cartes CSS uniques
+// par recette (gradient + emoji catégorie + drapeau). Fonctionne offline.
 function _userPhoto(id){
   try{return localStorage.getItem('sn5_photo_'+id)||null;}catch(e){return null;}
 }
-var _onerr="this.onerror=null;this.src='"+_PH+"'";
+// getPhotoUrl conservée pour compatibilité backups : retourne null par défaut
+function getPhotoUrl(r){return null;}
 
-function buildCardPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r);
-  if(url)return'<img class="card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
-  return'<img class="card-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
+// Hash 32 bits stable de l'ID — détermine angle + variation de teinte
+function _hashId(id){
+  var h=2166136261;
+  for(var i=0;i<id.length;i++){h^=id.charCodeAt(i);h=Math.imul(h,16777619);}
+  return h>>>0;
 }
-function buildRecentPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r);
-  if(url)return'<img class="recent-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
-  return'<img class="recent-card-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
+// Génère le style d'art unique de la recette (gradient + emoji + drapeau)
+var _artCache={};
+function _recipeArt(r){
+  if(_artCache[r.id])return _artCache[r.id];
+  var primary=COUNTRY_COLORS[r.co]||'#9a6f2a';
+  var h=_hashId(r.id);
+  var angle=(h%18)*20;          // 0,20,40…340°
+  var hue=(h>>5)%360;           // teinte secondaire
+  var sat=30+((h>>11)%25);      // 30-55%
+  var lum=22+((h>>17)%14);      // 22-35% (sombre — texte clair lisible)
+  var secondary='hsl('+hue+','+sat+'%,'+lum+'%)';
+  var emoji=(typeof PHOTO_EMOJIS!=='undefined'&&PHOTO_EMOJIS[r.cat])||'🍽';
+  var flag=(typeof FLAGS!=='undefined'&&FLAGS[r.co])||'';
+  var bg='linear-gradient('+angle+'deg, '+primary+' 0%, '+secondary+' 100%)';
+  var art={bg:bg,emoji:emoji,flag:flag};
+  _artCache[r.id]=art;
+  return art;
 }
-function buildAccordPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r);
-  if(url)return'<img class="accord-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
-  return'<img class="accord-card-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
+function _artHtml(r,sizeClass,emojiSize){
+  var art=_recipeArt(r);
+  var s='style="background:'+art.bg+'"';
+  return'<div class="'+sizeClass+' recipe-art" '+s+' role="img" aria-label="'+attrEscape(r.nom)+'">'
+    +'<span class="recipe-art-emoji" aria-hidden="true"'+(emojiSize?' style="font-size:'+emojiSize+'"':'')+'>'+art.emoji+'</span>'
+    +(art.flag?'<span class="recipe-art-flag" aria-hidden="true">'+art.flag+'</span>':'')
+    +'</div>';
 }
-function buildDetailPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r);
-  if(url)return'<img class="detail-photo" src="'+url+'" alt="'+r.nom+'" loading="eager" onerror="'+_onerr+'">';
-  return'<img class="detail-photo" src="'+_PH+'" alt="'+r.nom+'" loading="eager">';
+// Si l'utilisateur a uploadé une photo perso → on garde l'image. Sinon, art CSS.
+function _photoOrArt(r,imgClass,artClass,emojiSize){
+  var url=_userPhoto(r.id);
+  if(url)return'<img class="'+imgClass+'" src="'+url+'" alt="'+attrEscape(r.nom)+'" loading="lazy">';
+  return _artHtml(r,artClass,emojiSize);
 }
-function buildMenuPhoto(r){
-  var url=_userPhoto(r.id)||getPhotoUrl(r);
-  if(url)return'<img class="menu-slot-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy" onerror="'+_onerr+'">';
-  return'<img class="menu-slot-photo" src="'+_PH+'" alt="'+r.nom+'" loading="lazy">';
-}
+function buildCardPhoto(r){return _photoOrArt(r,'card-photo','card-photo recipe-art-card');}
+function buildRecentPhoto(r){return _photoOrArt(r,'recent-card-photo','recent-card-photo recipe-art-recent','30px');}
+function buildAccordPhoto(r){return _photoOrArt(r,'accord-card-photo','accord-card-photo recipe-art-accord','24px');}
+function buildDetailPhoto(r){return _photoOrArt(r,'detail-photo','detail-photo recipe-art-detail','72px');}
+function buildMenuPhoto(r){return _photoOrArt(r,'menu-slot-photo','menu-slot-photo recipe-art-menu','22px');}
 
 // ── RÉCENTS ───────────────────────────────────────────────────────────────
 function renderRecent(){

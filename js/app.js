@@ -5,8 +5,19 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v25';
+var _SN5_VER = 'v26';
 var _SN5_LOG = [
+  {
+    v: 'v26', date: '25 avril 2026', titre: 'Vague A — 5 bugs critiques UI corrigés',
+    items: [
+      '🔴 Cartes recettes : visuels uniques par recette (gradient + emoji catégorie + drapeau pays) — fini la cloche dorée pour les 794 recettes',
+      '🔴 Bouton « Créer » : routing nettoyé en switch explicite, sécurisation des références DOM',
+      '🔴 Titre fantôme sur hero supprimé (plus d\'image cassée, donc plus d\'attribut alt rendu)',
+      '🔴 Contraste hero recette : gradient sombre intensifié (0.85 → 0.18) + double text-shadow sur le titre',
+      '🔴 Filtre Chef : dropdown 300+ entrées remplacé par autocomplete avec recherche live',
+      '⚫ SW v26'
+    ]
+  },
   {
     v: 'v25', date: '25 avril 2026', titre: 'Audit qualité recettes — versions chef étoilé',
     items: [
