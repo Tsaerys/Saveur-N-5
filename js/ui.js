@@ -383,14 +383,19 @@ function renderRecent(){
   const rz=document.getElementById("recent-zone");
   if(!RECENT.length||!rz){if(rz)rz.innerHTML="";return;}
   const recRecs=RECENT.map(id=>RECIPES.find(r=>r.id===id)).filter(Boolean);
-  const cards=recRecs.map(r=>`
-    <div class="recent-card" onclick="openRecipe('${r.id}')">
+  const cards=recRecs.map(r=>{
+    var t=totTime(r);
+    return `
+    <div class="recent-card" onclick="openRecipe('${r.id}')" role="button" tabindex="0" aria-label="${attrEscape(r.nom)} — ${attrEscape(r.cat)}">
       ${buildRecentPhoto(r)}
       <div class="recent-card-body">
+        <div class="recent-card-top"><span class="cat-badge cat-${catClass(r.cat)} recent-cat">${r.cat}</span></div>
         <div class="recent-card-nom">${r.nom}</div>
+        <div class="recent-card-meta"><span title="Temps total">⏱ ${t} min</span><span title="Difficulté">${dots(r.diff)}</span></div>
         <div class="recent-card-co"><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</div>
       </div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
   rz.innerHTML=`<div class="recent-section"><div class="recent-title">Récemment consultées</div><div class="recent-scroll">${cards}</div></div>`;
 }
 
@@ -574,18 +579,22 @@ function renderDetail(){
   document.getElementById("main").innerHTML=`
     <div class="detail-wrap">
       ${breadcrumb}
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0">
+      <div class="detail-actions-bar-wrap">
         <button class="back-btn" onclick="goBack()" aria-label="Retour à la liste des recettes">← Retour</button>
         <div class="detail-actions-bar">
-          <button class="act-btn${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥ Favori":"♡ Favoris"}</button>
-          <button class="act-btn${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">${inCart?"🛒 Dans la liste":"🛒 Courses"}</button>
-          <button class="act-btn" onclick="startCooking()">👨‍🍳 Mode cuisine</button>
-          <button class="act-btn" onclick="printRecipe()">🖨 Imprimer</button>
-          ${S.recipe&&S.recipe._custom?'<button class="act-btn" onclick="S._editId=S.recipe.id;setView(\'edit\')" aria-label="Modifier">✏️ Modifier</button>':''}
-
-          <button class="act-btn" onclick="shareRecipe(S.recipe.id)" aria-label="Partager ou copier le lien">🔗 Partager</button>
-          <button class="act-btn" onclick="exportBackup()" aria-label="Exporter une sauvegarde de mes données">💾 Sauvegarder</button>
-          <button class="act-btn" onclick="importBackup()" aria-label="Restaurer une sauvegarde">📥 Restaurer</button>
+          <button class="act-btn act-primary" onclick="startCooking()" aria-label="Mode cuisine">👨‍🍳 <span class="act-lbl">Mode cuisine</span></button>
+          <button class="act-btn act-primary${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥":"♡"} <span class="act-lbl">${isFav?'Favori':'Favoris'}</span></button>
+          <button class="act-btn act-primary${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">🛒 <span class="act-lbl">${inCart?'Dans la liste':'Courses'}</span></button>
+          <button class="act-btn act-secondary" onclick="printRecipe()" aria-label="Imprimer la recette" title="Imprimer">🖨</button>
+          <button class="act-btn act-secondary" onclick="shareRecipe(S.recipe.id)" aria-label="Partager ou copier le lien" title="Partager">🔗</button>
+          <div class="act-menu-wrap">
+            <button class="act-btn act-secondary" id="act-more-btn" onclick="_toggleActMore()" aria-label="Plus d'actions" aria-haspopup="true" aria-expanded="false" title="Plus">⋯</button>
+            <div class="act-menu" id="act-more-menu" role="menu">
+              ${S.recipe&&S.recipe._custom?'<button class="act-menu-item" role="menuitem" onclick="_closeActMore();S._editId=S.recipe.id;setView(\'edit\')">✏️ Modifier la recette</button>':''}
+              <button class="act-menu-item" role="menuitem" onclick="_closeActMore();exportBackup()">💾 Sauvegarder mes données</button>
+              <button class="act-menu-item" role="menuitem" onclick="_closeActMore();importBackup()">📥 Restaurer une sauvegarde</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="detail-card" style="margin-top:14px">
@@ -657,6 +666,27 @@ function renderDetail(){
   });
 }
 
+function _toggleActMore(){
+  var btn=document.getElementById("act-more-btn"),m=document.getElementById("act-more-menu");
+  if(!btn||!m)return;
+  var open=!m.classList.contains("open");
+  m.classList.toggle("open",open);
+  btn.setAttribute("aria-expanded",open?"true":"false");
+  if(open){
+    setTimeout(function(){
+      document.addEventListener("click",function _off(e){
+        if(m.contains(e.target)||btn.contains(e.target))return;
+        m.classList.remove("open");btn.setAttribute("aria-expanded","false");
+        document.removeEventListener("click",_off);
+      });
+    },10);
+  }
+}
+function _closeActMore(){
+  var btn=document.getElementById("act-more-btn"),m=document.getElementById("act-more-menu");
+  if(m)m.classList.remove("open");
+  if(btn)btn.setAttribute("aria-expanded","false");
+}
 function printRecipe(){window.print();}
 function changePortion(d){S.portions=Math.max(1,S.portions+d);document.getElementById("qv").textContent=S.portions;updateIngrList();}
 function setUnitMode(m){S.unit_mode=m;renderDetail();}
@@ -962,6 +992,43 @@ function renderMenuView(){
       }).join('')
       +'</div></div>';
   }
+  // État vide engageant si pas encore de menu généré ni d'historique
+  var emptyShowcase = '';
+  if(!MENU_DATA && !hist.length){
+    emptyShowcase = `
+      <div class="menu-empty-showcase">
+        <div class="menu-empty-illu" aria-hidden="true">📆🍽️✨</div>
+        <h3 class="menu-empty-title">Découvrez les menus intelligents de Saveur N°5</h3>
+        <p class="menu-empty-desc">Choisissez vos paramètres ci-dessus, et l'algorithme construit pour vous un menu équilibré couvrant tous vos repas — entrées, plats, desserts — avec un fil rouge entre les jours et la liste de courses consolidée prête à imprimer.</p>
+        <div class="menu-empty-grid">
+          <div class="menu-empty-day">
+            <div class="med-tag">Exemple — Jour 1</div>
+            <div class="med-row"><span class="med-cat">Entrée</span><span class="med-name">Vichyssoise glacée</span></div>
+            <div class="med-row"><span class="med-cat">Plat</span><span class="med-name">Canard à l'orange</span></div>
+            <div class="med-row"><span class="med-cat">Dessert</span><span class="med-name">Tarte Tatin</span></div>
+          </div>
+          <div class="menu-empty-day">
+            <div class="med-tag">Exemple — Jour 2</div>
+            <div class="med-row"><span class="med-cat">Entrée</span><span class="med-name">Salade niçoise</span></div>
+            <div class="med-row"><span class="med-cat">Plat</span><span class="med-name">Risotto Milanese</span></div>
+            <div class="med-row"><span class="med-cat">Dessert</span><span class="med-name">Crème brûlée</span></div>
+          </div>
+          <div class="menu-empty-day">
+            <div class="med-tag">Exemple — Jour 3</div>
+            <div class="med-row"><span class="med-cat">Plat</span><span class="med-name">Bœuf bourguignon</span></div>
+            <div class="med-row"><span class="med-cat">Accomp.</span><span class="med-name">Gratin dauphinois</span></div>
+            <div class="med-row"><span class="med-cat">Dessert</span><span class="med-name">Mousse au chocolat</span></div>
+          </div>
+        </div>
+        <div class="menu-empty-feats">
+          <div class="mef-item"><span class="mef-ico">⚖️</span><span>Équilibre nutritionnel</span></div>
+          <div class="mef-item"><span class="mef-ico">🛒</span><span>Liste de courses auto</span></div>
+          <div class="mef-item"><span class="mef-ico">📜</span><span>Historique réutilisable</span></div>
+          <div class="mef-item"><span class="mef-ico">🎲</span><span>Régénération en 1 clic</span></div>
+        </div>
+      </div>`;
+  }
+
   document.getElementById("main").innerHTML=`
     <div class="menu-wrap">
       <div class="page-title">📅 Menu de la semaine</div>
@@ -981,6 +1048,7 @@ function renderMenuView(){
         <button class="btn-gen-menu" onclick="generateMenu()">✨ Générer le menu</button>
       </div>
       ${histHtml}
+      ${emptyShowcase}
       <div id="menu-result"></div>
     </div>`;
   if(MENU_DATA)renderMenuResult();
@@ -1122,9 +1190,39 @@ function renderFavs(q){
            <button class="act-btn" onclick="setView('browse')">🍽 Parcourir les recettes</button>
          </div>`;
     }else{
+      // Suggestions : 3 recettes qual=5 d'origines variées (déterministe par seed du jour)
+      var seed=new Date().toISOString().slice(0,10);
+      var topRecs=RECIPES.filter(function(x){return (x.qual||0)>=5;});
+      var picks=[];var seenCo={};
+      var hash=0;for(var ii=0;ii<seed.length;ii++)hash=(hash*31+seed.charCodeAt(ii))|0;
+      var start=Math.abs(hash)%Math.max(1,topRecs.length);
+      for(var jj=0;jj<topRecs.length&&picks.length<3;jj++){
+        var rr=topRecs[(start+jj)%topRecs.length];
+        if(!seenCo[rr.co]){picks.push(rr);seenCo[rr.co]=1;}
+      }
+      // Si pas assez de qual=5 distincts par pays, compléter au hasard
+      while(picks.length<3&&topRecs.length){picks.push(topRecs[(start+picks.length)%topRecs.length]);}
+      var suggHtml=picks.length?`
+        <div class="favs-empty-sugg">
+          <div class="favs-empty-sugg-title">✨ Coups de cœur du jour</div>
+          <div class="favs-empty-sugg-grid">
+            ${picks.map(function(p){
+              var coCol=COUNTRY_COLORS[p.co]||"#9a6f2a";
+              return `<div class="favs-empty-card" onclick="openRecipe('${p.id}')" role="button" tabindex="0" style="--co-accent:${coCol}">
+                ${buildCardPhoto(p)}
+                <div class="favs-empty-card-body">
+                  <span class="cat-badge cat-${catClass(p.cat)}" style="font-size:10px;padding:2px 7px">${p.cat}</span>
+                  <div class="favs-empty-card-nom">${attrEscape(p.nom)}</div>
+                  <div class="favs-empty-card-chef">${FLAGS[p.co]||""} ${attrEscape(p.chef)}</div>
+                </div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>`:'';
       emptyBody=`<p style="font-size:17px;margin-bottom:10px;color:var(--text2)">Aucun favori pour le moment</p>
-         <p style="font-size:13px;color:var(--text4);max-width:340px;margin:0 auto 18px auto;line-height:1.5">Cliquez sur ♡ sur n'importe quelle recette pour la sauvegarder ici. Vos favoris sont synchronisés entre tous les appareils via la sauvegarde.</p>
-         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+         <p style="font-size:13px;color:var(--text4);max-width:380px;margin:0 auto 18px auto;line-height:1.5">Cliquez sur ♡ sur n'importe quelle recette pour la sauvegarder ici. Voici quelques pépites de notre sélection pour démarrer :</p>
+         ${suggHtml}
+         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px">
            <button class="act-btn" onclick="setView('browse')">🍽 Parcourir les recettes</button>
            <button class="act-btn" onclick="openRandom()">🎲 Surprise</button>
          </div>`;

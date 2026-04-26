@@ -5,6 +5,58 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v27 — 2026-04-26
+
+### 🟠 Vague B — 9 frictions UX résolues
+
+**6. Barre d'actions fiche recette hiérarchisée**
+- Trois niveaux : primaires (Mode cuisine, Favoris, Courses) avec emoji + libellé visible ; secondaires (Imprimer, Partager) en icônes ; tertiaires (Modifier, Sauvegarder, Restaurer) dans un menu déroulant `⋯`
+- Mobile : libellés masqués automatiquement sous 600 px
+
+**7. Suppression du double scroll**
+- `.col-l` (ingrédients) : `max-height` + `overflow-y` retirés. Garde uniquement `position:sticky;top:64px` → un seul scroll de page
+
+**8. Étoiles de notation visibles en mode clair**
+- Étoiles vides : `-webkit-text-stroke` 1.2px/1.4px doré clair (#b89b58) avec `color:transparent`
+- Étoiles pleines : remplissage `#e8a020` + contour foncé + text-shadow doré
+
+**9. Hiérarchie typographique des filtres**
+- Labels : 11 px, 700, uppercase, letter-spacing 0.07em, gris clair
+- Valeurs sélectionnées (autres que vide) : 13 px, 600, doré + bordure dorée
+
+**10. Carrousel hélix navigation enrichie**
+- Flèches latérales `‹/›` permanentes en marge (42×42 px, scale 1.08 au hover)
+- Dots de pagination cliquables (un par recette du pool de 12), `active` en doré + halo
+- Mise à jour automatique du dot actif à chaque frame du `_hlxRender`
+
+**11. Cartes "Récemment consultées" enrichies**
+- Largeur 130 → 155 px ; ajout : badge catégorie coloré, temps total (⏱ X min), difficulté en dots, séparateur avant le pays
+- Accessibilité : `role="button"` + `tabindex="0"` + `aria-label`
+
+**12. Page Menu — état vide engageant**
+- Affiché uniquement si pas de menu généré ni d'historique
+- 3 jours-exemples de menus harmonieux (Vichyssoise / Canard / Tatin, Niçoise / Risotto / Crème brûlée, Bourguignon / Dauphinois / Mousse)
+- 4 « features » illustrées (équilibre, courses auto, historique, régénération)
+- Illustration emoji 📆🍽️✨
+
+**13. Page Favoris — état vide avec suggestions**
+- 3 « Coups de cœur du jour » sélectionnés parmi les recettes `qual=5`, déterministe par seed du jour (ISO date), distincts par pays
+- Cartes cliquables pour ouvrir directement la recette suggérée
+
+**14. Search ops — tip flottant**
+- Apparaît automatiquement au focus du champ (`focus-within`)
+- Affiche les 6 opérateurs sous forme de chips `<code>` colorés
+- Lien « Voir tous les exemples → » qui ouvre la modale d'aide complète
+
+### 🐛 Bugfix
+- `_hlxCardHTML` : référence à `_PH` (variable supprimée en v26) réparée → utilise le système d'art CSS
+- `renderSeasonal` : idem pour les seasonal cards
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v27`
+
+---
+
 ## v26 — 2026-04-25
 
 ### 🔴 Critique — Vague A (5 bugs critiques UI/UX)

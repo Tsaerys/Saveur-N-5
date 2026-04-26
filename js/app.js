@@ -5,8 +5,24 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v26';
+var _SN5_VER = 'v27';
 var _SN5_LOG = [
+  {
+    v: 'v27', date: '26 avril 2026', titre: 'Vague B — 9 frictions UX résolues',
+    items: [
+      '🟠 Barre d\'actions fiche recette : hiérarchie claire (primaires/secondaires/menu ⋯)',
+      '🟠 Plus de double scroll sur la fiche : ingrédients en sticky simple',
+      '🟠 Étoiles de notation : contour doré visible en mode clair',
+      '🟠 Filtres : labels en majuscules typés vs valeurs sélectionnées en gold',
+      '🟠 Carrousel hélix : flèches latérales ‹/› + dots de pagination cliquables',
+      '🟠 Cartes "Récemment consultées" : badge cat + temps + difficulté',
+      '🟠 Page Menu vide : 3 jours-exemples + features + illustration',
+      '🟠 Page Favoris vide : 3 « coups de cœur du jour » qual=5',
+      '🟠 Recherche avancée : tip flottant qui apparaît au focus du champ',
+      '🐛 Bug helix : référence à _PH disparu réparée (utilise art CSS)',
+      '⚫ SW v27'
+    ]
+  },
   {
     v: 'v26', date: '25 avril 2026', titre: 'Vague A — 5 bugs critiques UI corrigés',
     items: [
@@ -462,9 +478,14 @@ function renderSeasonal(){
   var recs=getSeasonalRecipes();
   if(!data||!recs.length){zone.innerHTML='';return;}
   var cards=recs.map(function(r){
-    var url=_userPhoto(r.id)||getPhotoUrl(r)||'images/placeholder.webp';
+    var url=_userPhoto(r.id);
+    var photo = url
+      ? '<img class="seasonal-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy">'
+      : (typeof _artHtml==='function'
+          ? _artHtml(r,'seasonal-photo recipe-art-seasonal','40px')
+          : '<div class="seasonal-photo" style="background:'+(COUNTRY_COLORS[r.co]||'#9a6f2a')+'"></div>');
     return '<div class="seasonal-card" onclick="openRecipe(\''+r.id+'\')">'
-      +'<img class="seasonal-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy">'
+      +photo
       +'<div class="seasonal-card-body">'
       +'<div class="seasonal-card-nom">'+r.nom+'</div>'
       +'<div class="seasonal-card-chef">'+r.chef.split(' ').pop()+'</div>'
@@ -700,9 +721,16 @@ function _hlxPoolBuild(){
 
 /* ── HTML d'une carte ── */
 function _hlxCardHTML(r){
-  var url = _userPhoto(r.id) || getPhotoUrl(r) || _PH;
-  return '<img class="helix-card-photo" src="'+url+'" alt="'+r.nom
-    +'" loading="lazy" onerror="this.onerror=null;this.src=\''+_PH+'\'">'
+  var url = _userPhoto(r.id);
+  var photoHtml;
+  if(url){
+    photoHtml = '<img class="helix-card-photo" src="'+url+'" alt="'+r.nom+'" loading="lazy">';
+  } else if(typeof _artHtml === 'function'){
+    photoHtml = _artHtml(r, 'helix-card-photo recipe-art-helix', '54px');
+  } else {
+    photoHtml = '<div class="helix-card-photo" style="background:'+(COUNTRY_COLORS[r.co]||'#9a6f2a')+'"></div>';
+  }
+  return photoHtml
     +'<div class="helix-card-body">'
     +'<span class="helix-card-cat">'+r.cat+'</span>'
     +'<div class="helix-card-nom">'+r.nom+'</div>'
@@ -767,6 +795,13 @@ function _hlxRender(){
 
     /* surbrillance carte centrale */
     card.classList.toggle('helix-center', depth > 0.95);
+  }
+
+  /* Mise à jour des dots de pagination */
+  var dots = document.querySelectorAll('.helix-dot');
+  if(dots.length){
+    var activeIdx = ((iPos % N) + N) % N;
+    dots.forEach(function(d, i){ d.classList.toggle('active', i === activeIdx); });
   }
 }
 
@@ -900,19 +935,40 @@ function renderHelix(){
       +' role="button" tabindex="-1" aria-label="Recette"></div>';
   }
 
+  /* Dots de pagination — un par recette du pool */
+  var dotsHtml = '';
+  for(var d = 0; d < _hlxPool.length; d++){
+    dotsHtml += '<button class="helix-dot" data-idx="'+d+'" aria-label="Aller à la recette '+(d+1)+'"></button>';
+  }
+
   zone.innerHTML =
     '<div id="helix-container">'
     +'<div class="helix-header">'
     +'<div class="helix-title">◆ '+(sd ? sd.label : 'À la une')+'</div>'
     +'<div class="helix-subtitle">'+(sd ? sd.sub : 'Recettes du moment')+'</div>'
     +'</div>'
+    +'<button class="helix-side-arrow helix-side-prev" onclick="helixNavigate(-1)" aria-label="Recette précédente">‹</button>'
     +'<div id="helix-scene"><div id="helix-carousel">'+cardsHtml+'</div></div>'
+    +'<button class="helix-side-arrow helix-side-next" onclick="helixNavigate(1)" aria-label="Recette suivante">›</button>'
+    +'<div class="helix-dots" role="tablist">'+dotsHtml+'</div>'
     +'<div class="helix-controls">'
     +'<button class="helix-ctrl-btn" onclick="helixNavigate(-1)" aria-label="Recette précédente">↑</button>'
     +'<button class="helix-ctrl-btn" onclick="helixNavigate(1)"  aria-label="Recette suivante">↓</button>'
     +'</div>'
-    +'<div class="helix-hint">Molette · Swipe · ↑↓</div>'
+    +'<div class="helix-hint">Flèches · Molette · Swipe · ↑↓</div>'
     +'</div>';
+
+  /* Click sur un dot → naviguer directement à cette position */
+  var dotsContainer = zone.querySelector('.helix-dots');
+  if(dotsContainer) dotsContainer.addEventListener('click', function(e){
+    var btn = e.target.closest('.helix-dot');
+    if(!btn) return;
+    var idx = parseInt(btn.dataset.idx, 10);
+    if(isNaN(idx)) return;
+    _hlxTarget = idx;
+    if(typeof _hlxAnimate === 'function') _hlxAnimate();
+    else _hlxRender();
+  });
 
   _hlxRender();
   _hlxSetTr(true);

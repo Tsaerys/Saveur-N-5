@@ -96,7 +96,12 @@
   <button id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Basculer thème clair/sombre" title="Thème clair/sombre">🌙</button>
   <div class="topbar-search" id="search-zone">
     <span class="si" aria-hidden="true">⌕</span>
-    <input type="text" id="qi" placeholder="Plat, chef:nom, pays:italie, -porc…" aria-label="Rechercher une recette (opérateurs : chef:, pays:, cat:, ing:, -mot)" title="Opérateurs : chef:, pays:, cat:, ing:, -motExclu, &quot;phrase exacte&quot;">
+    <input type="text" id="qi" placeholder="Plat, chef:nom, pays:italie, -porc…" aria-label="Rechercher une recette (opérateurs : chef:, pays:, cat:, ing:, -mot)" title="Opérateurs : chef:, pays:, cat:, ing:, -motExclu, &quot;phrase exacte&quot;" aria-describedby="search-tip">
+    <div class="search-tip" id="search-tip" role="tooltip" aria-hidden="true">
+      <strong>Astuces de recherche :</strong>
+      <span><code>chef:</code> nom · <code>pays:</code> italie · <code>cat:</code> dessert · <code>ing:</code> truffe · <code>-mot</code> exclut · <code>"phrase exacte"</code></span>
+      <button type="button" onclick="showSearchHelp()" class="search-tip-more">Voir tous les exemples →</button>
+    </div>
     <button class="voice-btn" id="voice-btn"
       title="Recherche vocale"
       aria-label="Recherche vocale"
