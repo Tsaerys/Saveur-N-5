@@ -1,12 +1,34 @@
 // Saveur N°5 — Service Worker
 // Cache l'app shell pour le mode hors ligne
 
-const CACHE_NAME = 'saveur-n5-v28';
+const CACHE_NAME = 'saveur-n5-v29';
 const APP_SHELL = [
   './',
   './index.html',
   './css/style.css',
   './js/data.js',
+  // Recettes par pays (refactor v29)
+  './js/data/asie.js',
+  './js/data/france.js',
+  './js/data/italie.js',
+  './js/data/espagne.js',
+  './js/data/grece.js',
+  './js/data/mexique.js',
+  './js/data/scandinavie.js',
+  './js/data/etats-unis.js',
+  './js/data/portugal.js',
+  './js/data/maroc.js',
+  './js/data/moyen-orient.js',
+  './js/data/europe-centrale.js',
+  './js/data/turquie.js',
+  './js/data/perou.js',
+  './js/data/afrique.js',
+  './js/data/argentine.js',
+  './js/data/tunisie.js',
+  './js/data/ethiopie.js',
+  './js/data/amerique-du-sud.js',
+  './js/data/caraibes.js',
+  './js/data/divers.js',
   './js/state.js',
   './js/logic.js',
   './js/ui.js',

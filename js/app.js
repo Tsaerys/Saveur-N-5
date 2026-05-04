@@ -5,8 +5,21 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v28';
+var _SN5_VER = 'v29';
 var _SN5_LOG = [
+  {
+    v: 'v29', date: '3 mai 2026', titre: 'Refactor data.js → 21 fichiers par pays',
+    items: [
+      '🗂 794 recettes réparties dans 21 fichiers data/<pays>.js (édition granulaire)',
+      '📁 Fichiers principaux : asie (210), france (209), italie (159), espagne (59)',
+      '📁 Fichiers moyens : grèce (28), mexique (24), scandinavie (20), états-unis (12), portugal (10)',
+      '📁 Petits pays : maroc, moyen-orient, turquie, pérou, etc. (≥3 recettes)',
+      '📁 Pays ≤2 recettes regroupés dans divers.js (Allemagne, Liban, Pologne, Hongrie, Brésil, Canada, Cuba, UK)',
+      '🛠 Audit qualité par pays désormais possible — éditer une cuisine sans toucher au reste',
+      '🔄 Audit recettes 101-200 partiel : 65 recettes upgradées en versions chef étoilé (Bottura, Cracco, Ramsay, Mallmann, Acurio, Ottolenghi, Schuhbeck, Choumicha, Avillez…)',
+      '⚫ SW v29 — APP_SHELL met en cache les 21 fichiers data'
+    ]
+  },
   {
     v: 'v28', date: '26 avril 2026', titre: 'Vague C — 21 polish items',
     items: [

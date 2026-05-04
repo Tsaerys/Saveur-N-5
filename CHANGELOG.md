@@ -5,6 +5,75 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v29 — 2026-05-03
+
+### 🗂 Refactor majeur — data.js divisé par pays
+
+**Pourquoi** : 794 recettes dans un seul fichier de 1 MB rendait l'édition lourde et l'audit qualité difficile à mener par batches. Désormais :
+
+- `js/data.js` est un simple conteneur (`var RECIPES = []`)
+- 21 fichiers `js/data/<pays>.js` font chacun `RECIPES.push(...)`
+- Chargés dans l'ordre de volume décroissant dans index.html
+- SW v29 cache tous les fichiers pour offline
+
+**Répartition** :
+- ≥10 recettes : un fichier dédié (Asie 210, France 209, Italie 159, Espagne 59, Grèce 28, Mexique 24, Scandinavie 20, États-Unis 12, Portugal 10)
+- 3-9 recettes : un fichier dédié (Maroc 9, Moyen-Orient 8, Europe Centrale 5, Turquie 5, Pérou 4, Afrique 4, Argentine 3, Tunisie 3, Éthiopie 3, Amérique du Sud 3, Caraïbes 3)
+- ≤2 recettes : groupés dans `divers.js` (Allemagne, Liban, Royaume-Uni, Pologne, Hongrie, Brésil, Canada, Cuba — 13 recettes)
+
+**Avantage immédiat** : audit qualité par cuisine — éditer juste `data/france.js` sans risque sur le reste de la base.
+
+### 🔄 Audit qualité recettes 101-200 (en cours, 65/100 upgradées)
+
+Recettes réécrites en versions chef étoilé élaborées (techniques pro, attributions chefs, étapes développées 5-8×) :
+
+**Italie (12)** : IT028 Cantucci → Mattei (1858), IT029 Cotoletta → Cracco, IT030 Parmigiana → Cannavacciuolo, IT031-040 (Caprese, Lasagnes Bottura, Bruschetta, Risotto Cracco, Polenta Baronetto, Panzanella, Semifreddo Massari, Involtini Assenza, Carpaccio carciofi, Sarde in saor)
+
+**Espagne (8)** : ES004 Gazpacho → Quique Dacosta, ES005 Patatas Bravas → Sergi Arola, ES006 Bacalà → Carme Ruscalleda, ES007 Churros → San Ginés (1894), ES008 Tortilla → Quique Dacosta, ES009 Croquetas → Sergi Arola
+
+**Grèce (3)** : GR006 Dolmades → Aglaia Kremezi, GR007 Hummus → Yotam Ottolenghi, GR008 Briam → Diane Kochilas
+
+**Mexique (4)** : MX001 Tacos al Pastor (libano-mex), MX002 Guacamole → Enrique Olvera, MX003 Flan → Daniela Soto-Innes, MX004 Sopa de Lima → Roberto Solís
+
+**Maroc (3)** : MA001 Tajine → Choumicha, MA002 Couscous Royal → Najat Kaanache, MA003 Harira (Fès)
+
+**Liban (2)** : LB001 Fattoush → Greg Malouf, LB002 Fatteh (Mokbel)
+
+**Portugal (2)** : PT001 Bacalhau Brás → José Avillez, PT002 Pastéis → Antiga Confeitaria de Belém (1837)
+
+**Scandinavie (2)** : SC001 Gravlax → Magnus Nilsson, SC002 Kladdkaka (tradition Stockholm)
+
+**Allemagne (2)** : DE001 Sauerbraten → Alfons Schuhbeck, DE002 Forêt-Noire → Josef Keller (1915)
+
+**UK (2)** : GB001 Beef Wellington → Gordon Ramsay, GB002 Sticky Toffee → Sharrow Bay (1971)
+
+**Argentine (2)** : AR001 Asado → Francis Mallmann, AR002 Alfajores
+
+**Vietnam (2)** : VN001 Phở Bò → Phở Gia Truyền (Hanoï 1947), VN002 Gỏi Cuốn → Charles Phan
+
+**Inde (3)** : IN001 Dal Makhani → Vivek Singh, IN002 Naan → Atul Kochhar, IN003 Butter Chicken → Kundan Lal Jaggi (1948)
+
+**Corée (2)** : KR001 Bibimbap (Jeonju), KR002 Bulgogi → Hooni Kim
+
+**Moyen-Orient (2)** : ME001 Falafel → Ottolenghi, ME002 Kofta → Greg Malouf
+
+**Japon (5)** : JP001-005 (Gyudon, Yakisoba, Onigiri, Miso Shiru, Gyoza Murata)
+
+**Chine (2)** : CN001 Mapo Doufu → Chen Kenichi, CN002 Kung Pao (Sichuan tradition)
+
+**Thaïlande (2)** : TH001 Pad Thai → David Thompson, TH002 Curry Vert → Chumpol Jangprai
+
+**USA (3)** : US005 Cheeseburger → Daniel Boulud, US006 Cookies → Ruth Wakefield, US007 Apple Pie → Christina Tosi
+
+**Tunisie + Éthiopie + Pérou (3)** : TN001 Chakchouka, ET001 Doro Wat → Marcus Samuelsson, PE001 Ceviche → Gastón Acurio
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v29`
+- 21 fichiers `js/data/*.js` ajoutés à APP_SHELL
+- Validation : 794 recettes, IDs uniques, champs obligatoires présents
+
+---
+
 ## v28 — 2026-04-26
 
 ### 🟡 Vague C — 21 polish items

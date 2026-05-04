@@ -7,7 +7,25 @@
       "Bash(dir \"S:\\\\Apps\\\\Saveur N°5\\\\saveur-n5-v14\\\\images\\\\\" /B)",
       "Bash(cat)",
       "Bash(node /tmp/extract_keys.js)",
-      "mcp__Windows-MCP__PowerShell"
+      "mcp__Windows-MCP__PowerShell",
+      "Bash(node -e ' *)",
+      "Read(//c/tmp/**)",
+      "Bash(node --check js/ui.js)",
+      "Bash(node --check js/logic.js)",
+      "Bash(node --check js/app.js)",
+      "Bash(node --check js/state.js)",
+      "Bash(node --check js/data.js)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(node rewrite_top100.js)",
+      "Bash(sed -i 's|aria-label=\"${isFav?'\\\\''Retirer des favoris'\\\\'':'\\\\''Ajouter aux favoris'\\\\''}\" aria-pressed=\"${isFav}\"|aria-label=\"${isFav?'\\\\''Retirer des favoris'\\\\'':'\\\\''Ajouter aux favoris'\\\\''}\" title=\"${isFav?'\\\\''Retirer des favoris'\\\\'':'\\\\''Ajouter aux favoris'\\\\''}\" data-tip=\"${isFav?'\\\\''Retirer ♥'\\\\'':'\\\\''Ajouter aux favoris'\\\\''}\" aria-pressed=\"${isFav}\"|g' js/ui.js)",
+      "Bash(sed -i 's|aria-label=\"${inCart?'\\\\''Retirer des courses'\\\\'':'\\\\''Ajouter aux courses'\\\\''}\" aria-pressed=\"${inCart}\"|aria-label=\"${inCart?'\\\\''Retirer des courses'\\\\'':'\\\\''Ajouter aux courses'\\\\''}\" title=\"${inCart?'\\\\''Retirer des courses'\\\\'':'\\\\''Ajouter aux courses'\\\\''}\" data-tip=\"${inCart?'\\\\''Retirer 🛒'\\\\'':'\\\\''Ajouter aux courses'\\\\''}\" aria-pressed=\"${inCart}\"|g' js/ui.js)",
+      "Bash(node rewrite_101_200.js)",
+      "Bash(node rewrite_b2.js)",
+      "Bash(node rewrite_b3.js)",
+      "Bash(node rewrite_b4.js)",
+      "Bash(node rewrite_b5.js)"
     ]
   }
 }
