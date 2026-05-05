@@ -5,6 +5,51 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v32 — 2026-05-05
+
+### 🟡 Vague F — 7 polish items
+
+**16. Drapeau pays sur fiche recette**
+- Avant : 26 px en bas-droite, peu visible
+- Fix : `recipe-art-detail .recipe-art-flag` passe à 36 px en haut-droite, badge blanc opaque avec ombre
+
+**17. Double drapeau sur cartes catalogue**
+- Avant : drapeau dans la pastille gradient ET drapeau dans le footer "🇫🇷 France"
+- Fix : suppression du `${FLAGS[r.co]}` dans le footer ; pastille couleur + nom suffit
+
+**18. Badge "Plat" écrasé par le bouton 🛒**
+- Avant : la pastille catégorie en haut du `card-body` pouvait passer derrière le bouton cart
+- Fix : `padding-left: 36-40px` sur `.card-top`, `min-height: 24px`
+
+**19. Toggle thème : icône identique en clair et dark**
+- Avant : 🌙 affichée dans les deux modes (perception bug)
+- Fix : style visuel distinct — `theme-mode-light` (fond orangé clair, border doré) vs `theme-mode-dark` (fond bleu nuit, border foncée)
+- Animation rotation 20° au hover, 180° à l'activation
+
+**20. Modale multi-sélection : pas de compteur live**
+- Avant : impossible de savoir combien de recettes vont rester
+- Fix : barre sticky en bas avec `<X> recettes correspondent` + bouton « ✓ Appliquer »
+- Mise à jour à chaque clic sur un chip, couleur rouge si `0` correspondance
+
+**21. Boutons Liste de courses sans labels**
+- Avant : `🖨` seul (sans texte) — confus
+- Fix : `<span class="btn-lbl">Imprimer</span>` (et idem pour Décocher/Copier/Partager/.txt)
+- Libellés masqués sous 520 px
+
+**22. Formulaire Créer recette incomplet**
+- Avant : pas de champs qualité, saison, régimes, tags
+- Fix : section `<details>` collapsible "⚙️ Détails avancés" avec :
+  - Qualité 1-5★ (avec QUAL_LABELS)
+  - Saison (4 choix de SEASONS const)
+  - Régimes (5 checkboxes : végétarien, sans gluten, sans lactose, sans fruits de mer, sans poissons)
+  - Tags personnels (input séparé par virgules)
+- `crSave()` met à jour pour récupérer ces nouveaux champs
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v32`
+
+---
+
 ## v31 — 2026-05-04
 
 ### 🟠 Vague E — 10 frictions UX corrigées (suite audit Claude Web)

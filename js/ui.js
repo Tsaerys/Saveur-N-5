@@ -593,7 +593,7 @@ function renderMain(){
           <div class="meta-item"><strong>${r.bp}</strong> pers.</div>
           <div class="meta-item meta-diff-${r.diff}">${diffLabel(r.diff)}</div>
         </div>
-        <div class="card-foot"><span class="card-co" aria-label="Pays : ${r.co}"><span class="card-co-dot" style="background:${coCol}" aria-hidden="true"></span><span aria-hidden="true">${FLAGS[r.co]||""}</span> ${r.co}</span> ${ratingFoot}</div>
+        <div class="card-foot"><span class="card-co" aria-label="Pays : ${r.co}"><span class="card-co-dot" style="background:${coCol}" aria-hidden="true"></span>${r.co}</span> ${ratingFoot}</div>
         ${matchExtra}
       </div>
     </div>`;
@@ -873,6 +873,16 @@ function _removeMultiVal(key,val){
 // Filtres multi-sélection (pays / cat / chef) — modale avec chips cochables
 function openMultiFilter(){
   var counts=getRecipeCounts();
+  // #20 v32 : compteur live des recettes correspondantes
+  var updateLiveCount=function(card){
+    var n=filtered().length;
+    var bar=card.querySelector('.mf-live-bar');
+    if(bar){
+      bar.querySelector('.mf-live-count').textContent=n;
+      bar.querySelector('.mf-live-label').textContent=n===0?'Aucune correspondance':(n===1?'recette correspond':'recettes correspondent');
+      bar.classList.toggle('mf-live-empty',n===0);
+    }
+  };
   var renderBody=function(body){
     var coArr=(S.filters.co||"").split('|').filter(Boolean);
     var catArr=(S.filters.cat||"").split('|').filter(Boolean);
@@ -895,6 +905,15 @@ function openMultiFilter(){
     maxWidth:620,
     onMount:function(m){
       renderBody(m.body);
+      // Compteur live sticky en bas de la modale
+      var card=m.overlay.querySelector('.qual-legend-card');
+      if(card&&!card.querySelector('.mf-live-bar')){
+        var liveBar=document.createElement('div');
+        liveBar.className='mf-live-bar';
+        liveBar.innerHTML='<span class="mf-live-count">0</span> <span class="mf-live-label">recette correspond</span> <button type="button" class="mf-apply-btn" onclick="this.closest(\'.qual-legend-overlay\').querySelector(\'.qual-legend-close\').click()">✓ Appliquer</button>';
+        card.appendChild(liveBar);
+      }
+      updateLiveCount(card);
       m.body.addEventListener("click",function(e){
         var btn=e.target.closest(".mf-chip");if(!btn)return;
         var key=btn.dataset.mfKey,val=btn.dataset.mfVal;
@@ -904,6 +923,7 @@ function openMultiFilter(){
         S.filters[key]=cur.join('|');
         renderFilters();renderMain();updateCount();
         renderBody(m.body);
+        updateLiveCount(card);
       });
     }
   });
@@ -1487,11 +1507,11 @@ function renderCourses(){
         <div class="courses-card-hdr">
           <span>${cartRecs.length>0?`Ingrédients — ${cartRecs.length} recette${cartRecs.length>1?"s":""}`:""}<span id="courses-count" class="courses-count"></span></span>
           <div class="courses-export-btns">
-            <button class="btn-export" onclick="clearAllChecked()" title="Tout décocher">☐ Décocher</button>
-            <button class="btn-export" onclick="exportCoursesText()" title="Copier en presse-papier">📋 Copier</button>
-            <button class="btn-export" onclick="shareCoursesText()" title="Partager / AnyList / Bring">🔗 Partager</button>
-            <button class="btn-export" onclick="downloadCoursesText()" title="Télécharger .txt">⬇ .txt</button>
-            <button class="btn-export" onclick="window.print()" title="Imprimer">🖨</button>
+            <button class="btn-export" onclick="clearAllChecked()" title="Tout décocher" aria-label="Tout décocher">☐ <span class="btn-lbl">Décocher</span></button>
+            <button class="btn-export" onclick="exportCoursesText()" title="Copier dans le presse-papier" aria-label="Copier dans le presse-papier">📋 <span class="btn-lbl">Copier</span></button>
+            <button class="btn-export" onclick="shareCoursesText()" title="Partager via app (AnyList / Bring / Mail)" aria-label="Partager via app">🔗 <span class="btn-lbl">Partager</span></button>
+            <button class="btn-export" onclick="downloadCoursesText()" title="Télécharger en fichier texte (.txt)" aria-label="Télécharger en fichier texte">⬇ <span class="btn-lbl">.txt</span></button>
+            <button class="btn-export" onclick="window.print()" title="Imprimer la liste" aria-label="Imprimer la liste">🖨 <span class="btn-lbl">Imprimer</span></button>
           </div>
         </div>
         ${cartRecs.length>0?html:`<div class="courses-empty">Sélectionnez des recettes ci-dessous pour générer la liste</div>`}
@@ -1855,8 +1875,12 @@ function _updateThemeBtn(){
   var btn=document.getElementById('theme-toggle-btn');
   if(!btn)return;
   var cur=document.documentElement.getAttribute('data-theme')||'light';
+  // #19 v32 : icône clairement distincte selon mode courant + classe pour styling
   btn.textContent=cur==='dark'?'☀️':'🌙';
-  btn.title=cur==='dark'?'Passer en mode clair':'Passer en mode sombre';
+  btn.classList.toggle('theme-mode-dark',cur==='dark');
+  btn.classList.toggle('theme-mode-light',cur!=='dark');
+  btn.title=cur==='dark'?'Mode sombre actif — passer en clair':'Mode clair actif — passer en sombre';
+  btn.setAttribute('aria-label',btn.title);
 }
 
 // ── SCROLL TO TOP ────────────────────────────────────────────────────────
@@ -1924,6 +1948,31 @@ function renderCreateRecipe(editId){
     +   '<label class="cr-label" style="margin-top:10px">Notes et astuces</label>'
     +   '<textarea id="cr-notes" class="cr-input cr-textarea" placeholder="Conseils, variantes...">' + (r.notes||'') + '</textarea>'
     + '</div>'
+    // #22 v32 : section "Détails avancés" collapsible (qualité, saison, régimes, tags)
+    + '<details class="detail-card cr-section cr-advanced">'
+    +   '<summary class="cr-advanced-summary">⚙️ Détails avancés <span class="cr-advanced-hint">(optionnels)</span></summary>'
+    +   '<div class="cr-advanced-body">'
+    +     '<div class="cr-grid2">'
+    +       '<div><label class="cr-label">Qualité de la source</label><select id="cr-qual" class="cr-input">'
+    +         [1,2,3,4,5].map(function(q){return '<option value="'+q+'"'+(r.qual===q?' selected':'')+'>'+'★'.repeat(q)+' — '+(QUAL_LABELS[q]||'')+'</option>';}).join('')
+    +       '</select></div>'
+    +       '<div><label class="cr-label">Saison</label><select id="cr-saison" class="cr-input">'
+    +         '<option value="">— Toutes saisons —</option>'
+    +         (typeof SEASONS!=='undefined'?SEASONS.map(function(s){return '<option value="'+s.key+'"'+(r.saison===s.key?' selected':'')+'>'+s.emoji+' '+s.label+'</option>';}).join(''):'')
+    +       '</select></div>'
+    +     '</div>'
+    +     '<label class="cr-label" style="margin-top:14px">Régimes (cocher si applicable)</label>'
+    +     '<div class="cr-regimes-row">'
+    +       (function(){
+            var regimes=r._regimes||[];
+            var opts=[['vege','🌿 Végétarien'],['gluten','🌾 Sans gluten'],['lactose','🥛 Sans lactose'],['seafood','🦐 Sans fruits de mer'],['fish','🐟 Sans poissons']];
+            return opts.map(function(o){var k=o[0],lbl=o[1];var on=regimes.indexOf(k)>=0;return '<label class="cr-checkbox-lbl"><input type="checkbox" class="cr-regime-cb" data-key="'+k+'"'+(on?' checked':'')+'> '+lbl+'</label>';}).join('');
+          })()
+    +     '</div>'
+    +     '<label class="cr-label" style="margin-top:14px">Tags personnels (séparés par virgules)</label>'
+    +     '<input id="cr-tags" class="cr-input" value="'+attrEscape((r._tags||[]).join(', '))+'" placeholder="Ex : Comfort food, Brunch, Express">'
+    +   '</div>'
+    + '</details>'
     + '<div class="cr-actions">'
     +   '<button class="act-btn" onclick="crSave(\'' + (ex ? editId : '') + '\')">💾 Sauvegarder</button>'
     +   (ex ? '<button class="act-btn" onclick="crDelete(\'' + editId + '\')" style="background:#fee2e2;color:#c0392b;border-color:#fca5a5">🗑 Supprimer</button>' : '')
@@ -1963,6 +2012,13 @@ function crSave(editId){
     var u = (row.querySelector('.cr-ing-unit').value || 'qs').trim();
     if(n) igs.push([n, q, u]);
   });
+  // #22 v32 : récupérer les champs avancés (qual, saison, régimes, tags)
+  var qualEl=document.getElementById('cr-qual');
+  var saisonEl=document.getElementById('cr-saison');
+  var tagsEl=document.getElementById('cr-tags');
+  var regimes=[];
+  document.querySelectorAll('.cr-regime-cb:checked').forEach(function(cb){regimes.push(cb.dataset.key);});
+  var tagsArr=tagsEl?(tagsEl.value||'').split(',').map(function(t){return t.trim();}).filter(Boolean):[];
   var recipe = {
     id:    editId || getUserRecipeNextId(),
     _custom: true,
@@ -1973,13 +2029,16 @@ function crSave(editId){
     chef:  document.getElementById('cr-chef').value || 'Ma recette',
     bp:    parseInt(document.getElementById('cr-bp').value)   || 4,
     diff:  Math.min(5, Math.max(1, parseInt(document.getElementById('cr-diff').value) || 2)),
-    qual:  3,
+    qual:  qualEl ? Math.min(5, Math.max(1, parseInt(qualEl.value) || 3)) : 3,
     prep:  parseInt(document.getElementById('cr-prep').value) || 0,
     cui:   parseInt(document.getElementById('cr-cui').value)  || 0,
     ig:    igs.length ? igs : [['Ingrédient', 1, 'qs']],
     et:    et,
     vin:   document.getElementById('cr-vin').value   || '',
     notes: document.getElementById('cr-notes').value || '',
+    saison: saisonEl ? (saisonEl.value || '') : '',
+    _regimes: regimes,
+    _tags: tagsArr,
   };
   if(editId){
     var idx = USER_RECIPES.findIndex(function(r){ return r.id === editId; });

@@ -5,8 +5,21 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v31';
+var _SN5_VER = 'v32';
 var _SN5_LOG = [
+  {
+    v: 'v32', date: '5 mai 2026', titre: 'Vague F — 7 polish items',
+    items: [
+      '🟡 #16 Drapeau pays sur fiche recette : 36 px, badge blanc avec ombre',
+      '🟡 #17 Cartes catalogue : suppression du double drapeau (gardé seulement la pastille)',
+      '🟡 #18 Card-top : padding-left 36 px pour éviter chevauchement avec le bouton 🛒',
+      '🟡 #19 Toggle thème : style distinct par mode (bg orangé clair / bg bleu nuit foncé) + animation rotate',
+      '🟡 #20 Modale multi-sélection : compteur live « X recettes correspondent » + bouton « ✓ Appliquer »',
+      '🟡 #21 Boutons Liste de courses : libellés visibles en desktop (Décocher, Copier, Partager, .txt, Imprimer)',
+      '🟡 #22 Créer recette : section « ⚙️ Détails avancés » collapsible avec qualité, saison, régimes (5 checkboxes), tags personnels',
+      '⚫ SW v32'
+    ]
+  },
   {
     v: 'v31', date: '4 mai 2026', titre: 'Vague E — 10 frictions UX corrigées',
     items: [
