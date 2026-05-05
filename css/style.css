@@ -152,10 +152,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1
 .card-cart-btn{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text3);box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .15s}
 .card-cart-btn.active{color:var(--gold);background:white}
 .card-rating{position:absolute;bottom:10px;right:8px;display:flex;gap:2px;background:rgba(255,255,255,.88);border-radius:var(--rx);padding:2px 6px}
-/* #8 — Étoiles de notation : contour visible en mode clair */
-.card-rating .rs{font-size:13px;color:transparent;cursor:pointer;transition:color .15s,text-shadow .15s;line-height:1;-webkit-text-stroke:1.2px #b89b58;text-stroke:1.2px #b89b58}
-.card-rating .rs:hover{-webkit-text-stroke:1.2px #d4a738;color:rgba(232,160,32,.18)}
-.card-rating .rs.on{color:#e8a020;-webkit-text-stroke:1.2px #c08010;text-shadow:0 1px 2px rgba(232,160,32,.35)}
+/* #8 — Étoiles de notation : contour visible + indicateur "Pas encore notée" */
+.card-rating{display:flex;gap:1px;align-items:center;padding:3px 6px;background:rgba(255,255,255,.5);border-radius:8px;backdrop-filter:blur(4px)}
+.card-rating .rs{font-size:15px;color:rgba(184,155,88,.35);cursor:pointer;transition:color .15s,text-shadow .15s,transform .12s;line-height:1;-webkit-text-stroke:1px #a08850;display:inline-block}
+.card-rating .rs:hover{color:rgba(232,160,32,.5);-webkit-text-stroke:1px #c08010;transform:scale(1.15)}
+.card-rating .rs.on{color:#e8a020;-webkit-text-stroke:1px #b07010;text-shadow:0 1px 2px rgba(232,160,32,.4)}
+[data-theme="dark"] .card-rating{background:rgba(0,0,0,.35)}
+[data-theme="dark"] .card-rating .rs{color:rgba(220,194,117,.35);-webkit-text-stroke:1px #c8a85c}
+[data-theme="dark"] .card-rating .rs.on{color:#f0c060;-webkit-text-stroke:1px #c8a85c}
 .card-body{padding:16px 18px}
 .card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .cat-badge{font-size:11px;padding:3px 10px;border-radius:var(--rx);font-weight:600;letter-spacing:.02em;white-space:nowrap}
@@ -238,6 +242,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1
 .recipe-art-menu .recipe-art-flag{display:none}
 /* Notation sur la photo */
 .detail-rating-bar{position:absolute;top:14px;right:14px;display:flex;gap:4px;background:rgba(255,255,255,.94);border-radius:var(--rx);padding:5px 11px;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+/* #6 v31 : qual-badge passe en TOP-LEFT (séparé de la rating-bar à droite) */
+.qual-badge.qual-badge-hero{position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);border-radius:18px;padding:4px 12px;color:#fff;letter-spacing:.3px;cursor:help;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.22);font-size:11.5px;font-weight:500}
+.qual-badge.qual-badge-hero .qual-stars{color:#f0c060;letter-spacing:1px;font-size:11px}
+.qual-badge.qual-badge-hero .qual-label{color:rgba(255,255,255,.92);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-left:1px solid rgba(255,255,255,.25);padding-left:8px}
+@media(max-width:540px){.qual-badge.qual-badge-hero .qual-label{display:none}}
 .detail-rating-bar .rs{font-size:19px;cursor:pointer;color:transparent;-webkit-text-stroke:1.4px #b89b58;transition:color .15s,text-shadow .15s;line-height:1}
 .detail-rating-bar .rs:hover{-webkit-text-stroke:1.4px #d4a738;color:rgba(232,160,32,.22)}
 .detail-rating-bar .rs.on{color:#e8a020;-webkit-text-stroke:1.4px #c08010;text-shadow:0 1px 3px rgba(232,160,32,.4)}
@@ -273,9 +282,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1
 .vin-txt{font-size:13px;color:var(--text2);font-style:italic;line-height:1.6}
 .notes-box{background:var(--bg3);border-left:3px solid var(--gold-l);border-radius:0 var(--rs) var(--rs) 0;padding:14px 16px;margin-bottom:12px;font-size:12px;color:var(--text3);line-height:1.75}
 .pnotes-lbl{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.pnotes-ta{width:100%;background:#fff;border:1.5px solid var(--bord2);border-radius:var(--rs);padding:10px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;resize:vertical;min-height:80px;outline:none;transition:border-color .2s;line-height:1.6}
-.pnotes-ta:focus{border-color:var(--gold-l)}
-.pnotes-ta::placeholder{color:var(--text4)}
+.pnotes-ta{width:100%;background:var(--surf);border:1.5px solid var(--bord2);border-radius:var(--rs);padding:10px 12px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;resize:vertical;min-height:80px;outline:none;transition:border-color .2s,background .2s;line-height:1.6;font-weight:400}
+.pnotes-ta:focus{border-color:var(--gold-l);background:var(--bg)}
+.pnotes-ta::placeholder{color:var(--text4);font-style:italic}
+[data-theme="dark"] .pnotes-ta{background:#252540;color:#f0e8d8;border-color:var(--bord2)}
+[data-theme="dark"] .pnotes-ta:focus{background:#2a2a48;border-color:var(--gold-l)}
 .pnotes-save{margin-top:6px;background:var(--gold-faint);border:1.5px solid var(--gold-l);border-radius:var(--rx);padding:6px 14px;font-size:12px;color:var(--gold);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .15s}
 .pnotes-save:hover{background:#fdefc8}
 .pnotes-saved{font-size:11px;color:#2a8a2a;margin-left:8px;opacity:0;transition:opacity .3s}
@@ -2201,3 +2212,48 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
 .empty-chip:hover .empty-chip-x{opacity:1}
 .empty-clear-all{background:var(--surf);border:1.5px solid var(--bord);color:var(--text2);padding:9px 18px;border-radius:var(--rx);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;margin-top:6px}
 .empty-clear-all:hover{border-color:var(--gold-l);color:var(--gold);background:var(--gold-faint)}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   VAGUE E (v31) — frictions UX
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* #11 — Tooltips visuels sur les icônes secondaires de la barre d'actions */
+.act-btn.act-secondary{position:relative}
+.act-btn.act-secondary[title]:hover::after,
+.act-btn.act-secondary[title]:focus-visible::after{
+  content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;
+  font-size:11.5px;padding:5px 10px;border-radius:6px;white-space:nowrap;
+  pointer-events:none;z-index:50;animation:tip-fade .15s ease-out;
+}
+@keyframes tip-fade{from{opacity:0;transform:translateX(-50%) translateY(2px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* #13 — Carte "Récemment consultées" : contraste dark mode */
+[data-theme="dark"] .recent-card{background:var(--bg2);border-color:var(--bord)}
+[data-theme="dark"] .recent-card-nom{color:rgba(255,255,255,.95)!important;font-weight:500}
+[data-theme="dark"] .recent-card-meta{color:rgba(255,255,255,.78)}
+[data-theme="dark"] .recent-card-co{color:rgba(255,255,255,.7);border-top-color:var(--bord2)}
+
+/* #14 — Carrousel hélix : lisibilité renforcée (centrale opaque, latérales fade) */
+.helix-card{transition:opacity .35s,filter .35s,transform .35s}
+.helix-card-body{padding:10px 12px}
+.helix-card-nom{font-size:15px;font-weight:500;color:var(--text);line-height:1.25;font-family:'Cormorant Garamond',serif}
+.helix-card-cat{font-size:9.5px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.helix-card-chef{font-size:11px;color:var(--text3);font-style:italic;margin-top:2px}
+.helix-card.helix-center .helix-card-nom{font-size:17px;color:var(--text);font-weight:600}
+.helix-card.helix-center .helix-card-body{background:var(--surf);box-shadow:0 4px 14px rgba(80,60,30,.18)}
+[data-theme="dark"] .helix-card-nom{color:rgba(255,255,255,.96)}
+[data-theme="dark"] .helix-card-chef{color:rgba(255,255,255,.7)}
+[data-theme="dark"] .helix-card.helix-center .helix-card-body{background:var(--bg2);box-shadow:0 4px 16px rgba(0,0,0,.35)}
+
+/* #10 v31 — Barre des filtres multi-sélection actifs (chips avec ×) */
+.multi-active-bar{display:flex;flex-direction:column;gap:6px;padding:10px 14px 4px;background:var(--gold-faint);border:1px solid var(--gold-l);border-radius:8px;margin:4px 0 10px}
+.multi-active-block{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.multi-active-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-right:4px}
+.multi-active-chip{display:inline-flex;align-items:center;gap:5px;background:var(--surf);border:1.2px solid var(--gold-l);color:var(--gold);padding:3px 10px;border-radius:14px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
+.multi-active-chip:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+.multi-chip-x{font-size:13px;line-height:1;opacity:.75}
+.multi-active-chip:hover .multi-chip-x{opacity:1}
+[data-theme="dark"] .multi-active-bar{background:rgba(232,160,32,.12);border-color:rgba(232,160,32,.35)}
+[data-theme="dark"] .multi-active-chip{background:var(--bg2);color:#f0c060;border-color:rgba(240,192,96,.45)}
+.filter-grp select:disabled{opacity:.45;cursor:not-allowed;background:var(--bg3)}

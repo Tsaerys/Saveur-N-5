@@ -5,8 +5,24 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v30';
+var _SN5_VER = 'v31';
 var _SN5_LOG = [
+  {
+    v: 'v31', date: '4 mai 2026', titre: 'Vague E — 10 frictions UX corrigées',
+    items: [
+      '🟠 #6 Hero : badge qualité passe à top-left (séparé de la rating-bar à top-right). Plus de chevauchement.',
+      '🟠 #7 Notes personnelles : background var(--surf) en clair, #252540 en dark. Police 14px, contraste WCAG AA.',
+      '🟠 #8 Étoiles de notation : fond rgba semi-opaque + stroke renforcé. Visibles aussi en non-notées.',
+      '🟠 #9 Frigo activé depuis Menu/Favoris bascule maintenant vers le catalogue + scroll auto.',
+      '🟠 #10 Multi-sélection : barre de chips dorés visible avec × par valeur. Selects désactivés quand multi actif.',
+      '🟠 #11 Tooltips visuels au hover sur les icônes secondaires (Imprimer/Partager/⋯).',
+      '🟠 #12 Conversion impériale : cs→tbsp et cc→tsp (étaient laissées tels quels avant).',
+      '🟠 #13 Récents en dark mode : titres rgba 0.95, méta 0.78, séparateur visible.',
+      '🟠 #14 Carrousel hélix : carte centrale en surlignage (bg surface + ombre), latérales atténuées.',
+      '🟠 #15 Emojis cartes : 50+ patterns (🐟🦐🥩🍝🍕🌮…) au lieu du seul 🍽 pour Plat.',
+      '⚫ SW v31'
+    ]
+  },
   {
     v: 'v30', date: '4 mai 2026', titre: 'Vague D — 5 bugs bloquants corrigés (audit Claude Web)',
     items: [

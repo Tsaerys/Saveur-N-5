@@ -5,6 +5,62 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v31 — 2026-05-04
+
+### 🟠 Vague E — 10 frictions UX corrigées (suite audit Claude Web)
+
+**6. Badge qualité vs notation perso superposés (hero recette)**
+- Avant : `qual-badge` (top:10, right:10) chevauchait `detail-rating-bar` (top:14, right:14)
+- Fix : `qual-badge-hero` passe en TOP-LEFT, rating-bar reste en TOP-RIGHT
+- Bonus : qual-badge restylé (étoiles dorées + label en majuscule, séparation visuelle)
+
+**7. Notes personnelles — contraste catastrophique en dark**
+- Avant : `background:#fff` en dur → en dark = fond blanc + texte gris #e0e0e0 (illisible)
+- Fix : `background:var(--surf)` en clair, override `#252540` + couleur `#f0e8d8` en dark
+- Police passée à 14 px, italic sur placeholder
+
+**8. Étoiles vides illisibles dans la grille principale**
+- Avant : 13 px, stroke 1.2 px gris pâle → quasi invisibles
+- Fix : 15 px, fond rgba semi-opaque autour du groupe, stroke 1 px doré contrasté
+- Hover : scale 1.15 + couleur intermédiaire dorée
+
+**9. Frigo : page vs toggle (incohérence navbar)**
+- Avant : cliquer 🧊 Frigo depuis Menu ne quittait pas Menu → confusion
+- Fix : si `S.view !== 'browse'` lors du `toggleFrigo`, basculement automatique vers le catalogue
+- Bonus : `scrollIntoView` smooth sur la zone Frigo activée
+
+**10. Multi-sélection sans feedback hors modale**
+- Avant : valeur `co = 'France|Italie'` → dropdown affiche "Tous les pays" → utilisateur perdu
+- Fix : barre dédiée `.multi-active-bar` au-dessus des filtres, chips dorés `France ×`, `Italie ×` cliquables individuellement
+- Selects simples désactivés quand multi-sélection active (avec title explicatif)
+
+**11. Tooltips icônes barre d'actions**
+- Avant : 🖨 / 🔗 / ⋯ sans label visible au hover
+- Fix : `[title]:hover::after` sur `.act-btn.act-secondary` → tooltip noir bas-haut avec animation `tip-fade`
+
+**12. Conversion impériale incomplète**
+- Avant : g→oz et kg→lb fonctionnaient, mais cs et cc restaient inchangés
+- Fix : `cs → tbsp` et `cc → tsp` ajoutés au `fmtQty()` quand mode imperial
+
+**13. Récents en dark mode — contraste insuffisant**
+- Avant : titres `var(--text2)` (gris pâle) sur gradient sombre = illisibles
+- Fix : `[data-theme="dark"] .recent-card-nom { color: rgba(255,255,255,.95) }` + bg de carte foncé + séparateur visible
+
+**14. Carrousel hélix « Printemps fleuri » illisible**
+- Avant : carte centrale et latérales avaient le même contraste → impossibilité de distinguer la carte active
+- Fix : carte centrale `.helix-center` reçoit fond `var(--surf)` + ombre et taille typo augmentée
+- Latérales gardent l'aspect mais leur typo est moins prononcée
+
+**15. Tous les "Plats" affichaient le même 🍽**
+- Avant : `PHOTO_EMOJIS[r.cat]` → mapping grossier 4-5 emojis pour 794 recettes
+- Fix : `_recipeEmoji(r)` analyse `sous` + `nom` + ingrédients via 50+ patterns regex
+- Résultats : 🐟 (saumon, bar), 🦐 (crevettes), 🥩 (bœuf), 🍗 (poulet), 🍝 (pâtes), 🍣 (sushi), 🍜 (ramen), 🌮 (taco), 🥗 (salade), 🍕 (pizza), 🍳 (œufs), 🧀 (gratin/fondue), 🍰 (cake)…
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v31`
+
+---
+
 ## v30 — 2026-05-04
 
 ### 🔴 Vague D — 5 bugs bloquants corrigés (audit Claude Web)

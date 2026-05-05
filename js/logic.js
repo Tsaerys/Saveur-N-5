@@ -121,7 +121,14 @@ function fmtQty(val,unit){
       if(unit==="kg"&&conv.lb){const v=Math.round(val*conv.lb*10)/10;return v.toFixed(1).replace('.0','')+" lb";}
       if(unit==="cl"&&conv["fl oz"]){const v=Math.round(val*conv["fl oz"]*10)/10;return v.toFixed(1).replace('.0','')+" fl oz";}
       if(unit==="ml"&&conv["fl oz"]){const v=Math.round(val*conv["fl oz"]*100)/100;return v.toFixed(2).replace('.00','')+" fl oz";}
-    } else if(S.unit_mode==="volume"){
+    }
+    // #12 v31 : convertir cs/cc en tbsp/tsp (équivalents impériaux)
+    if(S.unit_mode==="imperial"&&(unit==="cs"||unit==="cc")){
+      const r=Math.round(val*2)/2;
+      const num=r===Math.floor(r)?r.toString():r.toFixed(1);
+      return num+" "+(unit==="cs"?"tbsp":"tsp");
+    }
+    if(S.unit_mode==="volume"){
       if(unit==="cl"&&conv.verre){const v=Math.round(val*conv.verre*10)/10;return v.toFixed(1).replace('.0','')+(v>1?" verres":" verre");}
       if(unit==="cs"&&conv.ml)return Math.round(val*conv.ml)+" ml";
       if(unit==="cc"&&conv.ml)return Math.round(val*conv.ml)+" ml";

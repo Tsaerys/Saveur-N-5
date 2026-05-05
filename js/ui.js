@@ -169,8 +169,16 @@ function setView(v){
 function toggleFrigo(){
   S.frigo_active=!S.frigo_active;
   document.getElementById("nav-frigo").classList.toggle("active",S.frigo_active);
-  const fz=document.getElementById("frigo-zone");fz.style.display=S.frigo_active?"":"none";
-  if(S.frigo_active)renderFrigo();if(S.view==="browse")renderMain();
+  // #9 v31 : si on active le frigo depuis une autre vue, basculer vers browse
+  if(S.frigo_active&&S.view!=="browse"){setView("browse");}
+  const fz=document.getElementById("frigo-zone");
+  if(fz)fz.style.display=S.frigo_active?"":"none";
+  if(S.frigo_active){renderFrigo();
+    // Scroll vers la zone frigo pour rendre l'activation visible
+    setTimeout(function(){if(fz&&fz.scrollIntoView)fz.scrollIntoView({behavior:'smooth',block:'start'});},50);
+  }
+  if(S.view==="browse")renderMain();
+  updateBadges();
 }
 
 // ── RECHERCHE VOCALE ──────────────────────────────────────────────────────
@@ -228,9 +236,26 @@ function renderFilters(){
       </button>
     </div>
     <div class="filters-body${openClass}">
+      ${(function(){
+        // #10 v31 : chips visibles pour valeurs multi-sélection (pays|pays, cat|cat, chef|chef)
+        var blocks=[];
+        ['co','cat','chef'].forEach(function(key){
+          var raw=S.filters[key]||'';
+          if(!raw.includes('|'))return; // Mono-sélection → géré par les selects/inputs
+          var values=raw.split('|').filter(Boolean);
+          var label={co:'Pays',cat:'Catégories',chef:'Chefs'}[key];
+          var chips=values.map(function(v){
+            var prefix=(key==='co'&&FLAGS&&FLAGS[v])?(FLAGS[v]+' '):'';
+            var safe=v.replace(/'/g,"\\'");
+            return '<button type="button" class="multi-active-chip" onclick="_removeMultiVal(\''+key+'\',\''+safe+'\')" title="Retirer '+attrEscape(v)+'">'+prefix+attrEscape(v)+' <span class="multi-chip-x">×</span></button>';
+          }).join('');
+          blocks.push('<div class="multi-active-block"><span class="multi-active-lbl">'+label+' :</span>'+chips+'</div>');
+        });
+        return blocks.length?'<div class="multi-active-bar">'+blocks.join('')+'</div>':'';
+      })()}
       <div class="filters-bar">
-        <div class="filter-grp"><label>Pays</label><select id="fco"><option value="">Tous les pays</option>${coOpts}</select></div>
-        <div class="filter-grp"><label>Catégorie</label><select id="fcat"><option value="">Toutes</option>${catOpts}</select></div>
+        <div class="filter-grp"><label>Pays</label><select id="fco"${(S.filters.co||'').includes('|')?' disabled title="Multi-sélection active — utilisez la modale 🔀"':''}><option value="">Tous les pays</option>${coOpts}</select></div>
+        <div class="filter-grp"><label>Catégorie</label><select id="fcat"${(S.filters.cat||'').includes('|')?' disabled title="Multi-sélection active"':''}><option value="">Toutes</option>${catOpts}</select></div>
         <div class="filter-grp"><label>Difficulté</label><select id="fdiff"><option value="">Toutes</option>${diffOpts}</select></div>
         <div class="filter-grp"><label>Temps</label><select id="ftime"><option value="">Tout</option>${timeOpts}</select></div>
         <div class="filter-grp"><label>Qualité <button type="button" class="qual-info-btn" onclick="showQualLegend()" aria-label="Voir l'échelle de qualité" title="Échelle de qualité des sources">ℹ</button></label><select id="fqual"><option value="">Toutes</option>${qualOpts}</select></div>
@@ -349,6 +374,57 @@ function _hashId(id){
   for(var i=0;i<id.length;i++){h^=id.charCodeAt(i);h=Math.imul(h,16777619);}
   return h>>>0;
 }
+// #15 v31 : emoji adapté à la sous-catégorie / nom / ingrédients (vs juste cat)
+function _recipeEmoji(r){
+  // Inspecter sous-catégorie + nom + ingrédients (joints en minuscules)
+  var hay=((r.sous||'')+' '+r.nom+' '+(r.ig||[]).map(function(x){return x[0];}).join(' ')).toLowerCase();
+  // Ordre : motifs spécifiques d'abord, fallback générique ensuite
+  if(/saumon|bar |loup |sole|cabillaud|morue|merlu|brandade|gravlax|ceviche|sashimi/.test(hay))return '🐟';
+  if(/crevette|gambas|homard|langoustine|crabe|écrevisse|sashimi/.test(hay))return '🦐';
+  if(/poulpe|calmar|seiche|encornet|moule|huître|coquillage|palourde|saint-jacques|coquille/.test(hay))return '🦑';
+  if(/bœuf|boeuf|veau|entrecôte|côte|filet de bœuf|bourguignon|bistecca|tartare|stroganoff|wellington|asado/.test(hay))return '🥩';
+  if(/agneau|gigot|navarin|méchoui|kefta|kafta/.test(hay))return '🐑';
+  if(/porc|jambon|lardon|saucisse|pancetta|chorizo|bacon|carnitas|pastor|saltimbocca|cochon/.test(hay))return '🥓';
+  if(/poulet|poularde|poule|coq|tikka|tandoori|teriyaki|kung pao|gong bao|katsu|karaage/.test(hay))return '🍗';
+  if(/canard|magret|confit/.test(hay))return '🦆';
+  if(/pâte|pasta|spaghetti|linguine|tagliatelle|fettuccine|penne|rigatoni|lasagne|carbonara|amatriciana|cacio|ragù|pesto|gnocchi|orecchiette|cannelloni|tortelloni|tortellini|raviol/.test(hay))return '🍝';
+  if(/risotto|paella|riz |riso |pulao|biryani|jambalaya|nasi|fried rice|gyudon/.test(hay))return '🍚';
+  if(/sushi|maki|onigiri|nigiri|temaki/.test(hay))return '🍣';
+  if(/ramen|udon|soba|pho|bun bo|noodle|nouilles|yakisoba|pad thai|wonton/.test(hay))return '🍜';
+  if(/dumpling|gyoza|jiaozi|baozi|momo/.test(hay))return '🥟';
+  if(/curry|tajine|colombo|massaman|rendang/.test(hay))return '🍛';
+  if(/soupe|velouté|consommé|bouillon|bisque|gazpacho|harira|minestrone|pho |miso|soto|chowder/.test(hay))return '🍲';
+  if(/salade|niçoise|panzanella|caprese|tabbouleh|fattoush|coleslaw|caesar|niçoise/.test(hay))return '🥗';
+  if(/pizza|focaccia|flammekueche|tarte flambée/.test(hay))return '🍕';
+  if(/burger|sandwich|wrap|pita|panini|club/.test(hay))return '🍔';
+  if(/taco|fajita|burrito|enchilada|quesadilla|tortilla espagnole/.test(hay))return '🌮';
+  if(/œuf|oeuf|omelette|frittata|tortilla|brouillé|chakchouka|shakshuka|benedict/.test(hay))return '🍳';
+  if(/fromage|cheese|raclette|fondue|gratin|tartiflette|mac and cheese|burrata|mozzarella|parmesan/.test(hay))return '🧀';
+  if(/champignon|cèpe|truffe|girolle|porcini/.test(hay))return '🍄';
+  if(/aubergine|ratatouille|caponata|moussaka|parmigiana|imam|melanzane/.test(hay))return '🍆';
+  if(/courgette|zucchini|courge|potiron|butternut/.test(hay))return '🎃';
+  if(/poivron|peperoni|chakchouka|piperade|escalivada/.test(hay))return '🫑';
+  if(/tomate|caprese|panzanella|gazpacho|salmorejo|sugo|pomodoro/.test(hay))return '🍅';
+  if(/légume|tian|briam|primavera|jardinière|escalivada/.test(hay))return '🥦';
+  if(/falafel|hummus|baba|moutabal/.test(hay))return '🧆';
+  if(/pain|brioche|focaccia|naan|baguette|miche|levain|grissini/.test(hay))return '🍞';
+  if(/croissant|chausson|kouign|brioche/.test(hay))return '🥐';
+  if(/glace|sorbet|gelato|granita|semifreddo|kakigori/.test(hay))return '🍨';
+  if(/tarte|pie|tart |tart\b|tatin|cheesecake|crumble|cobbler/.test(hay))return '🥧';
+  if(/macaron|baba|éclair|paris-brest|mille-feuille|saint-honoré|opéra|religieuse/.test(hay))return '🧁';
+  if(/chocolat|chocolate|brownie|fondant|mousse|truffe au chocolat|moelleux/.test(hay))return '🍫';
+  if(/cake|gâteau|génoise|sponge|cupcake|forêt-noire|tiramisu|opéra|sachertorte|panettone|stollen/.test(hay))return '🎂';
+  if(/cookie|biscuit|sablé|shortbread|madeleine|financier|cantucci|alfajore|stroopwafel/.test(hay))return '🍪';
+  if(/crème brûlée|crema|flan|panna cotta|crémeux|custard|île flottante|œufs|crème /.test(hay))return '🍮';
+  if(/donut|beignet|berliner|churro|pastéis|sufganiyot/.test(hay))return '🍩';
+  if(/crêpe|pancake|gaufre|waffle|blin|dosa|injera/.test(hay))return '🥞';
+  if(/fruit|fraise|framboise|cerise|pomme|poire|pêche|abricot|figue|tarte aux/.test(hay))return '🍓';
+  if(/sauce|coulis|vinaigrette|mayonnaise|hollandaise|béarnaise|bordelaise|aïoli/.test(hay))return '🥫';
+  if(/dattes|noix|amande|fruits secs/.test(hay))return '🥜';
+  // Fallback par catégorie
+  if(typeof PHOTO_EMOJIS!=='undefined'&&PHOTO_EMOJIS[r.cat])return PHOTO_EMOJIS[r.cat];
+  return '🍽';
+}
 // Génère le style d'art unique de la recette (gradient + emoji + drapeau)
 var _artCache={};
 function _recipeArt(r){
@@ -360,7 +436,7 @@ function _recipeArt(r){
   var sat=30+((h>>11)%25);      // 30-55%
   var lum=22+((h>>17)%14);      // 22-35% (sombre — texte clair lisible)
   var secondary='hsl('+hue+','+sat+'%,'+lum+'%)';
-  var emoji=(typeof PHOTO_EMOJIS!=='undefined'&&PHOTO_EMOJIS[r.cat])||'🍽';
+  var emoji=_recipeEmoji(r);
   var flag=(typeof FLAGS!=='undefined'&&FLAGS[r.co])||'';
   var bg='linear-gradient('+angle+'deg, '+primary+' 0%, '+secondary+' 100%)';
   var art={bg:bg,emoji:emoji,flag:flag};
@@ -632,7 +708,7 @@ function renderDetail(){
           <div class="detail-photo-overlay"></div>
           <div class="detail-photo-title">${r.nom}</div>
           <div class="detail-photo-chef">${r.chef}</div>
-          ${r.qual?'<div class="qual-badge" style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);border-radius:20px;padding:3px 11px;font-size:11px;color:#fff;letter-spacing:.3px;cursor:help" title="'+_qualTooltip(r.qual)+'" aria-label="Niveau de qualité : '+(QUAL_LABELS[r.qual]||'')+'">'+'★'.repeat(r.qual)+' '+(QUAL_LABELS[r.qual]||'')+'</div>':''}
+          ${r.qual?'<div class="qual-badge qual-badge-hero" title="'+_qualTooltip(r.qual)+'" aria-label="Niveau de qualité : '+(QUAL_LABELS[r.qual]||'')+'"><span class="qual-stars">'+'★'.repeat(r.qual)+'</span><span class="qual-label">'+(QUAL_LABELS[r.qual]||'')+'</span></div>':''}
 
           <div class="detail-rating-bar" role="group" aria-label="Ma note">${[1,2,3,4,5].map(i=>`<span class="rs${i<=rating?" on":""}" role="button" tabindex="0" aria-label="${i} étoile${i>1?'s':''}" aria-pressed="${i<=rating}" onclick="rateRecipe('${r.id}',${i})">★</span>`).join("")}</div>
         </div>
@@ -787,6 +863,12 @@ function showQualLegend(){
     title:"Échelle de qualité des sources",
     body:_qualLegendHTML()+'<p style="margin-top:10px;font-size:11.5px;color:var(--text3);font-style:italic">La qualité reflète la fiabilité et la reconnaissance de la source, pas la difficulté ni le goût.</p>'
   });
+}
+// #10 v31 : retire une valeur d'un filtre multi-sélection (chip × dans .multi-active-bar)
+function _removeMultiVal(key,val){
+  var cur=(S.filters[key]||'').split('|').filter(Boolean);
+  S.filters[key]=cur.filter(function(v){return v!==val;}).join('|');
+  renderFilters();renderMain();updateCount();
 }
 // Filtres multi-sélection (pays / cat / chef) — modale avec chips cochables
 function openMultiFilter(){
