@@ -88,43 +88,254 @@ function rateRecipe(id,n){
   }
 }
 
-// ── MINUTEUR FLOTTANT ─────────────────────────────────────────────────────
-function ftStart(sec,label="Minuteur"){
-  if(FT.interval){clearInterval(FT.interval);}
-  FT.remaining=sec;FT.running=true;FT.label=label;
-  document.getElementById("floating-timer").classList.add("active");
-  document.getElementById("ft-name").textContent=label;
-  document.getElementById("ft-toggle").textContent="⏸ Pause";
-  FT.interval=setInterval(()=>{
-    FT.remaining--;
-    const el=document.getElementById("ft-time");
-    if(el)el.textContent=fmtTimerFT(FT.remaining);
-    if(FT.remaining<=0){
-      clearInterval(FT.interval);FT.interval=null;FT.running=false;
-      if(el){el.textContent="✓ Terminé";el.classList.add("done");}
-      document.getElementById("ft-toggle").textContent="▶ Relancer";
-      toast("⏱ "+label+" — Temps écoulé !",3500);
-      _timerAlertSound();
-    }
-  },1000);
-  document.getElementById("ft-time").textContent=fmtTimerFT(sec);
-  document.getElementById("ft-time").classList.remove("done");
-  toast(`⏱ ${label} démarré (${fmtTimerFT(sec)})`);
+// ── MINUTEURS MULTIPLES (G1 v33) ───────────────────────────────────────────
+// Architecture : un seul interval master qui décrémente tous les timers actifs.
+// Persistance localStorage avec timestamps absolus pour reprise après refresh.
+
+var _timerNextId = 1;
+
+// Lance ou ajoute un timer dans le panel
+function timerAdd(label, sec){
+  if(!sec || sec<=0)return;
+  var t = {
+    id: 't'+(_timerNextId++),
+    label: label || 'Minuteur',
+    totalSec: sec,
+    startedAt: Date.now(),
+    pausedTotal: 0,    // ms cumulés en pause
+    pausedAt: null,    // timestamp début pause courante
+    paused: false,
+    done: false,
+    soundIdx: TIMERS.filter(function(x){return !x.done;}).length % 5
+  };
+  TIMERS.push(t);
+  _timerEnsureMaster();
+  _timersSave();
+  renderTimersPanel();
+  toast('⏱ ' + label + ' démarré (' + fmtTimerFT(sec) + ')');
+}
+// Compat : ftStart appelle le nouveau système
+function ftStart(sec, label){ timerAdd(label||'Minuteur', sec); }
+
+// Calcule le remaining d'un timer en fonction du temps réel (robuste au refresh)
+function timerRemaining(t){
+  if(t.done) return 0;
+  if(t.paused){
+    var elapsed = (t.pausedAt - t.startedAt - t.pausedTotal) / 1000;
+    return Math.max(0, Math.round(t.totalSec - elapsed));
+  }
+  var elapsedNow = (Date.now() - t.startedAt - t.pausedTotal) / 1000;
+  return Math.max(0, Math.round(t.totalSec - elapsedNow));
+}
+
+// Pause / reprise
+function timerToggle(id){
+  var t = TIMERS.find(function(x){return x.id===id;});
+  if(!t || t.done) return;
+  if(t.paused){
+    // Reprise : ajouter le temps de pause au cumulé
+    t.pausedTotal += Date.now() - t.pausedAt;
+    t.pausedAt = null;
+    t.paused = false;
+  } else {
+    t.paused = true;
+    t.pausedAt = Date.now();
+  }
+  _timersSave();
+  renderTimersPanel();
+}
+
+// Reset au total initial
+function timerReset(id){
+  var t = TIMERS.find(function(x){return x.id===id;});
+  if(!t) return;
+  t.startedAt = Date.now();
+  t.pausedTotal = 0;
+  t.pausedAt = null;
+  t.paused = false;
+  t.done = false;
+  _timerEnsureMaster();
+  _timersSave();
+  renderTimersPanel();
+}
+
+// Retire un timer du panel
+function timerRemove(id){
+  TIMERS = TIMERS.filter(function(x){return x.id!==id;});
+  if(!TIMERS.length){
+    if(_timerMasterInterval){clearInterval(_timerMasterInterval);_timerMasterInterval=null;}
+  }
+  _timersSave();
+  renderTimersPanel();
+}
+// Compat
+function ftClose(){
+  // Retire le dernier timer actif (ancien comportement)
+  if(TIMERS.length) timerRemove(TIMERS[TIMERS.length-1].id);
 }
 function ftToggle(){
-  if(FT.running){clearInterval(FT.interval);FT.interval=null;FT.running=false;document.getElementById("ft-toggle").textContent="▶ Reprendre";}
-  else if(FT.remaining>0){
-    FT.running=true;
-    FT.interval=setInterval(()=>{
-      FT.remaining--;
-      const el=document.getElementById("ft-time");
-      if(el)el.textContent=fmtTimerFT(FT.remaining);
-      if(FT.remaining<=0){clearInterval(FT.interval);FT.interval=null;FT.running=false;if(el){el.textContent="✓ Terminé";el.classList.add("done");}document.getElementById("ft-toggle").textContent="▶ Relancer";toast("⏱ Temps écoulé !",3000);}
-    },1000);
-    document.getElementById("ft-toggle").textContent="⏸ Pause";
+  // Toggle le dernier timer actif non-done
+  for(var i=TIMERS.length-1;i>=0;i--){
+    if(!TIMERS[i].done){timerToggle(TIMERS[i].id);return;}
   }
 }
-function ftClose(){clearInterval(FT.interval);FT.interval=null;FT.running=false;document.getElementById("floating-timer").classList.remove("active");}
+
+// Master tick — exécuté toutes les secondes pour rafraîchir le panel
+function _timerEnsureMaster(){
+  if(_timerMasterInterval) return;
+  _timerMasterInterval = setInterval(function(){
+    var anyActive = false, anyJustDone = false;
+    TIMERS.forEach(function(t){
+      if(t.done || t.paused){ if(!t.done) anyActive = true; return; }
+      var r = timerRemaining(t);
+      if(r <= 0){
+        t.done = true;
+        anyJustDone = true;
+        toast('⏱ ' + t.label + ' — Temps écoulé !', 4000);
+        _timerSound(t.soundIdx);
+        // Notification haptique mobile
+        if(navigator.vibrate)try{navigator.vibrate([200,100,200,100,200]);}catch(e){}
+      } else {
+        anyActive = true;
+      }
+    });
+    renderTimersPanel();
+    if(anyJustDone) _timersSave();
+    // Stop master si plus rien d'actif
+    if(!anyActive){clearInterval(_timerMasterInterval);_timerMasterInterval=null;}
+  }, 1000);
+}
+
+// Sons distincts par timer (Web Audio API generative — 100% offline)
+var _audioCtx = null;
+function _getAudioCtx(){
+  if(_audioCtx) return _audioCtx;
+  try{
+    _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  }catch(e){return null;}
+  return _audioCtx;
+}
+function _timerSound(idx){
+  var ctx = _getAudioCtx();
+  if(!ctx) return;
+  if(ctx.state === 'suspended') ctx.resume();
+  // 5 sons distincts : fréquences et durées différentes
+  var profiles = [
+    {freq:880, type:'sine',     dur:0.18, repeats:3, gap:0.12}, // Cloche aiguë
+    {freq:523, type:'triangle', dur:0.25, repeats:2, gap:0.18}, // Bourdon
+    {freq:1320,type:'square',   dur:0.10, repeats:4, gap:0.10}, // Sifflet
+    {freq:660, type:'sine',     dur:0.22, repeats:2, gap:0.30}, // Cloche moyenne
+    {freq:440, type:'sawtooth', dur:0.15, repeats:3, gap:0.15}  // Buzzer doux
+  ];
+  var p = profiles[idx % 5];
+  for(var i=0;i<p.repeats;i++){
+    setTimeout(function(){
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = p.type;
+      osc.frequency.value = p.freq;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + p.dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + p.dur);
+    }, i * (p.dur + p.gap) * 1000);
+  }
+}
+// Compat
+function _timerAlertSound(){ _timerSound(0); }
+
+// Persistance localStorage
+function _timersSave(){
+  try{
+    // Ne pas sauvegarder les timers terminés depuis longtemps
+    var toSave = TIMERS.filter(function(t){return !t.done || (Date.now()-t.startedAt) < 60000;});
+    localStorage.setItem('sn5_timers', JSON.stringify(toSave));
+  }catch(e){}
+}
+function _timersRestore(){
+  try{
+    var raw = localStorage.getItem('sn5_timers');
+    if(!raw) return;
+    var arr = JSON.parse(raw);
+    if(!Array.isArray(arr)) return;
+    TIMERS = arr.filter(function(t){
+      // Recalculer remaining et déterminer si toujours actif
+      if(t.paused) return true; // garder en pause
+      var elapsed = (Date.now() - t.startedAt - (t.pausedTotal||0)) / 1000;
+      return elapsed < t.totalSec + 30; // garder 30s après expiration pour signaler "Terminé"
+    });
+    // Réassigner _timerNextId pour éviter conflit
+    TIMERS.forEach(function(t){
+      var n = parseInt((t.id||'t0').slice(1),10);
+      if(!isNaN(n) && n >= _timerNextId) _timerNextId = n+1;
+      // Marquer done ceux dont le temps est écoulé
+      if(!t.paused && timerRemaining(t)<=0) t.done = true;
+    });
+    if(TIMERS.length){
+      _timerEnsureMaster();
+      renderTimersPanel();
+    }
+  }catch(e){console.warn('[SN5] Restauration timers échouée:', e);}
+}
+
+// Rendu du panel
+function renderTimersPanel(){
+  var panel = document.getElementById('timers-panel');
+  if(!panel) return;
+  if(!TIMERS.length){
+    panel.classList.remove('active');
+    panel.innerHTML = '';
+    return;
+  }
+  panel.classList.add('active');
+  var activeCount = TIMERS.filter(function(t){return !t.done;}).length;
+  var doneCount = TIMERS.filter(function(t){return t.done;}).length;
+  var html = '<div class="tp-header">'
+    + '<span class="tp-title">⏱ Minuteurs <span class="tp-count">' + (activeCount + doneCount) + '</span></span>'
+    + '<button class="tp-collapse" onclick="document.getElementById(\'timers-panel\').classList.toggle(\'collapsed\')" aria-label="Réduire">▾</button>'
+    + (TIMERS.length>1?'<button class="tp-clear-all" onclick="if(confirm(\'Fermer tous les minuteurs ?\'))_timersClearAll()" aria-label="Tout fermer">✕ Tout</button>':'')
+    + '</div>'
+    + '<div class="tp-list">';
+  TIMERS.forEach(function(t){
+    var rem = timerRemaining(t);
+    var pct = Math.max(0, Math.min(100, Math.round(rem/t.totalSec*100)));
+    var stateClass = t.done ? 'tp-done' : (t.paused ? 'tp-paused' : 'tp-running');
+    var timeText = t.done ? '✓ Terminé' : fmtTimerFT(rem);
+    html += '<div class="tp-item ' + stateClass + '" data-id="' + t.id + '">'
+      + '<div class="tp-item-row">'
+      +   '<span class="tp-label" title="' + attrEscape(t.label) + '">' + attrEscape(t.label) + '</span>'
+      +   '<span class="tp-time">' + timeText + '</span>'
+      + '</div>'
+      + '<div class="tp-progress"><div class="tp-progress-fill" style="width:' + (t.done?100:pct) + '%"></div></div>'
+      + '<div class="tp-actions">'
+      +   (t.done
+            ? '<button class="tp-btn tp-btn-replay" onclick="timerReset(\'' + t.id + '\')" title="Relancer">↺ Relancer</button>'
+            : '<button class="tp-btn tp-btn-toggle" onclick="timerToggle(\'' + t.id + '\')" title="' + (t.paused?'Reprendre':'Pause') + '">' + (t.paused?'▶':'⏸') + '</button>'
+              + '<button class="tp-btn" onclick="timerReset(\'' + t.id + '\')" title="Réinitialiser">↺</button>')
+      +   '<button class="tp-btn tp-btn-close" onclick="timerRemove(\'' + t.id + '\')" title="Fermer">✕</button>'
+      + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  panel.innerHTML = html;
+  // Met à jour l'alias FT pour compat (basé sur le dernier timer non-done)
+  var lastActive = null;
+  for(var i=TIMERS.length-1;i>=0;i--){if(!TIMERS[i].done){lastActive=TIMERS[i];break;}}
+  if(lastActive){
+    FT.remaining = timerRemaining(lastActive);
+    FT.running = !lastActive.paused;
+    FT.label = lastActive.label;
+  } else {
+    FT.remaining = 0; FT.running = false; FT.label = '';
+  }
+}
+function _timersClearAll(){
+  TIMERS = [];
+  if(_timerMasterInterval){clearInterval(_timerMasterInterval);_timerMasterInterval=null;}
+  _timersSave();
+  renderTimersPanel();
+}
 
 // ── VIEWS ─────────────────────────────────────────────────────────────────
 function setView(v){

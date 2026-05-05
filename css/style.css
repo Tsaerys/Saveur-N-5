@@ -2303,3 +2303,89 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
 .cr-checkbox-lbl:hover{border-color:var(--gold-l);color:var(--gold)}
 .cr-checkbox-lbl input{accent-color:var(--gold);cursor:pointer}
 .cr-checkbox-lbl input:checked + *,.cr-checkbox-lbl:has(input:checked){background:var(--gold-faint);border-color:var(--gold);color:var(--gold)}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   G1 (v33) — Panel multi-minuteurs sticky
+   ────────────────────────────────────────────────────────────────────────── */
+.timers-panel{
+  position:fixed;bottom:20px;right:20px;
+  width:320px;max-width:calc(100vw - 40px);max-height:60vh;
+  background:var(--surf);border:1.5px solid var(--gold-l);
+  border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.10);
+  display:none;flex-direction:column;overflow:hidden;
+  z-index:9000;
+  font-family:'DM Sans',sans-serif;
+  animation:tp-slide-in .3s cubic-bezier(.25,.46,.45,.94);
+}
+.timers-panel.active{display:flex}
+.timers-panel.collapsed .tp-list{display:none}
+.timers-panel.collapsed .tp-collapse{transform:rotate(-90deg)}
+@keyframes tp-slide-in{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.tp-header{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:linear-gradient(135deg,var(--gold-faint) 0%,rgba(212,175,55,.06) 100%);
+  border-bottom:1px solid var(--bord);
+  flex-shrink:0;
+}
+.tp-title{flex:1;font-size:13.5px;font-weight:600;color:var(--gold);letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.tp-count{background:var(--gold);color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:18px;text-align:center;line-height:1.1}
+.tp-collapse,.tp-clear-all{
+  background:none;border:none;cursor:pointer;
+  font-size:14px;color:var(--text3);padding:4px 8px;border-radius:6px;
+  transition:all .15s;font-family:inherit;
+}
+.tp-collapse{font-size:11px;font-weight:600}
+.tp-clear-all{font-size:11px;font-weight:500}
+.tp-collapse:hover,.tp-clear-all:hover{background:var(--gold-faint);color:var(--gold)}
+
+.tp-list{display:flex;flex-direction:column;gap:1px;overflow-y:auto;background:var(--bord);max-height:calc(60vh - 50px)}
+.tp-item{
+  background:var(--surf);padding:10px 14px;
+  display:flex;flex-direction:column;gap:6px;
+  transition:background .2s;
+}
+.tp-item.tp-running{border-left:3px solid var(--gold)}
+.tp-item.tp-paused{border-left:3px solid var(--text4);opacity:.78}
+.tp-item.tp-done{border-left:3px solid #22a14a;background:rgba(34,161,74,.08);animation:tp-done-flash 1s ease-out}
+@keyframes tp-done-flash{
+  0%,100%{background:rgba(34,161,74,.08)}
+  20%{background:rgba(34,161,74,.30)}
+  60%{background:rgba(34,161,74,.18)}
+}
+
+.tp-item-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.tp-label{flex:1;font-size:12.5px;color:var(--text);font-weight:500;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tp-time{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text);letter-spacing:.03em;flex-shrink:0;font-variant-numeric:tabular-nums}
+.tp-item.tp-done .tp-time{color:#22a14a;font-size:14px}
+.tp-item.tp-paused .tp-time{color:var(--text3)}
+
+.tp-progress{height:4px;background:var(--bord);border-radius:2px;overflow:hidden;position:relative}
+.tp-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold) 0%,#e8a020 100%);transition:width .9s linear;border-radius:2px}
+.tp-item.tp-paused .tp-progress-fill{background:var(--text4);transition:none}
+.tp-item.tp-done .tp-progress-fill{background:#22a14a}
+
+.tp-actions{display:flex;gap:5px;justify-content:flex-end}
+.tp-btn{
+  background:var(--bg3);border:1px solid var(--bord);border-radius:6px;
+  padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;
+  transition:all .15s;font-family:inherit;line-height:1;
+}
+.tp-btn:hover{border-color:var(--gold-l);color:var(--gold);background:var(--gold-faint)}
+.tp-btn-toggle{font-size:13px;font-weight:600}
+.tp-btn-replay{background:var(--gold-faint);border-color:var(--gold-l);color:var(--gold);font-weight:600}
+.tp-btn-close:hover{border-color:#e85a5a;color:#c0392b}
+
+@media(max-width:540px){
+  .timers-panel{bottom:12px;right:12px;width:calc(100vw - 24px);max-height:50vh}
+  .tp-title{font-size:12.5px}
+  .tp-time{font-size:16px}
+}
+[data-theme="dark"] .timers-panel{background:var(--bg2);border-color:var(--gold-l);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+[data-theme="dark"] .tp-header{background:linear-gradient(135deg,rgba(232,160,32,.18) 0%,rgba(212,175,55,.05) 100%)}
+[data-theme="dark"] .tp-item{background:var(--bg2)}
+[data-theme="dark"] .tp-item.tp-done{background:rgba(34,161,74,.18)}
+[data-theme="dark"] .tp-list{background:var(--bord)}
+
+/* Cache l'ancien minuteur flottant si présent dans une vieille version cache */
+.floating-timer{display:none!important}

@@ -66,8 +66,12 @@ var _wakeLock=null;
 var _frigoSaved=(function(){try{return JSON.parse(localStorage.getItem('sn5_frigo'))||{};}catch{return{};}})();
 let S={view:"browse",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:"",saison:"",chef:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid')};
 
-// ── MINUTEUR FLOTTANT (état) ────────────────────────────────────────────────
-let FT={interval:null,remaining:0,running:false,label:""};
+// ── MINUTEURS MULTIPLES (G1 v33) ───────────────────────────────────────────
+// Chaque timer = {id, label, totalSec, startedAt, pausedAt, pausedTotal, paused, done, soundIdx}
+let TIMERS = [];
+let _timerMasterInterval = null;
+// Compat ascendante : FT garde l'ancienne forme mais sera maintenu en sync avec le dernier timer actif
+let FT = {interval:null, remaining:0, running:false, label:""};
 
 // ── DONNÉES MENU ───────────────────────────────────────────────────────────
 let MENU_DATA=null;

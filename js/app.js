@@ -5,8 +5,23 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v32';
+var _SN5_VER = 'v33';
 var _SN5_LOG = [
+  {
+    v: 'v33', date: '6 mai 2026', titre: 'G1 — Panel multi-minuteurs sticky',
+    items: [
+      '⏱ Plusieurs minuteurs en parallèle (sauce qui mijote + viande qui rôtit + oignons qui caramélisent)',
+      '🎵 5 sons distincts (cloche, bourdon, sifflet, cloche moyenne, buzzer) générés par Web Audio API — 100% offline',
+      '🔄 Persistance localStorage : refresh navigateur = les minuteurs reprennent là où ils étaient',
+      '⏸ Pause/reprise individuelle, ↺ reset, ✕ fermeture par minuteur',
+      '📊 Barre de progression visuelle par minuteur + animation flash quand terminé',
+      '📱 Vibration haptique mobile à expiration',
+      '🎨 Panel sticky bottom-right collapsible, design en 3 états (running/paused/done)',
+      '⚙️ Architecture : 1 seul setInterval master (perf), bouton "Tout fermer" si >1 timer',
+      '🐛 Fix régression : _timerAlertSound était jamais défini (depuis v23)',
+      '⚫ SW v33'
+    ]
+  },
   {
     v: 'v32', date: '5 mai 2026', titre: 'Vague F — 7 polish items',
     items: [
@@ -281,6 +296,7 @@ function init(){
   if(typeof initUserRecipes==="function")initUserRecipes();
   else console.warn("[SN5] initUserRecipes manquant (cache SW ou script non chargé)");
   if(typeof handleImportHash==="function")handleImportHash();
+  if(typeof _timersRestore==="function")_timersRestore(); // G1 v33 : restaure les minuteurs en cours
   if(typeof updateBadges==="function")updateBadges();
   if(typeof initTheme==="function")initTheme();
   if(typeof initScrollTop==="function")initScrollTop();

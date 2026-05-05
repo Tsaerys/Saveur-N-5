@@ -159,20 +159,8 @@
   <main id="main" role="main"></main>
 </div>
 
-<!-- Minuteur flottant -->
-<div class="floating-timer" id="floating-timer" role="timer" aria-live="polite">
-  <div class="ft-icon" aria-hidden="true">⏱</div>
-  <div class="ft-label">
-    <div class="ft-label-name" id="ft-name">Minuteur</div>
-    <div class="ft-label-time" id="ft-time">0:00</div>
-  </div>
-  <div class="ft-btns">
-    <button class="ft-btn primary" id="ft-toggle" onclick="ftToggle()"
-      aria-label="Pause ou reprise du minuteur">⏸ Pause</button>
-    <button class="ft-btn" onclick="ftClose()"
-      aria-label="Fermer le minuteur">✕ Fermer</button>
-  </div>
-</div>
+<!-- Panel multi-minuteurs (G1 v33) -->
+<div class="timers-panel" id="timers-panel" role="region" aria-label="Minuteurs actifs" aria-live="polite"></div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="cooking-overlay"></div>

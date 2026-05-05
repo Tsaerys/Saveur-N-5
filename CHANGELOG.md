@@ -5,6 +5,66 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v33 — 2026-05-06
+
+### ⏱ G1 — Panel multi-minuteurs sticky (audit Claude Web #25)
+
+**Problème résolu** : avant v33, l'app n'avait qu'un seul minuteur flottant. En cuisine réelle, on lance plusieurs timers en parallèle (sauce qui mijote 30 min + viande qui rôtit 45 min + oignons qui caramélisent 20 min). Impossible avant cette version.
+
+### Architecture
+
+**État (state.js)** : `var TIMERS = []` remplace `let FT = {...}`. Compat ascendante : `FT` est encore présent comme alias du dernier minuteur actif (pour code existant).
+
+**API** :
+- `timerAdd(label, sec)` — démarre un nouveau minuteur dans le panel
+- `timerToggle(id)` — pause/reprise individuelle
+- `timerReset(id)` — réinitialise au temps total
+- `timerRemove(id)` — ferme et retire le minuteur
+- `timerRemaining(t)` — calcule le restant en temps réel (robuste au refresh)
+- `_timerEnsureMaster()` — démarre un setInterval master unique (perf)
+
+**Compat ascendante** :
+- `ftStart(sec, label)` → `timerAdd(label, sec)` (les boutons d'étape continuent de marcher)
+- `ftToggle()` → toggle le dernier minuteur actif
+- `ftClose()` → retire le dernier minuteur
+
+### Sons (Web Audio API generative — 100% offline)
+
+5 profils sonores distincts attribués cycliquement aux nouveaux timers :
+1. **Cloche aiguë** : sine 880 Hz, 3 répétitions de 0.18s
+2. **Bourdon** : triangle 523 Hz, 2 répétitions de 0.25s
+3. **Sifflet** : square 1320 Hz, 4 répétitions de 0.10s
+4. **Cloche moyenne** : sine 660 Hz, 2 répétitions de 0.22s
+5. **Buzzer doux** : sawtooth 440 Hz, 3 répétitions de 0.15s
+
+Plus vibration haptique `navigator.vibrate([200,100,200,100,200])` à expiration.
+
+### Persistance localStorage
+
+Sauvegarde `sn5_timers` à chaque action. Au load, `_timersRestore()` :
+- Recharge les timers en cours
+- Recalcule `remaining` basé sur `Date.now() - startedAt - pausedTotal`
+- Marque `done` ceux dont le temps est écoulé pendant l'absence
+- Restart le master interval si timers actifs
+
+### UI
+
+- Panel sticky `bottom: 20px; right: 20px` (12px sur mobile)
+- 3 états visuels : `tp-running` (bordure or), `tp-paused` (bordure grise + opacité 0.78), `tp-done` (vert + flash 1s)
+- Header : compteur (badge or) + collapse + "Tout fermer" si >1
+- Chaque ligne : label + temps MM:SS / H:MM:SS + barre progression + boutons
+- Animation entrée slide-up 0.3s
+- Dark mode complet
+
+### 🐛 Bug corrigé en passant
+- `_timerAlertSound()` était appelé dans le code mais jamais défini (régression silencieuse depuis v23). Désormais redirige vers `_timerSound(0)` (cloche aiguë).
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v33`
+- L'ancien `<div class="floating-timer">` retiré de `index.html`. CSS gardé avec `display:none!important` pour cache SW pré-v33
+
+---
+
 ## v32 — 2026-05-05
 
 ### 🟡 Vague F — 7 polish items
