@@ -5,8 +5,19 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v29';
+var _SN5_VER = 'v30';
 var _SN5_LOG = [
+  {
+    v: 'v30', date: '4 mai 2026', titre: 'Vague D — 5 bugs bloquants corrigés (audit Claude Web)',
+    items: [
+      '🔴 Mode Cuisine réparé : fmtTimerFT manquant — ajout du formateur MM:SS dans logic.js',
+      '🔴 Titre fantôme sur hero : titre + chef se chevauchaient (bottom 22px vs 20px). Restructuration espacements verticaux',
+      '🔴 Vue Liste cassée : la classe recipe-art-card laissée par mauvais replace forçait aspect-ratio 4/3. Helper buildListPhoto dédié + classe recipe-art-list (96×96px carré)',
+      '🔴 Empty state intelligent : affiche maintenant les chips des filtres actifs avec × pour les retirer un par un + bouton « Effacer tous les filtres »',
+      '🔴 Deep linking renforcé : tolère IDs sans 0-padding (FR1 → FR001) ou en minuscules. Toast d\'erreur si ID inconnu',
+      '⚫ SW v30'
+    ]
+  },
   {
     v: 'v29', date: '3 mai 2026', titre: 'Refactor data.js → 21 fichiers par pays',
     items: [
@@ -182,17 +193,43 @@ function bindEvents(){
   document.getElementById("logo-home").onclick=()=>{if(S.view==="recipe")goBack();else if(S.view!=="browse")setView("browse");};
 }
 
+// Résolution tolérante d'un ID de recette : essaie l'exact, puis l'uppercase,
+// puis avec 0-padding (FR1 → FR001) — bug #5 v30
+function _resolveRecipeId(rawId){
+  if(!rawId)return null;
+  var direct=RECIPES.find(function(x){return x.id===rawId;});
+  if(direct)return direct.id;
+  var upper=rawId.toUpperCase();
+  direct=RECIPES.find(function(x){return x.id===upper;});
+  if(direct)return direct.id;
+  // FR1 → FR001 (padding 0 sur la partie numérique)
+  var m=upper.match(/^([A-Z]+)(\d+)$/);
+  if(m){
+    var prefix=m[1],num=m[2];
+    for(var pad=num.length;pad<=4;pad++){
+      var padded=prefix+num.padStart(pad,'0');
+      var hit=RECIPES.find(function(x){return x.id===padded;});
+      if(hit)return hit.id;
+    }
+  }
+  return null;
+}
 function render(){
   renderFilters();
   renderRecent();
   var initHash = window.location.hash.replace('#','');
   if (initHash.startsWith('recette/')) {
-    var initId = initHash.split('/')[1];
-    var initR = RECIPES.find(x => x.id === initId);
-    if (initR) { openRecipe(initId); } else { renderMain(); }
-  } else {
-    renderMain();
+    var initId = initHash.split('/').slice(1).join('/');
+    var resolved = _resolveRecipeId(initId);
+    if (resolved) {
+      openRecipe(resolved);
+      return;
+    }
+    // ID inconnu : afficher message clair et fallback browse
+    if(typeof toast==='function')setTimeout(function(){toast('⚠ Recette « '+initId+' » introuvable',3500);},300);
+    history.replaceState('',document.title,window.location.pathname+window.location.search);
   }
+  renderMain();
 }
 
 function initTopbarScroll(){
@@ -239,9 +276,14 @@ function init(){
 window.addEventListener('hashchange', () => {
   const h = window.location.hash.replace('#', '');
   if (h.startsWith('recette/')) {
-    const id = h.split('/')[1];
-    const r = RECIPES.find(x => x.id === id);
-    if (r && S.view !== 'recipe') openRecipe(id);
+    const rawId = h.split('/').slice(1).join('/');
+    const resolved = _resolveRecipeId(rawId);
+    if (resolved && (S.view !== 'recipe' || (S.recipe && S.recipe.id !== resolved))) {
+      openRecipe(resolved);
+    } else if (!resolved && typeof toast === 'function') {
+      toast('⚠ Recette « ' + rawId + ' » introuvable', 3500);
+      history.replaceState('', document.title, window.location.pathname + window.location.search);
+    }
   } else if (h === '') {
     if (S.view === 'recipe') goBack();
   }

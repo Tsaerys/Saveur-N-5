@@ -382,6 +382,7 @@ function _photoOrArt(r,imgClass,artClass,emojiSize){
   return _artHtml(r,artClass,emojiSize);
 }
 function buildCardPhoto(r){return _photoOrArt(r,'card-photo','card-photo recipe-art-card');}
+function buildListPhoto(r){return _photoOrArt(r,'list-card-photo','list-card-photo recipe-art-list','28px');}
 function buildRecentPhoto(r){return _photoOrArt(r,'recent-card-photo','recent-card-photo recipe-art-recent','30px');}
 function buildAccordPhoto(r){return _photoOrArt(r,'accord-card-photo','accord-card-photo recipe-art-accord','24px');}
 function buildDetailPhoto(r){return _photoOrArt(r,'detail-photo','detail-photo recipe-art-detail','72px');}
@@ -442,7 +443,26 @@ function renderMain(){
   var bkc=lsGet("sn5_bkc",0)+1;lsSet("sn5_bkc",bkc);
   if(bkc%30===0&&FAVS.size>0&&!getLastBackup()){toast("Astuce : pense a exporter tes favoris depuis une fiche recette",4000);}
   if(!recs.length){
-    main.innerHTML=`<div class="empty"><div class="empty-ico">◆</div><p style="font-size:15px;margin-bottom:6px">Aucune recette trouvée</p><small style="font-size:13px;color:var(--text4)">${S.frigo_active&&S.frigo_ings.length?"Essayez de retirer un ingrédient du frigo":"Modifiez vos filtres"}</small></div>`;
+    // Empty state intelligent : liste les filtres actifs avec bouton de clear (bug #4 v30)
+    var f=S.filters;
+    var activeChips=[];
+    if(f.q)activeChips.push({lbl:'« '+attrEscape(f.q)+' »',clear:'document.getElementById(\'qi\').value=\'\';S.filters.q=\'\';renderMain();updateCount();'});
+    if(f.co)activeChips.push({lbl:(FLAGS[f.co.split('|')[0]]||'')+' '+attrEscape(f.co.replace(/\|/g,' + ')),clear:'S.filters.co=\'\';renderFilters();renderMain();updateCount();'});
+    if(f.cat)activeChips.push({lbl:attrEscape(f.cat.replace(/\|/g,' + ')),clear:'S.filters.cat=\'\';renderFilters();renderMain();updateCount();'});
+    if(f.chef)activeChips.push({lbl:'👨‍🍳 '+attrEscape(f.chef.replace(/\|/g,' + ')),clear:'S.filters.chef=\'\';renderFilters();renderMain();updateCount();'});
+    if(f.diff)activeChips.push({lbl:'★'.repeat(Number(f.diff)),clear:'S.filters.diff=\'\';renderFilters();renderMain();updateCount();'});
+    if(f.time)activeChips.push({lbl:'≤ '+f.time+' min',clear:'S.filters.time=\'\';renderFilters();renderMain();updateCount();'});
+    if(f.qual)activeChips.push({lbl:'Qual '+f.qual+'★',clear:'S.filters.qual=\'\';renderFilters();renderMain();updateCount();'});
+    if(f.regime)activeChips.push({lbl:f.regime,clear:'S.filters.regime=\'\';renderFilters();renderMain();updateCount();'});
+    if(f.saison){var sObj=(typeof _SEASON_BY_KEY!=='undefined')&&_SEASON_BY_KEY[f.saison];activeChips.push({lbl:(sObj?sObj.emoji+' '+sObj.label:f.saison),clear:'S.filters.saison=\'\';renderFilters();renderMain();updateCount();'});}
+    if(f.rayon)activeChips.push({lbl:'🛒 '+attrEscape(f.rayon),clear:'S.filters.rayon=\'\';renderFilters();renderMain();updateCount();'});
+    if(S.frigo_active&&S.frigo_ings.length)activeChips.push({lbl:'🧊 Frigo ('+S.frigo_ings.length+')',clear:'toggleFrigo();'});
+    var chipsHtml=activeChips.map(function(c){return'<button class="empty-chip" onclick="'+c.clear+'" title="Retirer ce filtre">'+c.lbl+' <span class="empty-chip-x">×</span></button>';}).join('');
+    var hasFilters=activeChips.length>0;
+    main.innerHTML=`<div class="empty"><div class="empty-ico">◆</div>
+      <p style="font-size:17px;margin-bottom:10px;color:var(--text2)">Aucune recette ne correspond</p>
+      ${hasFilters?'<div class="empty-chips-row">'+chipsHtml+'</div><button class="empty-clear-all" onclick="clearAllFilters()'+(S.frigo_active?';toggleFrigo()':'')+'">↺ Effacer tous les filtres</button>':'<small style="font-size:13px;color:var(--text4)">Aucune recette dans la base — ce ne devrait pas arriver.</small>'}
+      </div>`;
     clearTimeout(loaderTid);_sn5MainBusy=false;_sn5HideLoader();
     return;
   }
@@ -455,7 +475,7 @@ function renderMain(){
     if(isList){
       // Format liste compact : photo miniature + infos linéaires
       return`<div class="list-card" role="article" aria-label="${r.nom}" data-id="${r.id}" style="--co-accent:${coCol}">
-        ${buildCardPhoto(r).replace('class="card-photo"','class="list-card-photo"')}
+        ${buildListPhoto(r)}
         <div class="list-card-body">
           <div class="list-card-top">
             <span class="cat-badge cat-${catClass(r.cat)}">${r.cat}</span>

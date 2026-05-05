@@ -153,6 +153,14 @@ function debounce(fn,delay){
 // Échappement HTML pour insertion sûre dans innerHTML / valeurs d'attributs
 function attrEscape(s){return String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
+// Formatage timer (secondes → "MM:SS" ou "H:MM:SS")
+function fmtTimerFT(sec){
+  sec=Math.max(0,Math.floor(sec||0));
+  var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  var pad=function(n){return n<10?'0'+n:''+n;};
+  return h>0?(h+':'+pad(m)+':'+pad(s)):(pad(m)+':'+pad(s));
+}
+
 // Comptes par pays / chef sur RECIPES — mémorisé (RECIPES est statique après init)
 var _recipeCountsCache=null;
 function getRecipeCounts(){

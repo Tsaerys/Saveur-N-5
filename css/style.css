@@ -215,8 +215,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1
 .detail-photo-wrap{position:relative;height:280px;overflow:hidden;background:var(--bg3)}
 .detail-photo{width:100%;height:100%;object-fit:cover;display:block}
 .detail-photo-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.55) 35%,rgba(0,0,0,.18) 65%,transparent 100%);pointer-events:none}
-.detail-photo-title{position:absolute;bottom:22px;left:24px;right:24px;font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:#fff;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,.7),0 1px 3px rgba(0,0,0,.9);z-index:2}
-.detail-photo-chef{position:absolute;bottom:0;left:24px;right:24px;font-size:13px;color:rgba(255,255,255,.92);padding-bottom:20px;z-index:2;text-shadow:0 1px 4px rgba(0,0,0,.7)}
+.detail-photo-title{position:absolute;bottom:42px;left:24px;right:24px;font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:#fff;line-height:1.15;text-shadow:0 2px 12px rgba(0,0,0,.7),0 1px 3px rgba(0,0,0,.9);z-index:2;margin:0}
+.detail-photo-chef{position:absolute;bottom:18px;left:24px;right:24px;font-size:13px;color:rgba(255,255,255,.92);z-index:2;text-shadow:0 1px 4px rgba(0,0,0,.7);font-style:italic;letter-spacing:.02em}
 /* ── ART GÉNÉRÉ : carte CSS unique par recette (gradient + emoji + drapeau) ── */
 .recipe-art{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;text-align:center}
 .recipe-art::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.18),transparent 55%);pointer-events:none}
@@ -228,6 +228,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1
 .recipe-art-detail .recipe-art-flag{font-size:26px;bottom:18px;right:22px;padding:4px 8px}
 .recipe-art-recent .recipe-art-emoji{font-size:30px}
 .recipe-art-recent .recipe-art-flag{bottom:4px;right:6px;font-size:13px;padding:1px 3px}
+.recipe-art-list{aspect-ratio:auto!important;width:96px!important;height:96px!important;flex-shrink:0}
+.recipe-art-list .recipe-art-emoji{font-size:32px}
+.recipe-art-list .recipe-art-flag{bottom:4px;right:6px;font-size:13px;padding:1px 4px}
+@media(max-width:540px){.recipe-art-list{width:72px!important;height:72px!important}.recipe-art-list .recipe-art-emoji{font-size:26px}}
 .recipe-art-accord .recipe-art-emoji{font-size:22px}
 .recipe-art-accord .recipe-art-flag{display:none}
 .recipe-art-menu .recipe-art-emoji{font-size:22px}
@@ -2188,3 +2192,12 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
 [data-theme="dark"] .setting-section{background:var(--bg2)!important;border:1px solid var(--bord)!important;border-radius:var(--rs);overflow:hidden;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 [data-theme="dark"] .setting-section-head{background:linear-gradient(135deg,var(--bg3) 0%,var(--bg2) 100%);border-bottom:1px solid var(--bord)}
 [data-theme="dark"] .setting-section-body{background:var(--bg2)}
+
+/* Vague D #4 — Empty state intelligent avec chips filtres actifs */
+.empty-chips-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px auto 18px;max-width:520px}
+.empty-chip{display:inline-flex;align-items:center;gap:6px;background:var(--gold-faint);border:1.5px solid var(--gold-l);color:var(--gold);padding:6px 12px;border-radius:18px;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit}
+.empty-chip:hover{background:var(--gold);color:#fff;border-color:var(--gold);transform:translateY(-1px)}
+.empty-chip-x{font-size:14px;line-height:1;opacity:.7}
+.empty-chip:hover .empty-chip-x{opacity:1}
+.empty-clear-all{background:var(--surf);border:1.5px solid var(--bord);color:var(--text2);padding:9px 18px;border-radius:var(--rx);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;margin-top:6px}
+.empty-clear-all:hover{border-color:var(--gold-l);color:var(--gold);background:var(--gold-faint)}

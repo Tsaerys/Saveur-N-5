@@ -5,6 +5,39 @@ Format : `v<num> — AAAA-MM-JJ` · catégories 🔴 Critique · 🟠 Ergonomie 
 
 ---
 
+## v30 — 2026-05-04
+
+### 🔴 Vague D — 5 bugs bloquants corrigés (audit Claude Web)
+
+**1. Mode Cuisine totalement cassé** (régression)
+- Erreur : `ReferenceError: fmtTimerFT is not defined` à `ui.js:932` et 5 autres endroits
+- Cause : la fonction de formatage timer n'avait jamais été définie
+- Fix : ajout de `fmtTimerFT(sec)` dans `logic.js` qui retourne `MM:SS` ou `H:MM:SS`
+
+**2. Titre fantôme dupliqué sur le hero recette**
+- Cause : `.detail-photo-title` (bottom: 22px) + `.detail-photo-chef` (bottom: 0 + padding-bottom: 20px) → chevauchement quasi exact
+- Fix : titre à `bottom: 42px`, chef à `bottom: 18px`, espacement clair de 8 px entre les deux
+
+**3. Vue Liste cassée** (régression v26)
+- Cause : `buildCardPhoto(r).replace('class="card-photo"','class="list-card-photo"')` ne nettoyait pas la classe `recipe-art-card` qui forçait `aspect-ratio: 4/3`
+- Fix : helper dédié `buildListPhoto(r)` avec classe `recipe-art-list` (96×96 px carré, 72×72 sur mobile)
+
+**4. Empty state silencieux quand filtres + recherche**
+- Cause : aucun feedback que des filtres restent actifs après une recherche infructueuse
+- Fix : empty state intelligent — chips dorés avec × pour retirer chaque filtre individuellement + bouton « ↺ Effacer tous les filtres »
+- Couvre 11 types de filtres : recherche, pays, cat, chef, diff, time, qual, regime, saison, rayon, frigo
+
+**5. Deep linking fragile**
+- Cause : `RECIPES.find(x => x.id === id)` strict — `FR1` ne matchait pas `FR001`
+- Fix : helper `_resolveRecipeId(rawId)` qui essaie : exact, uppercase, puis padding 0 sur la partie numérique
+- Si introuvable : toast d'erreur clair + fallback vers le catalogue (au lieu de silence)
+
+### ⚫ Technique
+- Bump cache SW → `saveur-n5-v30`
+- Aucun nouveau fichier ; seules régressions corrigées
+
+---
+
 ## v29 — 2026-05-03
 
 ### 🗂 Refactor majeur — data.js divisé par pays
