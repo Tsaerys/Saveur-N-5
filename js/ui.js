@@ -900,6 +900,7 @@ function renderDetail(){
         <button class="back-btn" onclick="goBack()" aria-label="Retour à la liste des recettes">← Retour</button>
         <div class="detail-actions-bar">
           <button class="act-btn act-primary" onclick="startCooking()" aria-label="Mode cuisine">👨‍🍳 <span class="act-lbl">Mode cuisine</span></button>
+          <button class="act-btn act-primary" onclick="openSoiree()" aria-label="Mode Soirée Chef — accords vin et timeline" title="Soirée Chef">🥂 <span class="act-lbl">Soirée</span></button>
           <button class="act-btn act-primary${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" title="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" data-tip="${isFav?'Retirer ♥':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥":"♡"} <span class="act-lbl">${isFav?'Favori':'Favoris'}</span></button>
           <button class="act-btn act-primary${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" title="${inCart?'Retirer des courses':'Ajouter aux courses'}" data-tip="${inCart?'Retirer 🛒':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">🛒 <span class="act-lbl">${inCart?'Dans la liste':'Courses'}</span></button>
           <button class="act-btn act-secondary" onclick="printRecipe()" aria-label="Imprimer la recette" title="Imprimer">🖨</button>
@@ -2343,7 +2344,74 @@ function crDelete(id){
   setView('browse');
 }
 
-// ── PAGE MONDE — G2 v34 ────────────────────────────────────────────────────
+// ── MODE SOIRÉE CHEF — G2 v35 ─────────────────────────────────────────────
+function openSoiree(){
+  var r=S.recipe;
+  if(!r)return;
+  var rawSteps=(r.et||'').split('\n').filter(function(s){return s.trim();});
+  var steps=rawSteps.map(function(s,i){
+    var m=s.match(/^(\d+)[\.\)]\s*(.*)/);
+    var text=m?m[2]:s;
+    var isSection=/^[A-ZÀÂÉÈÊËÎÏÔÙÛÇ].+:\s*$/.test(s.trim())&&!m;
+    var tm=text.match(/(\d+(?:[,.]\d+)?)\s*(heures?|h\b|minutes?|min\b)/i);
+    var timeLabel=null;
+    if(tm){
+      var n=parseFloat(tm[1].replace(',','.'));
+      var isH=/^h/i.test(tm[2]);
+      timeLabel=isH?(Number.isInteger(n)?n+'h':n+'h'):(n+' min');
+    }
+    return{num:m?m[1]:(i+1),text:text,isSection:isSection,timeLabel:timeLabel};
+  });
+  var totalMin=(r.prep||0)+(r.cui||0);
+  var totalStr=totalMin>=60?Math.floor(totalMin/60)+'h'+(totalMin%60?String(totalMin%60).padStart(2,'0'):''):totalMin+' min';
+  var c1=COUNTRY_COLORS[r.co]||'#1a2a4a';
+  var c2=(typeof COUNTRY_COLORS_2!=='undefined'&&COUNTRY_COLORS_2[r.co])||'#0a0a1a';
+  var stepsHtml=steps.map(function(s){
+    if(s.isSection)return'<div class="soiree-step-section">'+attrEscape(s.text)+'</div>';
+    return'<div class="soiree-step">'
+      +'<span class="soiree-step-num">'+s.num+'</span>'
+      +'<span class="soiree-step-text">'+attrEscape(s.text)+'</span>'
+      +(s.timeLabel?'<span class="soiree-step-time">⏱ '+attrEscape(s.timeLabel)+'</span>':'')
+      +'</div>';
+  }).join('');
+  var overlay=document.getElementById('soiree-overlay');
+  if(!overlay)return;
+  overlay.innerHTML=
+    '<div class="soiree-modal" role="dialog" aria-modal="true" aria-label="Mode Soirée Chef">'
+    +'<button class="soiree-close" onclick="closeSoiree()" aria-label="Fermer">✕</button>'
+    +'<div class="soiree-hero" style="background:linear-gradient(150deg,'+c1+' 0%,'+c2+' 100%)">'
+    +'<span class="soiree-hero-flag" aria-hidden="true">'+(FLAGS[r.co]||'🍽')+'</span>'
+    +'<div class="soiree-hero-text">'
+    +'<h2 class="soiree-nom">'+attrEscape(r.nom)+'</h2>'
+    +'<div class="soiree-chef-line">'+attrEscape(r.chef)+(r.co?' · '+(FLAGS[r.co]||'')+' '+attrEscape(r.co):'')+'</div>'
+    +'</div></div>'
+    +'<div class="soiree-body">'
+    +'<div class="soiree-timing">'
+    +(r.prep?'<div class="soiree-timing-chip"><span>⏱ Prép.</span><strong>'+r.prep+' min</strong></div>':'')
+    +(r.cui?'<div class="soiree-timing-chip"><span>🍳 Cuisson</span><strong>'+r.cui+' min</strong></div>':'')
+    +(totalMin?'<div class="soiree-timing-chip soiree-timing-total"><span>⏲ Total</span><strong>'+totalStr+'</strong></div>':'')
+    +'<div class="soiree-timing-chip"><span>👥 Pour</span><strong>'+S.portions+' pers.</strong></div>'
+    +'</div>'
+    +(r.vin?'<div class="soiree-vin"><span class="soiree-vin-icon">🍷</span><div><div class="soiree-vin-lbl">Accord vin</div><div class="soiree-vin-val">'+attrEscape(r.vin)+'</div></div></div>':'')
+    +'<div class="soiree-tl-title">📋 Déroulé</div>'
+    +'<div class="soiree-steps">'+stepsHtml+'</div>'
+    +(r.notes?'<div class="soiree-notes"><span class="soiree-notes-icon">💡</span><div><div class="soiree-notes-lbl">Conseil du chef</div><div class="soiree-notes-val">'+attrEscape(r.notes)+'</div></div></div>':'')
+    +'<div class="soiree-actions">'
+    +'<button class="soiree-btn soiree-btn-focus" onclick="closeSoiree();openFocus()">🎯 Mode Focus</button>'
+    +'<button class="soiree-btn soiree-btn-cook" onclick="closeSoiree();startCooking()">👨‍🍳 Mode Cuisine</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+  overlay.classList.add('active');
+  document.body.style.overflow='hidden';
+  overlay.addEventListener('click',function _oclose(e){if(e.target===overlay){closeSoiree();overlay.removeEventListener('click',_oclose);}});
+}
+
+function closeSoiree(){
+  var overlay=document.getElementById('soiree-overlay');
+  if(overlay)overlay.classList.remove('active');
+  document.body.style.overflow='';
+}
 function renderWorldView(){
   var counts=getRecipeCounts();
   var sorted=COUNTRIES.slice().sort(function(a,b){

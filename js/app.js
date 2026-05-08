@@ -5,8 +5,15 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v34';
+var _SN5_VER = 'v35';
 var _SN5_LOG = [
+  {
+    v: 'v35', date: '8 mai 2026', titre: 'G2 — Mode Soirée Chef',
+    items: [
+      '🥂 Mode Soirée Chef : overlay premium sur chaque recette — hero avec couleurs drapeau, accord vin mis en avant, timeline de toutes les étapes avec durées auto-détectées (⏱ 20 min), conseil du chef, boutons Mode Focus et Mode Cuisine',
+      '⚫ SW v35'
+    ]
+  },
   {
     v: 'v34', date: '8 mai 2026', titre: 'G2 — Monde interactif & PDF',
     items: [
