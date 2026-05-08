@@ -5,8 +5,18 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v33';
+var _SN5_VER = 'v34';
 var _SN5_LOG = [
+  {
+    v: 'v34', date: '8 mai 2026', titre: 'G2 — Monde interactif & PDF',
+    items: [
+      '🌍 Page Monde : grille de tuiles pays avec gradients drapeau, drapeaux emoji, compteurs de recettes — cliquer filtre directement le catalogue',
+      '🎨 Gradients drapeau enrichis : chaque pays a désormais 2 couleurs distinctes tirées de son drapeau (3-stops), identité visuelle unique par cuisine',
+      '📄 Bouton PDF : exporte la recette ouverte en HTML propre A4 (2 colonnes ingrédients/étapes) dans une nouvelle fenêtre → Save as PDF via le navigateur, 100% offline',
+      '⌨️ Raccourci G+W → Page Monde (documenté dans l\'overlay ?)',
+      '⚫ SW v34'
+    ]
+  },
   {
     v: 'v33', date: '6 mai 2026', titre: 'G1 — Panel multi-minuteurs sticky',
     items: [
@@ -790,6 +800,7 @@ function _initKeyboardShortcuts(){
       else if(e.key==='c'||e.key==='C'){e.preventDefault();setView('courses');}
       else if(e.key==='m'||e.key==='M'){e.preventDefault();setView('menu');}
       else if(e.key==='s'||e.key==='S'){e.preventDefault();setView('settings');}
+      else if(e.key==='w'||e.key==='W'){e.preventDefault();setView('world');}
     }
   });
 

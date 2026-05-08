@@ -18,37 +18,69 @@ const RAYON_MAP={
   "Divers":["sel","poivre","épice","bouquet garni","noix de muscade","cannelle","cumin","curcuma","safran","paprika","piment","genévrier","clou de girofle","herbes","qs","quantité suffisante"]
 };
 const CAT_COLORS={Entrée:"#1a5a9a",Plat:"#9a1a1a",Dessert:"#1a6a1a","Sauce / Base":"#8a6010"};
-// Teintes par cuisine — accent discret sur les cartes pour différencier les pays
+// Couleur primaire par pays (inspirée du drapeau, ton 1)
 const COUNTRY_COLORS={
-  "France":"#1f5aa8",
-  "Italie":"#2a8a3b",
-  "Grèce":"#0b6ec8",
-  "Espagne":"#e8a814",
-  "Asie":"#b72a1f",
-  "États-Unis":"#2b4f9a",
-  "Mexique":"#cc5a1a",
-  "Maroc":"#8a3a1a",
-  "Liban":"#2a8862",
-  "Portugal":"#206a3a",
-  "Scandinavie":"#4b7ca8",
-  "Allemagne":"#3a3a3a",
-  "Royaume-Uni":"#8a1a2a",
-  "Argentine":"#4fa0d8",
-  "Moyen-Orient":"#a06a1a",
-  "Tunisie":"#c04040",
-  "Éthiopie":"#c07020",
-  "Pérou":"#b02a2a",
-  "Brésil":"#3aa06a",
-  "Amérique du Sud":"#7a4a10",
-  "Cuba":"#c09020",
-  "Caraïbes":"#2aa0a0",
-  "Pologne":"#a02a3a",
-  "Hongrie":"#a06030",
-  "Europe Centrale":"#3a5a8a",
-  "Afrique":"#b07030",
-  "Sénégal":"#5aa050",
-  "Canada":"#c0402a",
-  "Turquie":"#8a2020"
+  "France":"#1e4fa0",        // bleu tricolore
+  "Italie":"#1e7a32",        // vert tricolore
+  "Grèce":"#1a7abd",         // bleu Égée (plus cyan que France)
+  "Espagne":"#c8a010",       // jaune-or (bande centrale drapeau)
+  "Asie":"#b01a18",          // rouge laque
+  "États-Unis":"#1a2868",    // bleu marine (navy) — distinct de France
+  "Mexique":"#cc521a",       // orange-terra cotta (Aztèque)
+  "Maroc":"#7a2a14",         // rouge bordeaux (fond drapeau)
+  "Liban":"#1a5a3a",         // vert cèdre
+  "Portugal":"#1a5a2a",      // vert forêt (distinct d'Italie)
+  "Scandinavie":"#2a5a8a",   // bleu fjord
+  "Allemagne":"#202020",     // noir (bande supérieure)
+  "Royaume-Uni":"#7a1020",   // rouge union jack
+  "Argentine":"#2a7abf",     // bleu ciel argentin
+  "Moyen-Orient":"#8a5810",  // or sable désert
+  "Tunisie":"#aa2020",       // rouge sang (fond drapeau)
+  "Éthiopie":"#1a6a20",      // vert panafricain
+  "Pérou":"#9a1a1a",         // rouge vif (bandes drapeau)
+  "Brésil":"#1a7a20",        // vert amazonie
+  "Amérique du Sud":"#6a3810",// terre cuite andine
+  "Cuba":"#0a3a8a",          // bleu révolutionnaire
+  "Caraïbes":"#0a7878",      // turquoise mer
+  "Pologne":"#8a1020",       // rouge polonais (fond inférieur)
+  "Hongrie":"#8a2010",       // rouge paprika
+  "Europe Centrale":"#2a4a7a",// bleu EU
+  "Afrique":"#8a4a10",       // ocre terre
+  "Sénégal":"#1a6a1a",       // vert (bandes drapeau)
+  "Canada":"#aa2010",        // rouge érable
+  "Turquie":"#8a1818"        // rouge croissant
+};
+// Couleur secondaire par pays (ton 2 du drapeau) — assez sombre pour lisibilité texte
+const COUNTRY_COLORS_2={
+  "France":"#7a1010",        // rouge tricolore foncé
+  "Italie":"#7a1010",        // rouge tricolore foncé
+  "Grèce":"#0a1a4a",         // bleu marine foncé (drapeau bleu profond)
+  "Espagne":"#8a1010",       // rouge foncé (bandes latérales)
+  "Asie":"#7a5000",          // or sombre
+  "États-Unis":"#7a1010",    // rouge sombre (stripes)
+  "Mexique":"#1a5a18",       // vert foncé (bande gauche)
+  "Maroc":"#1a4018",         // vert étoile foncé
+  "Liban":"#7a1010",         // rouge foncé
+  "Portugal":"#7a1010",      // rouge foncé
+  "Scandinavie":"#7a5000",   // or/jaune foncé (croix scandinave)
+  "Allemagne":"#7a1010",     // rouge foncé (bande centrale)
+  "Royaume-Uni":"#0a1a4a",   // bleu union jack foncé
+  "Argentine":"#0a306a",     // bleu foncé (bandes)
+  "Moyen-Orient":"#3a1a00",  // terre brûlée
+  "Tunisie":"#0a1a4a",       // bleu marine (croissant)
+  "Éthiopie":"#7a5000",      // jaune-or foncé (bande centrale)
+  "Pérou":"#0a3018",         // vert foncé
+  "Brésil":"#7a5000",        // or foncé (losange)
+  "Amérique du Sud":"#3a1800",// brun profond
+  "Cuba":"#7a1010",          // rouge foncé
+  "Caraïbes":"#004040",      // turquoise profond
+  "Pologne":"#0a1840",       // bleu marine (armoiries)
+  "Hongrie":"#1a5018",       // vert foncé (bande inférieure)
+  "Europe Centrale":"#7a5000",// or foncé
+  "Afrique":"#3a1800",       // brun profond
+  "Sénégal":"#7a5000",       // or foncé (étoile)
+  "Canada":"#0a1840",        // bleu marine (armoiries)
+  "Turquie":"#0a1840"        // bleu marine foncé
 };
 const PHOTO_EMOJIS={"Entrée":"🥗","Plat":"🍽","Dessert":"🍰","Sauce / Base":"🫙"};
 const UNIT_DEC=["g","cl","ml","kg","L"];
