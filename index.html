@@ -116,6 +116,10 @@
       aria-label="Toutes les recettes">
       <span aria-hidden="true">🍽</span><span class="nav-lbl"> Recettes</span>
     </button>
+    <button class="nav-btn" id="nav-world" onclick="setView('world')"
+      aria-label="Cuisines du monde">
+      <span aria-hidden="true">🌍</span><span class="nav-lbl"> Monde</span>
+    </button>
     <button class="nav-btn" id="nav-menu" onclick="setView('menu')"
       aria-label="Menu de la semaine">
       <span aria-hidden="true">📅</span><span class="nav-lbl"> Menu</span>
@@ -163,6 +167,7 @@
 <div class="timers-panel" id="timers-panel" role="region" aria-label="Minuteurs actifs" aria-live="polite"></div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="soiree-overlay" class="soiree-overlay" role="dialog" aria-modal="true" aria-label="Mode Soirée Chef"></div>
 <div id="cooking-overlay"></div>
 
 <!-- Mode Focus — cuisine étape par étape -->
@@ -201,6 +206,7 @@
     <h2>⌨️ Raccourcis clavier</h2>
     <div class="shortcuts-row"><span>Rechercher</span><span class="shortcuts-keys"><kbd>/</kbd></span></div>
     <div class="shortcuts-row"><span>Recettes</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>R</kbd></span></div>
+    <div class="shortcuts-row"><span>Monde</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>W</kbd></span></div>
     <div class="shortcuts-row"><span>Favoris</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>F</kbd></span></div>
     <div class="shortcuts-row"><span>Courses</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>C</kbd></span></div>
     <div class="shortcuts-row"><span>Menu</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>M</kbd></span></div>

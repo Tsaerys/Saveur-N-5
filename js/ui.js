@@ -364,6 +364,7 @@ function setView(v){
       case "settings": renderSettings();break;
       case "create":   renderCreateRecipe();break;
       case "edit":     if(S._editId)renderCreateRecipe(S._editId);break;
+      case "world":    renderWorldView();break;
       default:         console.warn("[SN5] Vue inconnue:",v);
     }
   }
@@ -636,20 +637,20 @@ function _recipeEmoji(r){
   if(typeof PHOTO_EMOJIS!=='undefined'&&PHOTO_EMOJIS[r.cat])return PHOTO_EMOJIS[r.cat];
   return '🍽';
 }
-// Génère le style d'art unique de la recette (gradient + emoji + drapeau)
+// Génère le style d'art unique de la recette (gradient 3-stops drapeau + emoji + drapeau)
 var _artCache={};
 function _recipeArt(r){
   if(_artCache[r.id])return _artCache[r.id];
-  var primary=COUNTRY_COLORS[r.co]||'#9a6f2a';
+  var primary=COUNTRY_COLORS[r.co]||'#2a4a8a';
+  var secondary=(typeof COUNTRY_COLORS_2!=='undefined'&&COUNTRY_COLORS_2[r.co])||'#3a1a0a';
   var h=_hashId(r.id);
   var angle=(h%18)*20;          // 0,20,40…340°
-  var hue=(h>>5)%360;           // teinte secondaire
-  var sat=30+((h>>11)%25);      // 30-55%
-  var lum=22+((h>>17)%14);      // 22-35% (sombre — texte clair lisible)
-  var secondary='hsl('+hue+','+sat+'%,'+lum+'%)';
+  // Ton intermédiaire sombre propre à la recette (crée la profondeur)
+  var midHue=(h>>5)%360;
+  var mid='hsl('+midHue+',12%,14%)';
+  var bg='linear-gradient('+angle+'deg, '+primary+' 0%, '+mid+' 52%, '+secondary+' 100%)';
   var emoji=_recipeEmoji(r);
   var flag=(typeof FLAGS!=='undefined'&&FLAGS[r.co])||'';
-  var bg='linear-gradient('+angle+'deg, '+primary+' 0%, '+secondary+' 100%)';
   var art={bg:bg,emoji:emoji,flag:flag};
   _artCache[r.id]=art;
   return art;
@@ -899,9 +900,11 @@ function renderDetail(){
         <button class="back-btn" onclick="goBack()" aria-label="Retour à la liste des recettes">← Retour</button>
         <div class="detail-actions-bar">
           <button class="act-btn act-primary" onclick="startCooking()" aria-label="Mode cuisine">👨‍🍳 <span class="act-lbl">Mode cuisine</span></button>
+          <button class="act-btn act-primary" onclick="openSoiree()" aria-label="Mode Soirée Chef — accords vin et timeline" title="Soirée Chef">🥂 <span class="act-lbl">Soirée</span></button>
           <button class="act-btn act-primary${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" title="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" data-tip="${isFav?'Retirer ♥':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥":"♡"} <span class="act-lbl">${isFav?'Favori':'Favoris'}</span></button>
           <button class="act-btn act-primary${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" title="${inCart?'Retirer des courses':'Ajouter aux courses'}" data-tip="${inCart?'Retirer 🛒':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">🛒 <span class="act-lbl">${inCart?'Dans la liste':'Courses'}</span></button>
           <button class="act-btn act-secondary" onclick="printRecipe()" aria-label="Imprimer la recette" title="Imprimer">🖨</button>
+          <button class="act-btn act-secondary" onclick="downloadPDF()" aria-label="Télécharger en PDF" title="Télécharger PDF" data-tip="PDF A4">📄</button>
           <button class="act-btn act-secondary" onclick="shareRecipe(S.recipe.id)" aria-label="Partager ou copier le lien" title="Partager">🔗</button>
           <div class="act-menu-wrap">
             <button class="act-btn act-secondary" id="act-more-btn" onclick="_toggleActMore()" aria-label="Plus d'actions" aria-haspopup="true" aria-expanded="false" title="Plus">⋯</button>
@@ -1003,6 +1006,71 @@ function _closeActMore(){
   if(btn)btn.setAttribute("aria-expanded","false");
 }
 function printRecipe(){window.print();}
+
+function downloadPDF(){
+  var r=S.recipe;
+  if(!r){toast("Ouvrez une recette d'abord.");return;}
+  var w=window.open('','_blank','width=860,height=1100');
+  if(!w){toast("Popup bloquée — autorisez les popups pour ce site.");return;}
+  var ratio=S.portions/r.bp;
+  var ingRows=r.ig.map(function(ig){
+    var qty=ig[1];var u=ig[2];
+    var qStr=u==="qs"?"q.s.":fmtQty(qty*ratio,u);
+    return'<tr><td class="ig-name">'+ig[0]+'</td><td class="ig-qty">'+qStr+'</td></tr>';
+  }).join('');
+  var steps=(r.et||'').split(/\n/).filter(function(l){return l.trim();}).map(function(l,i){
+    var m=l.match(/^(\d+)[\.\)]\s*(.*)/);
+    if(m)return'<div class="step"><span class="sn">'+m[1]+'</span><span class="st">'+m[2]+'</span></div>';
+    if(/^[A-ZÀÂÉÈÊËÎÏÔÙÛÇ].*:$/.test(l.trim()))return'<div class="sh">'+l.trim()+'</div>';
+    return'<div class="step"><span class="sn">'+(i+1)+'</span><span class="st">'+l+'</span></div>';
+  }).join('');
+  var metaItems=[
+    r.prep?'<span>⏱ Prép. '+r.prep+' min</span>':'',
+    r.cui?'<span>🍳 Cuisson '+r.cui+' min</span>':'',
+    r.diff?'<span>'+'★'.repeat(r.diff)+'☆'.repeat(5-r.diff)+' Difficulté</span>':'',
+    '<span>👥 '+S.portions+' pers.</span>',
+    r.co?'<span>'+(FLAGS[r.co]||'')+' '+r.co+'</span>':''
+  ].filter(Boolean).join('');
+  var html='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">'
+    +'<title>'+r.nom+' — Saveur N°5</title>'
+    +'<style>'
+    +'@page{size:A4;margin:1.4cm 1.8cm}'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Georgia,"Times New Roman",serif;font-size:10.5pt;color:#111;background:#fff;line-height:1.5}'
+    +'h1{font-size:22pt;font-weight:700;margin-bottom:4px;line-height:1.1}'
+    +'.chef{font-style:italic;font-size:11pt;color:#444;margin-bottom:10px}'
+    +'.meta{display:flex;flex-wrap:wrap;gap:14px;border-top:1.5px solid #111;border-bottom:1.5px solid #111;padding:6px 0;margin-bottom:12px;font-size:9.5pt}'
+    +'.body{display:grid;grid-template-columns:38% 1fr;gap:20px}'
+    +'.col-l{border-right:1px solid #bbb;padding-right:14px}'
+    +'.sec{font-size:12pt;font-weight:700;border-bottom:1px solid #111;padding-bottom:3px;margin-bottom:8px;font-family:Georgia,serif}'
+    +'table{width:100%;border-collapse:collapse}'
+    +'.ig-name{padding:3px 0;border-bottom:1px dotted #ccc;font-size:10pt}'
+    +'.ig-qty{padding:3px 0 3px 8px;border-bottom:1px dotted #ccc;font-weight:700;font-size:10pt;text-align:right;white-space:nowrap}'
+    +'.step{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #e8e8e8;page-break-inside:avoid}'
+    +'.sn{min-width:20px;height:20px;background:#111;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5pt;font-weight:700;flex-shrink:0;margin-top:2px}'
+    +'.st{font-size:10.5pt}'
+    +'.sh{font-weight:700;text-transform:uppercase;font-size:9.5pt;letter-spacing:.06em;padding:8px 0 2px;color:#333}'
+    +'.notes{margin-top:14px;font-size:9.5pt;color:#555;border-top:1px solid #bbb;padding-top:8px}'
+    +'.vin{margin-top:8px;font-size:9.5pt;color:#555}'
+    +'.footer{margin-top:16px;padding-top:6px;border-top:1px solid #111;font-size:8pt;color:#777;text-align:center;font-family:Georgia,serif}'
+    +'</style></head><body>'
+    +'<h1>'+r.nom+'</h1>'
+    +'<div class="chef">'+r.chef+(r.co?' · '+(FLAGS[r.co]||'')+' '+r.co:'')+'</div>'
+    +'<div class="meta">'+metaItems+'</div>'
+    +'<div class="body">'
+    +'<div class="col-l"><div class="sec">Ingrédients</div><table>'+ingRows+'</table>'
+    +(r.notes?'<div class="notes">💡 '+r.notes+'</div>':'')
+    +(r.vin?'<div class="vin">🍷 '+r.vin+'</div>':'')
+    +'</div>'
+    +'<div class="col-r"><div class="sec">Préparation</div>'+steps+'</div>'
+    +'</div>'
+    +'<div class="footer">Saveur N°5 · Imprimé le '+new Date().toLocaleDateString('fr-FR')+'</div>'
+    +'</body></html>';
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.focus();w.print();},350);
+}
+
 function changePortion(d){S.portions=Math.max(1,S.portions+d);document.getElementById("qv").textContent=S.portions;updateIngrList();}
 function setUnitMode(m){S.unit_mode=m;renderDetail();}
 function updateIngrList(){
@@ -2274,5 +2342,111 @@ function crDelete(id){
   if(CART.has(id)){ CART.delete(id); saveCart(); }
   toast('Recette supprimée', 2000, 'info');
   setView('browse');
+}
+
+// ── MODE SOIRÉE CHEF — G2 v35 ─────────────────────────────────────────────
+function openSoiree(){
+  var r=S.recipe;
+  if(!r)return;
+  var rawSteps=(r.et||'').split('\n').filter(function(s){return s.trim();});
+  var steps=rawSteps.map(function(s,i){
+    var m=s.match(/^(\d+)[\.\)]\s*(.*)/);
+    var text=m?m[2]:s;
+    var isSection=/^[A-ZÀÂÉÈÊËÎÏÔÙÛÇ].+:\s*$/.test(s.trim())&&!m;
+    var tm=text.match(/(\d+(?:[,.]\d+)?)\s*(heures?|h\b|minutes?|min\b)/i);
+    var timeLabel=null;
+    if(tm){
+      var n=parseFloat(tm[1].replace(',','.'));
+      var isH=/^h/i.test(tm[2]);
+      timeLabel=isH?(Number.isInteger(n)?n+'h':n+'h'):(n+' min');
+    }
+    return{num:m?m[1]:(i+1),text:text,isSection:isSection,timeLabel:timeLabel};
+  });
+  var totalMin=(r.prep||0)+(r.cui||0);
+  var totalStr=totalMin>=60?Math.floor(totalMin/60)+'h'+(totalMin%60?String(totalMin%60).padStart(2,'0'):''):totalMin+' min';
+  var c1=COUNTRY_COLORS[r.co]||'#1a2a4a';
+  var c2=(typeof COUNTRY_COLORS_2!=='undefined'&&COUNTRY_COLORS_2[r.co])||'#0a0a1a';
+  var stepsHtml=steps.map(function(s){
+    if(s.isSection)return'<div class="soiree-step-section">'+attrEscape(s.text)+'</div>';
+    return'<div class="soiree-step">'
+      +'<span class="soiree-step-num">'+s.num+'</span>'
+      +'<span class="soiree-step-text">'+attrEscape(s.text)+'</span>'
+      +(s.timeLabel?'<span class="soiree-step-time">⏱ '+attrEscape(s.timeLabel)+'</span>':'')
+      +'</div>';
+  }).join('');
+  var overlay=document.getElementById('soiree-overlay');
+  if(!overlay)return;
+  overlay.innerHTML=
+    '<div class="soiree-modal" role="dialog" aria-modal="true" aria-label="Mode Soirée Chef">'
+    +'<button class="soiree-close" onclick="closeSoiree()" aria-label="Fermer">✕</button>'
+    +'<div class="soiree-hero" style="background:linear-gradient(150deg,'+c1+' 0%,'+c2+' 100%)">'
+    +'<span class="soiree-hero-flag" aria-hidden="true">'+(FLAGS[r.co]||'🍽')+'</span>'
+    +'<div class="soiree-hero-text">'
+    +'<h2 class="soiree-nom">'+attrEscape(r.nom)+'</h2>'
+    +'<div class="soiree-chef-line">'+attrEscape(r.chef)+(r.co?' · '+(FLAGS[r.co]||'')+' '+attrEscape(r.co):'')+'</div>'
+    +'</div></div>'
+    +'<div class="soiree-body">'
+    +'<div class="soiree-timing">'
+    +(r.prep?'<div class="soiree-timing-chip"><span>⏱ Prép.</span><strong>'+r.prep+' min</strong></div>':'')
+    +(r.cui?'<div class="soiree-timing-chip"><span>🍳 Cuisson</span><strong>'+r.cui+' min</strong></div>':'')
+    +(totalMin?'<div class="soiree-timing-chip soiree-timing-total"><span>⏲ Total</span><strong>'+totalStr+'</strong></div>':'')
+    +'<div class="soiree-timing-chip"><span>👥 Pour</span><strong>'+S.portions+' pers.</strong></div>'
+    +'</div>'
+    +(r.vin?'<div class="soiree-vin"><span class="soiree-vin-icon">🍷</span><div><div class="soiree-vin-lbl">Accord vin</div><div class="soiree-vin-val">'+attrEscape(r.vin)+'</div></div></div>':'')
+    +'<div class="soiree-tl-title">📋 Déroulé</div>'
+    +'<div class="soiree-steps">'+stepsHtml+'</div>'
+    +(r.notes?'<div class="soiree-notes"><span class="soiree-notes-icon">💡</span><div><div class="soiree-notes-lbl">Conseil du chef</div><div class="soiree-notes-val">'+attrEscape(r.notes)+'</div></div></div>':'')
+    +'<div class="soiree-actions">'
+    +'<button class="soiree-btn soiree-btn-focus" onclick="closeSoiree();openFocus()">🎯 Mode Focus</button>'
+    +'<button class="soiree-btn soiree-btn-cook" onclick="closeSoiree();startCooking()">👨‍🍳 Mode Cuisine</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+  overlay.classList.add('active');
+  document.body.style.overflow='hidden';
+  overlay.addEventListener('click',function _oclose(e){if(e.target===overlay){closeSoiree();overlay.removeEventListener('click',_oclose);}});
+}
+
+function closeSoiree(){
+  var overlay=document.getElementById('soiree-overlay');
+  if(overlay)overlay.classList.remove('active');
+  document.body.style.overflow='';
+}
+function renderWorldView(){
+  var counts=getRecipeCounts();
+  var sorted=COUNTRIES.slice().sort(function(a,b){
+    return (counts.byCo[b]||0)-(counts.byCo[a]||0);
+  });
+  var tiles=sorted.map(function(co){
+    var n=counts.byCo[co]||0;
+    if(!n)return'';
+    var c1=COUNTRY_COLORS[co]||'#2a4a8a';
+    var c2=(typeof COUNTRY_COLORS_2!=='undefined'&&COUNTRY_COLORS_2[co])||'#1a1a3a';
+    var flag=FLAGS[co]||'🌍';
+    var grad='linear-gradient(145deg,'+c1+' 0%,'+c2+' 100%)';
+    return'<button class="world-tile" style="background:'+grad+'" onclick="selectWorldCountry(\''+attrEscape(co)+'\')" aria-label="'+attrEscape(co)+' — '+n+' recettes">'
+      +'<span class="world-tile-flag" aria-hidden="true">'+flag+'</span>'
+      +'<span class="world-tile-name">'+attrEscape(co)+'</span>'
+      +'<span class="world-tile-count">'+n+' recette'+(n>1?'s':'')+'</span>'
+      +'</button>';
+  }).join('');
+  var total=RECIPES.length;
+  document.getElementById('main').innerHTML=
+    '<div class="world-view">'
+    +'<div class="world-header">'
+    +'<h2 class="world-title">🌍 Cuisines du Monde</h2>'
+    +'<p class="world-sub">'+total+' recettes · '+sorted.filter(function(c){return counts.byCo[c]>0;}).length+' cuisines</p>'
+    +'</div>'
+    +'<div class="world-grid">'+tiles+'</div>'
+    +'</div>';
+}
+
+function selectWorldCountry(co){
+  S.filters.co=co;
+  setView('browse');
+  setTimeout(function(){
+    var el=document.getElementById('qi');
+    if(el)el.value='';
+  },50);
 }
 
