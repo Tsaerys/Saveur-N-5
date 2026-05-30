@@ -1,4 +1,4 @@
-# Saveur N°5 — Nouveautés
+﻿# Saveur N°5 — Nouveautés
 
 ---
 
@@ -202,3 +202,4 @@ La base passe à plus de **1 000 recettes**.
 - Générateur de menus de la semaine
 - Minuteur intégré
 - Notes personnelles et notation par étoiles
+
