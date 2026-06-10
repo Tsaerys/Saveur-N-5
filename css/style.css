@@ -2389,3 +2389,60 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
 
 /* Cache l'ancien minuteur flottant si présent dans une vieille version cache */
 .floating-timer{display:none!important}
+
+/* ══════════════════════════════════════════════
+   v35 — CARTE DU MONDE INTERACTIVE (D3)
+   ══════════════════════════════════════════════ */
+.map-section { padding: 4px 0 18px; margin-bottom: 16px; border-bottom: 1px solid var(--bord); }
+.map-header { padding: 4px 0 10px; }
+.map-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px; font-weight: 600; color: var(--text); letter-spacing: -.01em;
+}
+.map-sub { font-size: 12px; color: var(--text3); }
+.map-wrap {
+  position: relative; width: 100%;
+  background: var(--surf2); border: 1px solid var(--bord); border-radius: var(--r, 12px);
+  overflow: hidden;
+}
+#map-svg { display: block; width: 100%; height: auto; }
+.map-country {
+  stroke: var(--bg); stroke-width: .6; vector-effect: non-scaling-stroke;
+  transition: opacity .2s, filter .2s;
+}
+.map-neutral { fill: var(--bord); }
+.map-has-cuisine { cursor: pointer; }
+.map-has-cuisine:hover, .map-has-cuisine:focus-visible {
+  filter: brightness(1.18) saturate(1.15);
+  outline: none;
+}
+.map-selected {
+  stroke: var(--gold-xl); stroke-width: 1.6;
+  filter: brightness(1.12);
+}
+.map-dimmed { opacity: .35; }
+.map-tooltip {
+  position: absolute; top: 0; left: 0; pointer-events: none; z-index: 5;
+  background: var(--surf); color: var(--text); border: 1px solid var(--bord2);
+  border-radius: 8px; padding: 5px 10px; font-size: 12.5px; white-space: nowrap;
+  box-shadow: var(--shadow-md, 0 4px 14px rgba(0,0,0,.18));
+}
+.map-tooltip strong { color: var(--gold); font-weight: 600; }
+.map-active-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin: 0 0 8px; padding: 4px 10px;
+  background: var(--gold-faint); border: 1px solid var(--gold-l); border-radius: 999px;
+  font-size: 12.5px; color: var(--gold); font-weight: 600;
+}
+.map-clear-btn {
+  background: none; border: none; color: var(--gold-l); cursor: pointer;
+  font-size: 14px; line-height: 1; padding: 0 2px; font-family: inherit;
+}
+.map-clear-btn:hover { color: var(--gold); }
+[data-theme="dark"] .map-neutral { fill: rgba(255,255,255,.10); }
+[data-theme="dark"] .map-country { stroke: rgba(0,0,0,.45); }
+[data-theme="dark"] .map-tooltip { background: #252540; }
+@media (max-width: 640px) {
+  .map-sub { display: block; margin-top: 2px; }
+  .map-tooltip { font-size: 11.5px; }
+}

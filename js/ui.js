@@ -349,9 +349,10 @@ function setView(v){
   var showSearch=(v==="browse"||v==="favs");
   if(sz)sz.style.display=showSearch?"":"none";
   if(!fz||!rz){console.warn("[SN5] zones manquantes");return;}
-  var hz=document.getElementById("helix-zone"),ssz=document.getElementById("seasonal-zone");
+  var hz=document.getElementById("helix-zone"),ssz=document.getElementById("seasonal-zone"),mz=document.getElementById("map-zone");
   if(hz)hz.style.display=(v==="browse")?"":"none";
   if(ssz)ssz.style.display=(v==="browse")?"":"none";
+  if(mz)mz.style.display=(v==="browse")?"":"none";
   if(v==="browse"){
     fz.style.display="";rz.style.display="";
     renderFilters();renderRecent();renderMain();
@@ -852,7 +853,7 @@ function openRecipe(id){
   S.recipe=RECIPES.find(r=>r.id===id);
   S.portions=S.recipe.bp;S.view="recipe";S.unit_mode="metric";
   addRecent(id);
-  ["search-zone","filters-zone","frigo-zone","recent-zone","helix-zone","seasonal-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
+  ["search-zone","filters-zone","frigo-zone","recent-zone","helix-zone","seasonal-zone","map-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   window.location.hash = 'recette/' + id;
   renderDetail();window.scrollTo(0,0);
@@ -1018,7 +1019,7 @@ function goBack(){
   document.getElementById("filters-zone").style.display="";
   if(S.frigo_active)document.getElementById("frigo-zone").style.display="";
   document.getElementById("recent-zone").style.display="";
-  ["helix-zone","seasonal-zone"].forEach(function(z){var el=document.getElementById(z);if(el)el.style.display="";});
+  ["helix-zone","seasonal-zone","map-zone"].forEach(function(z){var el=document.getElementById(z);if(el)el.style.display="";});
   document.getElementById("nav-browse").classList.add("active");
   renderFilters();renderRecent();renderMain();updateCount();
   // Restore search input binding for browse view

@@ -5,8 +5,20 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v33';
+var _SN5_VER = 'v35';
 var _SN5_LOG = [
+  {
+    v: 'v35', date: '10 juin 2026', titre: 'Carte du monde interactive',
+    items: [
+      '🌍 Carte du monde sur l\'accueil : les pays colorés ont des recettes dans la base',
+      '🖱 Survol d\'un pays : cuisine + nombre de recettes en tooltip',
+      '👆 Clic (ou tap mobile) : filtre la grille de recettes sur cette cuisine — re-clic pour effacer',
+      '🗺 Rendu D3.js v7 (CDN) + GeoJSON local (geo-data.json) — dégradation propre hors-ligne',
+      '🎨 Couleurs par cuisine (COUNTRY_COLORS), pays sans recettes en gris neutre, compatible mode sombre',
+      '🐛 Fix : virgule orpheline dans data/mexique.js — les 17 recettes du Mexique étaient absentes (SyntaxError)',
+      '⚫ SW v35 — geo-data.json + js/map.js ajoutés à l\'app shell'
+    ]
+  },
   {
     v: 'v33', date: '6 mai 2026', titre: 'G1 — Panel multi-minuteurs sticky',
     items: [
@@ -475,7 +487,7 @@ function _injectDetailButtons(){
 })();
 (function(){
   var _orig=window.renderMain;
-  window.renderMain=function(){ _orig(); renderSeasonal(); renderHelix(); };
+  window.renderMain=function(){ _orig(); renderSeasonal(); renderHelix(); if(typeof renderWorldMap==='function')renderWorldMap(); };
 })();
 
 // ── MODE FOCUS ────────────────────────────────────────────────────────────

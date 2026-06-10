@@ -2,6 +2,18 @@
 
 ---
 
+## v35 — 2026-06-10
+
+### 🌍 Carte du monde interactive
+- Nouvelle carte sur l'accueil : les pays en couleur ont des recettes dans la base
+- Survolez un pays pour voir la cuisine et le nombre de recettes
+- Cliquez (ou tapez sur mobile) pour filtrer la grille de recettes — re-cliquez pour effacer
+- Pays sans recettes en gris neutre, compatible mode sombre, responsive
+- Technique : D3.js v7 (CDN), GeoJSON local `geo-data.json` mis en cache hors-ligne
+- 🐛 Correction : une virgule orpheline dans `js/data/mexique.js` empêchait le chargement des 17 recettes mexicaines
+
+---
+
 ## v34 — 2026-05-08
 
 ### 🌍 +237 nouvelles recettes du monde entier
