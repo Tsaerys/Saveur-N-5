@@ -365,6 +365,7 @@ function setView(v){
       case "settings": renderSettings();break;
       case "create":   renderCreateRecipe();break;
       case "edit":     if(S._editId)renderCreateRecipe(S._editId);break;
+      case "reco":     renderReco();break;
       default:         console.warn("[SN5] Vue inconnue:",v);
     }
   }
@@ -2276,5 +2277,144 @@ function crDelete(id){
   if(CART.has(id)){ CART.delete(id); saveCart(); }
   toast('Recette supprimée', 2000, 'info');
   setView('browse');
+}
+
+// ── RECOMMANDEUR D'IDÉES (Bêta) — v36 ─────────────────────────────────────
+// Vue 'reco' : saisie d'ingrédients → recoMatch / recoAssemble (js/reco.js)
+var _recoIngs=[];
+var _recoResult=null; // {mode:'match',items:[…]} | {mode:'gen',rec:{…}} | {mode:'none'} | null
+
+function renderReco(){
+  var warned=lsGet('sn5_reco_warned',false);
+  var chips=_recoIngs.map(function(ing,i){
+    return '<span class="frigo-tag">'+attrEscape(ing)+'<button aria-label="Retirer '+attrEscape(ing)+'" onclick="recoRemoveIng('+i+')">×</button></span>';
+  }).join('');
+  var opts=_buildFrigoSuggestions().map(function(s){return '<option value="'+s.replace(/"/g,'&quot;')+'">';}).join('');
+  document.getElementById('main').innerHTML=
+    '<div class="reco-wrap">'
+    +'<div class="reco-header"><span class="reco-title">💡 Générateur d\'idées</span><span class="beta-badge" title="Fonctionnalité en test">BÊTA</span></div>'
+    +'<p class="reco-intro">Indiquez les ingrédients dont vous disposez : l\'app vous propose les recettes de la base qui correspondent le mieux — ou en assemble une nouvelle si rien ne convient.</p>'
+    +(warned?'':'<div class="reco-warning" role="alert">⚠️ Ce générateur utilise uniquement les recettes existantes comme base. Les résultats peuvent être imparfaits.'
+      +'<button class="reco-warning-ok" onclick="recoDismissWarning()">J\'ai compris</button></div>')
+    +'<div class="reco-input-bar">'
+    +'<input type="text" id="reco-input" list="reco-ing-list" placeholder="poulet, carottes, olives… (virgule ou Entrée)" onkeydown="if(event.key===\'Enter\')recoAddIng()" aria-label="Ingrédients disponibles" autocomplete="off">'
+    +'<datalist id="reco-ing-list">'+opts+'</datalist>'
+    +'<button class="btn-add-ing" onclick="recoAddIng()">Ajouter</button>'
+    +'</div>'
+    +(_recoIngs.length?'<div class="frigo-tags-row"><div class="frigo-tags">'+chips+'</div>'
+      +'<button class="frigo-clear" onclick="recoClearIngs()" aria-label="Tout retirer">✕ Tout vider</button></div>':'')
+    +'<button class="reco-run-btn" onclick="recoRun()"'+(_recoIngs.length?'':' disabled')+'>✨ Suggérer une recette</button>'
+    +'<div id="reco-results"></div>'
+    +'</div>';
+  _recoRenderResults();
+}
+
+function recoDismissWarning(){lsSet('sn5_reco_warned',true);renderReco();}
+function recoAddIng(){
+  var inp=document.getElementById('reco-input');if(!inp)return;
+  var raw=inp.value.trim();if(!raw)return;
+  raw.split(/[,\n]+/).map(function(s){return s.trim().toLowerCase().replace(/["'\\<>]/g,'');}).filter(Boolean).forEach(function(v){
+    if(!_recoIngs.includes(v))_recoIngs.push(v);
+  });
+  inp.value='';renderReco();
+  var ni=document.getElementById('reco-input');if(ni)ni.focus();
+}
+function recoRemoveIng(i){_recoIngs.splice(i,1);_recoResult=null;renderReco();}
+function recoClearIngs(){_recoIngs=[];_recoResult=null;renderReco();}
+
+function recoRun(){
+  if(!_recoIngs.length){toast('Ajoutez au moins un ingrédient',2200);return;}
+  var matches=recoMatch(_recoIngs);
+  if(matches.length){
+    _recoResult={mode:'match',items:matches};
+  }else{
+    var rec=recoAssemble(_recoIngs);
+    _recoResult=rec?{mode:'gen',rec:rec}:{mode:'none'};
+  }
+  _recoRenderResults();
+  var rz=document.getElementById('reco-results');
+  if(rz&&rz.scrollIntoView)setTimeout(function(){rz.scrollIntoView({behavior:'smooth',block:'start'});},60);
+}
+
+// Étoiles de pertinence (note de la SUGGESTION — indépendante de RATINGS perso)
+function _recoStarsHtml(key){
+  var cur=_recoLastRating(key);
+  var stars=[1,2,3,4,5].map(function(i){
+    return '<span class="rs'+(i<=cur?' on':'')+'" role="button" tabindex="0" aria-label="'+i+' étoile'+(i>1?'s':'')+'" aria-pressed="'+(i<=cur)+'" onclick="event.stopPropagation();recoSetRating(\''+key+'\','+i+')">★</span>';
+  }).join('');
+  return '<div class="reco-rate-row" onclick="event.stopPropagation()">'
+    +'<span class="reco-rate-lbl">'+(cur?'Votre note :':'Cette suggestion vous convient ?')+'</span>'
+    +'<div class="reco-stars">'+stars+'</div></div>';
+}
+
+function recoSetRating(key,n){
+  var rec=null;
+  if(_recoResult&&_recoResult.mode==='gen'&&_recoResult.rec&&_recoResult.rec.id===key)rec=_recoResult.rec;
+  var promoted=recoRate(key,n,_recoIngs,rec);
+  if(promoted){toast('⭐ Merci ! Recette ajoutée à votre collection — visible dans la recherche et les filtres.',3200,'success');updateBadges();}
+  else toast('⭐ Merci pour votre note !',2200,'success');
+  _recoRenderResults();
+}
+
+// Sauvegarde explicite d'une recette assemblée (modifiable ensuite via ✍️ Créer)
+function recoKeep(){
+  if(!_recoResult||_recoResult.mode!=='gen'||!_recoResult.rec)return;
+  var rec=_recoResult.rec;
+  if(!USER_RECIPES.find(function(r){return r.id===rec.id;})){USER_RECIPES.push(rec);saveUserRecipes();}
+  if(!RECIPES.find(function(r){return r.id===rec.id;})){RECIPES.push(rec);_recipeCountsCache=null;}
+  toast('💾 Recette sauvegardée !',2500,'success');
+  openRecipe(rec.id);
+}
+
+function _recoRenderResults(){
+  var zone=document.getElementById('reco-results');
+  if(!zone)return;
+  if(!_recoResult){zone.innerHTML='';return;}
+  if(_recoResult.mode==='none'){
+    zone.innerHTML='<div class="empty"><div class="empty-ico">◆</div>'
+      +'<p style="font-size:16px;color:var(--text2)">Aucun ingrédient reconnu dans la base — essayez d\'autres termes (ex : « poulet », « tomates », « riz »).</p></div>';
+    return;
+  }
+  if(_recoResult.mode==='match'){
+    var cards=_recoResult.items.map(function(m){
+      var r=m.r;var coCol=COUNTRY_COLORS[r.co]||'#9a6f2a';var pct=Math.round(m.score*100);
+      return '<div class="reco-card reco-card-match" role="button" tabindex="0" onclick="openRecipe(\''+r.id+'\')" aria-label="'+attrEscape(r.nom)+'" style="--co-accent:'+coCol+'">'
+        +'<div class="reco-card-head"><span class="reco-badge reco-badge-existing">📚 Recette existante</span>'
+        +'<span class="reco-match-pct">'+m.matched+'/'+m.total+' ingr. · '+pct+'%</span></div>'
+        +'<div class="reco-card-nom">'+r.nom+'</div>'
+        +'<div class="reco-card-meta">'+(FLAGS[r.co]||'')+' '+r.co+' · '+r.cat+' · ⏱ '+totTime(r)+' min · '+diffLabel(r.diff)+'</div>'
+        +'<div class="reco-card-ings">✔ '+m.names.map(attrEscape).join(' · ')+'</div>'
+        +_recoStarsHtml(r.id)
+        +'</div>';
+    }).join('');
+    zone.innerHTML='<div class="reco-results-title">'+_recoResult.items.length+' recette'+(_recoResult.items.length>1?'s':'')+' correspondante'+(_recoResult.items.length>1?'s':'')+'</div>'+cards;
+    return;
+  }
+  // mode 'gen' : recette assemblée — visuellement distincte (bordure pointillée + badge 🧪)
+  var g=_recoResult.rec;
+  var igRows=g.ig.map(function(ig){
+    var q=ig[2]==='qs'?'q.s.':fmtQty(ig[1],ig[2]);
+    return '<li><strong>'+attrEscape(ig[0])+'</strong>'+(q?' — '+q:'')+'</li>';
+  }).join('');
+  var steps=g.et.split('\n').filter(function(s){return s.trim();}).map(function(s){return '<li>'+attrEscape(s.replace(/^\d+[\.\)]\s*/,''))+'</li>';}).join('');
+  var saved=!!RECIPES.find(function(r){return r.id===g.id;});
+  zone.innerHTML=
+    '<div class="reco-card reco-card-generated">'
+    +'<div class="reco-card-head"><span class="reco-badge reco-badge-generated">🧪 Recette assemblée (β)</span>'
+    +'<span class="reco-match-pct">base : '+attrEscape(g._tpl||'')+'</span></div>'
+    +'<div class="reco-card-nom">'+attrEscape(g.nom)+'</div>'
+    +'<div class="reco-card-meta">'+(FLAGS[g.co]||'')+' '+g.co+' · '+g.cat+' · 🕐 '+g.prep+' min prép · 🔥 '+g.cui+' min cuisson · '+diffLabel(g.diff)+' · '+g.bp+' pers.</div>'
+    +'<div class="reco-gen-section"><div class="reco-gen-title">Ingrédients</div><ul class="reco-gen-ings">'+igRows+'</ul></div>'
+    +'<div class="reco-gen-section"><div class="reco-gen-title">Préparation</div><ol class="reco-gen-steps">'+steps+'</ol></div>'
+    +(g.vin?'<div class="reco-gen-vin">🍷 '+attrEscape(g.vin)+'</div>':'')
+    +'<div class="reco-gen-note">'+attrEscape(g.notes)+'</div>'
+    +_recoStarsHtml(g.id)
+    +'<div class="reco-gen-actions">'
+    +(saved
+      ?'<button class="act-btn" onclick="openRecipe(\''+g.id+'\')">📖 Ouvrir la fiche</button>'
+      :'<button class="act-btn" onclick="recoKeep()">💾 Garder dans mes recettes</button>')
+    +'<button class="act-btn reco-retry-btn" onclick="recoRun()">🔄 Réessayer</button>'
+    +'</div>'
+    +'</div>';
 }
 

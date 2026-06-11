@@ -5,8 +5,19 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v35';
+var _SN5_VER = 'v36';
 var _SN5_LOG = [
+  {
+    v: 'v36', date: '10 juin 2026', titre: 'Générateur d\'idées (Bêta) + nouveautés complètes',
+    items: [
+      '💡 Nouveau : Générateur d\'idées (Bêta) — tapez vos ingrédients, l\'app trouve les recettes correspondantes dans la base',
+      '🧪 Si rien ne correspond, une recette inédite est assemblée à partir des meilleures recettes existantes — 100% hors-ligne, aucun service externe',
+      '⭐ Notez chaque suggestion (1-5) : vos notes influencent les prochaines suggestions',
+      '💾 Les recettes assemblées notées 4-5 rejoignent automatiquement votre collection (recherche, filtres, favoris)',
+      '📋 Les notes de mise à jour affichent désormais TOUTES les versions manquées, pas seulement la dernière',
+      '⚫ SW v36 — js/reco.js ajouté à l\'app shell'
+    ]
+  },
   {
     v: 'v35', date: '10 juin 2026', titre: 'Carte du monde interactive',
     items: [
@@ -17,6 +28,17 @@ var _SN5_LOG = [
       '🎨 Couleurs par cuisine (COUNTRY_COLORS), pays sans recettes en gris neutre, compatible mode sombre',
       '🐛 Fix : virgule orpheline dans data/mexique.js — les 17 recettes du Mexique étaient absentes (SyntaxError)',
       '⚫ SW v35 — geo-data.json + js/map.js ajoutés à l\'app shell'
+    ]
+  },
+  {
+    v: 'v34', date: '8 mai 2026', titre: '+237 nouvelles recettes du monde entier',
+    items: [
+      '🌍 Asie : Japon, Chine, Corée, Vietnam, Thaïlande, Inde, Indonésie, Malaisie, Philippines, Singapour, Taïwan, Pakistan, Bangladesh',
+      '🌎 Amérique latine : Mexique, Pérou, Brésil, Argentine, Colombie, Chili, Cuba, Jamaïque',
+      '🌍 Afrique & Maghreb : Maroc, Tunisie, Algérie, Éthiopie, Sénégal, Nigeria',
+      '🕌 Moyen-Orient : Égypte',
+      '📄 Export PDF côté client (jsPDF) sur chaque fiche recette',
+      '⚫ SW v34'
     ]
   },
   {
@@ -307,6 +329,8 @@ function init(){
 
   if(typeof initUserRecipes==="function")initUserRecipes();
   else console.warn("[SN5] initUserRecipes manquant (cache SW ou script non chargé)");
+  // v36 : fusionner les recettes assemblées (Bêta) AVANT tout matching/rendu
+  if(typeof initRecoRecipes==="function")initRecoRecipes();
   if(typeof handleImportHash==="function")handleImportHash();
   if(typeof _timersRestore==="function")_timersRestore(); // G1 v33 : restaure les minuteurs en cours
   if(typeof updateBadges==="function")updateBadges();
@@ -647,8 +671,9 @@ function checkChangelog(){
     if(seen===_SN5_VER) return;
     lsSet('sn5_version_seen',_SN5_VER);
     var seenIdx=_SN5_LOG.findIndex(function(e){return e.v===seen;});
-    // Si inconnu (nouveau user ou version disparue) → montre uniquement la plus récente
-    var entries=(seenIdx<0)?_SN5_LOG.slice(0,1):_SN5_LOG.slice(0,seenIdx);
+    // v36 : montrer TOUTES les versions manquées (pas seulement la dernière).
+    // Version inconnue (nouveau user ou entrée disparue du log) → historique complet.
+    var entries=(seenIdx<0)?_SN5_LOG.slice():_SN5_LOG.slice(0,seenIdx);
     if(!entries.length) return;
     var body=document.getElementById('changelog-body');
     if(!body) return;

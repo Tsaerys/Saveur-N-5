@@ -2,6 +2,23 @@
 
 ---
 
+## v36 — 2026-06-10
+
+### 💡 Générateur d'idées (Bêta)
+- Tapez les ingrédients dont vous disposez (ex : « poulet, carottes, olives »)
+- L'app vous propose les recettes de la base qui correspondent le mieux
+- Si rien ne correspond, une recette inédite est **assemblée** à partir des meilleures recettes existantes — clairement signalée 🧪
+- Notez chaque suggestion de 1 à 5 étoiles : vos notes influencent les prochaines suggestions
+- Les recettes assemblées notées 4-5 rejoignent automatiquement votre collection (recherche, filtres, favoris)
+- 100% hors-ligne : aucun service externe, la base de recettes est l'unique source
+- Technique : nouveau `js/reco.js` (matching par score d'ingrédients → assemblage par patterns → notation persistée en localStorage)
+
+### 📋 Notes de mise à jour complètes
+- Le popup « Nouveautés » affiche désormais **toutes** les versions manquées depuis votre dernière visite, pas seulement la dernière
+- Ajout de l'entrée v34 manquante dans l'historique in-app
+
+---
+
 ## v35 — 2026-06-10
 
 ### 🌍 Carte du monde interactive

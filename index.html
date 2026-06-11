@@ -135,6 +135,11 @@
       <span aria-hidden="true">🧊</span><span class="nav-lbl"> Frigo</span>
       <span class="badge" id="frigo-badge" style="display:none" aria-live="polite">0</span>
     </button>
+    <button class="nav-btn" id="nav-reco" onclick="setView('reco')"
+      aria-label="Générateur d'idées de recettes (bêta)">
+      <span aria-hidden="true">💡</span><span class="nav-lbl"> Idées</span>
+      <span class="nav-beta" aria-hidden="true">β</span>
+    </button>
     <button class="nav-btn" id="nav-settings" onclick="setView('settings')"
       aria-label="Paramètres, sauvegarde et statistiques">
       <span aria-hidden="true">⚙️</span><span class="nav-lbl"> Réglages</span>
@@ -254,6 +259,7 @@
 <script src="js/data/divers.js"></script>
 <script src="js/state.js"></script>
 <script src="js/logic.js"></script>
+<script src="js/reco.js"></script>
 <script src="js/ui.js"></script>
 <!-- D3.js v7 (build IIFE) — carte du monde. crossorigin pour mise en cache SW (offline) -->
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
