@@ -85,11 +85,13 @@ function _mapClickCuisine(cuisine){
   // Toggle : re-cliquer la cuisine active efface le filtre
   var next=(_mapActiveCuisine()===cuisine)?"":cuisine;
   S.filters.co=next;
-  renderFilters();renderMain();updateCount();
   _mapUpdateSelection();
+  // v37 : la carte vit sur l'Accueil — un clic sur un pays ouvre le catalogue filtré
   if(next){
-    var main=document.getElementById("main");
-    if(main&&main.scrollIntoView)main.scrollIntoView({behavior:"smooth",block:"start"});
+    setView("browse");
+    updateCount();
+  }else if(S.view==="browse"){
+    renderFilters();renderMain();updateCount();
   }
 }
 
@@ -215,7 +217,7 @@ function renderWorldMap(){
   if(!zone)return;
 
   // Carte visible uniquement sur l'accueil (browse)
-  if(S.view!=="browse"){zone.style.display="none";return;}
+  if(S.view!=="home"){zone.style.display="none";return;}
   zone.style.display="";
 
   if(_mapFailed)return;
@@ -231,7 +233,7 @@ function renderWorldMap(){
     .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
     .then(function(json){
       _mapGeo=json;
-      if(S.view==="browse")_mapBuildSvg();
+      if(S.view==="home")_mapBuildSvg();
     })
     .catch(function(e){
       console.warn("[SN5] Carte indisponible :",e);

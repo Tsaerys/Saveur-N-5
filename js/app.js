@@ -5,8 +5,19 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v36';
+var _SN5_VER = 'v37';
 var _SN5_LOG = [
+  {
+    v: 'v37', date: '11 juin 2026', titre: 'Page Accueil + navigation repensée + recettes exclusives',
+    items: [
+      '🏠 Nouvelle page Accueil : carrousel saisonnier, suggestions du moment, carte du monde, récents et raccourcis vers toutes les sections',
+      '🧭 Navigation allégée : 7 boutons au lieu de 9 — Frigo, Créer et Surprise déplacés dans la barre d\'outils du catalogue et sur l\'Accueil',
+      '🍽 La vue Recettes est désormais un catalogue épuré : filtres + grille, sans le carrousel ni la carte',
+      '🔒 Les recettes sont désormais exclusives à l\'app : export PDF, export CSV/JSON et impression des fiches supprimés',
+      '⌨️ Nouveau raccourci : G puis H pour revenir à l\'Accueil',
+      '⚫ SW v37 — jsPDF (CDN) retiré'
+    ]
+  },
   {
     v: 'v36', date: '10 juin 2026', titre: 'Générateur d\'idées (Bêta) + nouveautés complètes',
     items: [
@@ -268,7 +279,11 @@ function _sn5LogEntryHTML(entry){
 })();
 
 function bindEvents(){
-  document.getElementById("logo-home").onclick=()=>{if(S.view==="recipe")goBack();else if(S.view!=="browse")setView("browse");};
+  // v37 : le logo ramène à l'Accueil
+  document.getElementById("logo-home").onclick=()=>{
+    if(window.location.hash)history.pushState('',document.title,window.location.pathname+window.location.search);
+    if(S.view!=="home")setView("home");
+  };
 }
 
 // Résolution tolérante d'un ID de recette : essaie l'exact, puis l'uppercase,
@@ -293,8 +308,6 @@ function _resolveRecipeId(rawId){
   return null;
 }
 function render(){
-  renderFilters();
-  renderRecent();
   var initHash = window.location.hash.replace('#','');
   if (initHash.startsWith('recette/')) {
     var initId = initHash.split('/').slice(1).join('/');
@@ -303,11 +316,12 @@ function render(){
       openRecipe(resolved);
       return;
     }
-    // ID inconnu : afficher message clair et fallback browse
+    // ID inconnu : afficher message clair et fallback accueil
     if(typeof toast==='function')setTimeout(function(){toast('⚠ Recette « '+initId+' » introuvable',3500);},300);
     history.replaceState('',document.title,window.location.pathname+window.location.search);
   }
-  renderMain();
+  // v37 : démarrage sur l'Accueil — setView gère zones et rendu
+  setView(S.view||'home');
 }
 
 function initTopbarScroll(){
@@ -344,11 +358,10 @@ function init(){
   _initKeyboardShortcuts();
   render();
 
-  // Si le frigo contient des ingrédients sauvegardés, réactiver la zone
+  // Si le frigo contient des ingrédients sauvegardés, réactiver le mode
+  // (v37 : la zone ne s'affiche que sur la vue Recettes — géré par setView)
   if(S.frigo_ings&&S.frigo_ings.length){
     S.frigo_active=true;
-    var nf=document.getElementById('nav-frigo');if(nf)nf.classList.add('active');
-    var fz=document.getElementById('frigo-zone');if(fz){fz.style.display='';renderFrigo();}
   }
 
   setTimeout(checkChangelog, 500);
@@ -635,7 +648,7 @@ function getSeasonalRecipes(){
 function renderSeasonal(){
   var zone=document.getElementById('seasonal-zone');
   if(!zone)return;
-  if(S.view!=='browse'||hasAnyFilter(true)){zone.innerHTML='';return;}
+  if(S.view!=='home'){zone.innerHTML='';return;} // v37 : vit sur l'Accueil
   var m=new Date().getMonth();
   var data=SEASON_DATA[m];
   var recs=getSeasonalRecipes();
@@ -822,7 +835,8 @@ function _initKeyboardShortcuts(){
     }
     if(_gPressed){
       _gPressed=false;clearTimeout(_gTimer);
-      if(e.key==='r'||e.key==='R'){e.preventDefault();setView('browse');}
+      if(e.key==='h'||e.key==='H'){e.preventDefault();setView('home');}
+      else if(e.key==='r'||e.key==='R'){e.preventDefault();setView('browse');}
       else if(e.key==='f'||e.key==='F'){e.preventDefault();setView('favs');}
       else if(e.key==='c'||e.key==='C'){e.preventDefault();setView('courses');}
       else if(e.key==='m'||e.key==='M'){e.preventDefault();setView('menu');}
@@ -1065,8 +1079,8 @@ function renderHelix(){
   var zone = document.getElementById('helix-zone');
   if(!zone) return;
 
-  /* Masquer si filtres actifs ou vue différente */
-  if(S.view !== 'browse' || hasAnyFilter(true)){
+  /* v37 : le carrousel vit sur l'Accueil */
+  if(S.view !== 'home'){
     if(_hlxLive){ _hlxStop(); zone.innerHTML = ''; }
     return;
   }

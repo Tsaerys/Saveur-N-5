@@ -68,10 +68,9 @@ function _pulseBadge(el,n){
   el.dataset.prev=n;
 }
 function updateBadges(){
-  const fb=document.getElementById("fav-badge"),cb=document.getElementById("cart-badge"),gb=document.getElementById("frigo-badge");
+  const fb=document.getElementById("fav-badge"),cb=document.getElementById("cart-badge");
   if(FAVS.size){fb.style.display="flex";fb.textContent=FAVS.size;_pulseBadge(fb,FAVS.size);}else{fb.style.display="none";fb.dataset.prev=0;}
   if(CART.size){cb.style.display="flex";cb.textContent=CART.size;_pulseBadge(cb,CART.size);}else{cb.style.display="none";cb.dataset.prev=0;}
-  if(gb){if(S.frigo_ings&&S.frigo_ings.length){gb.style.display="flex";gb.textContent=S.frigo_ings.length;_pulseBadge(gb,S.frigo_ings.length);}else{gb.style.display="none";gb.dataset.prev=0;}}
 }
 
 function rateRecipe(id,n){
@@ -340,25 +339,33 @@ function _timersClearAll(){
 // ── VIEWS ─────────────────────────────────────────────────────────────────
 function setView(v){
   S.view=v;
+  document.body.setAttribute("data-view",v);
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   document.getElementById("nav-"+v)?.classList.add("active");
   const sz=document.getElementById("search-zone");
   const fz=document.getElementById("filters-zone");
   const rz=document.getElementById("recent-zone");
-  // Search toujours visible sur les vues principales (browse + favs), masqué ailleurs
-  var showSearch=(v==="browse"||v==="favs");
+  // Search visible sur accueil, catalogue et favoris — masqué ailleurs
+  var showSearch=(v==="home"||v==="browse"||v==="favs");
   if(sz)sz.style.display=showSearch?"":"none";
-  if(!fz||!rz){console.warn("[SN5] zones manquantes");return;}
-  var hz=document.getElementById("helix-zone"),ssz=document.getElementById("seasonal-zone"),mz=document.getElementById("map-zone");
-  if(hz)hz.style.display=(v==="browse")?"":"none";
-  if(ssz)ssz.style.display=(v==="browse")?"":"none";
-  if(mz)mz.style.display=(v==="browse")?"":"none";
+  if(!fz){console.warn("[SN5] zones manquantes");return;}
+  // Zones Accueil (hero, carrousel, saisonnier, carte, récents)
+  var isHome=(v==="home");
+  ["home-hero-zone","helix-zone","seasonal-zone","map-zone","recent-zone"].forEach(function(z){
+    var el=document.getElementById(z);if(el)el.style.display=isHome?"":"none";
+  });
+  // Zones Catalogue (filtres + frigo)
+  var frz=document.getElementById("frigo-zone");
+  fz.style.display=(v==="browse")?"":"none";
+  if(frz)frz.style.display=(v==="browse"&&S.frigo_active)?"":"none";
+  window.scrollTo({top:0});
   if(v==="browse"){
-    fz.style.display="";rz.style.display="";
-    renderFilters();renderRecent();renderMain();
+    renderFilters();
+    if(S.frigo_active)renderFrigo();
+    renderMain();
   }else{
-    fz.style.display="none";rz.style.display="none";
     switch(v){
+      case "home":     renderHome();break;
       case "favs":     renderFavs();break;
       case "courses":  renderCourses();break;
       case "menu":     renderMenuView();break;
@@ -381,16 +388,15 @@ function setView(v){
 }
 function toggleFrigo(){
   S.frigo_active=!S.frigo_active;
-  document.getElementById("nav-frigo").classList.toggle("active",S.frigo_active);
-  // #9 v31 : si on active le frigo depuis une autre vue, basculer vers browse
+  // v37 : le bouton Frigo vit dans la barre d'outils du catalogue — bascule vers browse si besoin
   if(S.frigo_active&&S.view!=="browse"){setView("browse");}
   const fz=document.getElementById("frigo-zone");
-  if(fz)fz.style.display=S.frigo_active?"":"none";
+  if(fz)fz.style.display=(S.frigo_active&&S.view==="browse")?"":"none";
   if(S.frigo_active){renderFrigo();
     // Scroll vers la zone frigo pour rendre l'activation visible
     setTimeout(function(){if(fz&&fz.scrollIntoView)fz.scrollIntoView({behavior:'smooth',block:'start'});},50);
   }
-  if(S.view==="browse")renderMain();
+  if(S.view==="browse"){renderFilters();renderMain();}
   updateBadges();
 }
 
@@ -442,6 +448,9 @@ function renderFilters(){
     <div class="filters-toggle-row">
       <span class="filters-summary">${summaryTxt}</span>
       ${clearBtn}
+      <button class="toolbar-btn${S.frigo_active?' active':''}" onclick="toggleFrigo()" aria-pressed="${S.frigo_active}" aria-label="Filtrer par ingrédients de mon frigo" title="Filtrer par ingrédients de mon frigo">🧊<span class="toolbar-lbl"> Frigo</span>${S.frigo_ings&&S.frigo_ings.length?` <span class="toolbar-count">${S.frigo_ings.length}</span>`:''}</button>
+      <button class="toolbar-btn" onclick="openRandom()" aria-label="Recette aléatoire" title="Recette au hasard">🎲<span class="toolbar-lbl"> Surprise</span></button>
+      <button class="toolbar-btn" onclick="setView('create')" aria-label="Créer une recette" title="Créer une recette">✍️<span class="toolbar-lbl"> Créer</span></button>
       <button class="view-mode-btn${vm==='grid'?' active':''}" onclick="setViewMode('grid')" aria-label="Vue grille" aria-pressed="${vm==='grid'}" title="Vue grille">▦</button>
       <button class="view-mode-btn${vm==='list'?' active':''}" onclick="setViewMode('list')" aria-label="Vue liste" aria-pressed="${vm==='list'}" title="Vue liste">☰</button>
       <button class="filters-toggle-btn${openClass}${hasClass}" onclick="toggleFilters()" aria-expanded="${_filtersOpen}" aria-label="Afficher ou masquer les filtres">
@@ -568,9 +577,9 @@ function renderFrigo(){
       </div>`:''}
     </div>`;
 }
-function addIng(){var inp=document.getElementById("frigo-input");var raw=inp.value.trim();if(!raw)return;raw.split(/[,\n]+/).map(function(s){return s.trim().toLowerCase();}).filter(Boolean).forEach(function(v){if(!S.frigo_ings.includes(v))S.frigo_ings.push(v);});inp.value="";saveFrigo();renderFrigo();renderMain();updateCount();updateBadges();}
-function removeIng(i){S.frigo_ings.splice(i,1);saveFrigo();renderFrigo();renderMain();updateCount();updateBadges();}
-function clearIngs(){S.frigo_ings=[];saveFrigo();renderFrigo();renderMain();updateCount();updateBadges();}
+function addIng(){var inp=document.getElementById("frigo-input");var raw=inp.value.trim();if(!raw)return;raw.split(/[,\n]+/).map(function(s){return s.trim().toLowerCase();}).filter(Boolean).forEach(function(v){if(!S.frigo_ings.includes(v))S.frigo_ings.push(v);});inp.value="";saveFrigo();renderFilters();renderFrigo();renderMain();updateCount();}
+function removeIng(i){S.frigo_ings.splice(i,1);saveFrigo();renderFilters();renderFrigo();renderMain();updateCount();}
+function clearIngs(){S.frigo_ings=[];saveFrigo();renderFilters();renderFrigo();renderMain();updateCount();}
 
 // ── PHOTO HELPERS ─────────────────────────────────────────────────────────
 // v26 : remplace les images Unsplash dépréciées par des cartes CSS uniques
@@ -853,8 +862,9 @@ function openRandom(){
 function openRecipe(id){
   S.recipe=RECIPES.find(r=>r.id===id);
   S.portions=S.recipe.bp;S.view="recipe";S.unit_mode="metric";
+  document.body.setAttribute("data-view","recipe");
   addRecent(id);
-  ["search-zone","filters-zone","frigo-zone","recent-zone","helix-zone","seasonal-zone","map-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
+  ["search-zone","filters-zone","frigo-zone","recent-zone","helix-zone","seasonal-zone","map-zone","home-hero-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   window.location.hash = 'recette/' + id;
   renderDetail();window.scrollTo(0,0);
@@ -903,9 +913,7 @@ function renderDetail(){
           <button class="act-btn act-primary" onclick="startCooking()" aria-label="Mode cuisine">👨‍🍳 <span class="act-lbl">Mode cuisine</span></button>
           <button class="act-btn act-primary${isFav?" active":""}" aria-label="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" title="${isFav?'Retirer des favoris':'Ajouter aux favoris'}" data-tip="${isFav?'Retirer ♥':'Ajouter aux favoris'}" aria-pressed="${isFav}" onclick="toggleFav('${r.id}')">${isFav?"♥":"♡"} <span class="act-lbl">${isFav?'Favori':'Favoris'}</span></button>
           <button class="act-btn act-primary${inCart?" active":""}" aria-label="${inCart?'Retirer des courses':'Ajouter aux courses'}" title="${inCart?'Retirer des courses':'Ajouter aux courses'}" data-tip="${inCart?'Retirer 🛒':'Ajouter aux courses'}" aria-pressed="${inCart}" onclick="toggleCart('${r.id}')">🛒 <span class="act-lbl">${inCart?'Dans la liste':'Courses'}</span></button>
-          <button class="act-btn act-secondary" onclick="printRecipe()" aria-label="Imprimer la recette" title="Imprimer">🖨</button>
-          <button class="act-btn act-secondary" onclick="exportRecipePDF()" aria-label="Télécharger en PDF" title="Télécharger PDF">📄</button>
-          <button class="act-btn act-secondary" onclick="shareRecipe(S.recipe.id)" aria-label="Partager ou copier le lien" title="Partager">🔗</button>
+          <button class="act-btn act-secondary" onclick="shareRecipe(S.recipe.id)" aria-label="Partager ou copier le lien" title="Partager le lien">🔗</button>
           <div class="act-menu-wrap">
             <button class="act-btn act-secondary" id="act-more-btn" onclick="_toggleActMore()" aria-label="Plus d'actions" aria-haspopup="true" aria-expanded="false" title="Plus">⋯</button>
             <div class="act-menu" id="act-more-menu" role="menu">
@@ -974,7 +982,6 @@ function renderDetail(){
           </div>
         </div>
         ${accordsHtml}
-        <div class="print-footer">Saveur N°5 · ${r.nom} · ${r.chef} · ${r.co} · Imprimé le ${new Date().toLocaleDateString('fr-FR')}</div>
       </div>
     </div>`;
   var bc=document.querySelector(".detail-breadcrumb");
@@ -1005,7 +1012,6 @@ function _closeActMore(){
   if(m)m.classList.remove("open");
   if(btn)btn.setAttribute("aria-expanded","false");
 }
-function printRecipe(){window.print();}
 function changePortion(d){S.portions=Math.max(1,S.portions+d);document.getElementById("qv").textContent=S.portions;updateIngrList();}
 function setUnitMode(m){S.unit_mode=m;renderDetail();}
 function updateIngrList(){
@@ -1014,20 +1020,10 @@ function updateIngrList(){
 }
 
 function goBack(){
-  S.view="browse";
   if(window.location.hash)history.pushState('',document.title,window.location.pathname+window.location.search);
-  document.getElementById("search-zone").style.display="";
-  document.getElementById("filters-zone").style.display="";
-  if(S.frigo_active)document.getElementById("frigo-zone").style.display="";
-  document.getElementById("recent-zone").style.display="";
-  ["helix-zone","seasonal-zone","map-zone"].forEach(function(z){var el=document.getElementById(z);if(el)el.style.display="";});
-  document.getElementById("nav-browse").classList.add("active");
-  renderFilters();renderRecent();renderMain();updateCount();
-  // Restore search input binding for browse view
-  var qi=document.getElementById("qi");
-  if(qi){
-    qi.oninput=debounce(function(e){S.filters.q=e.target.value;renderMain();updateCount();},300);
-  }
+  // v37 : setView gère zones, nav active, rebinding recherche
+  setView("browse");
+  updateCount();
 }
 function bcFilter(key,val){
   clearAllFilters();
@@ -1997,10 +1993,7 @@ function renderSettings(){
         <div class="setting-section-head">📚 Catalogue des recettes</div>
         <div class="setting-section-body">
           <p class="setting-desc">${RECIPES.length} recettes au total (dont ${customCount} personnelle${customCount>1?'s':''}).</p>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-            <button class="act-btn" onclick="exportCatalogue('csv')">📄 CSV</button>
-            <button class="act-btn" onclick="exportCatalogue('json')">🗂 JSON</button>
-          </div>
+          <p class="setting-desc" style="font-size:12px;color:var(--text4)">Les recettes sont exclusives à l'application et ne peuvent pas être exportées.</p>
         </div>
       </div>
 
@@ -2277,6 +2270,50 @@ function crDelete(id){
   if(CART.has(id)){ CART.delete(id); saveCart(); }
   toast('Recette supprimée', 2000, 'info');
   setView('browse');
+}
+
+// ── PAGE ACCUEIL — v37 ────────────────────────────────────────────────────
+// Hero + raccourcis ; les zones carrousel/saisonnier/carte/récents sont
+// remplies par leurs renderers dédiés (renderHelix, renderSeasonal,
+// renderWorldMap, renderRecent) qui ne s'affichent que sur la vue 'home'.
+function renderHome(){
+  var hz=document.getElementById('home-hero-zone');
+  if(hz){
+    var counts=getRecipeCounts();
+    var nbCo=Object.keys(counts.byCo).length;
+    var tiles=[
+      {ico:'🍽',lbl:'Explorer les recettes',sub:RECIPES.length+' recettes',act:"setView('browse')"},
+      {ico:'💡',lbl:'Générateur d\'idées',sub:'À partir de vos ingrédients',act:"setView('reco')",beta:true},
+      {ico:'🧊',lbl:'Mon frigo',sub:S.frigo_ings&&S.frigo_ings.length?S.frigo_ings.length+' ingrédient'+(S.frigo_ings.length>1?'s':''):'Cuisiner avec ce que j\'ai',act:"if(!S.frigo_active)toggleFrigo();else setView('browse')"},
+      {ico:'📅',lbl:'Menu de la semaine',sub:'Générer un menu complet',act:"setView('menu')"},
+      {ico:'♥',lbl:'Mes favoris',sub:FAVS.size?FAVS.size+' recette'+(FAVS.size>1?'s':''):'Aucun favori pour l\'instant',act:"setView('favs')"},
+      {ico:'🛒',lbl:'Liste de courses',sub:CART.size?CART.size+' recette'+(CART.size>1?'s':''):'Vide',act:"setView('courses')"},
+      {ico:'✍️',lbl:'Créer une recette',sub:'Ajouter ma recette perso',act:"setView('create')"},
+      {ico:'🎲',lbl:'Surprise',sub:'Une recette au hasard',act:"openRandom()"}
+    ].map(function(t){
+      return '<button class="home-tile" onclick="'+t.act+'">'
+        +'<span class="home-tile-ico" aria-hidden="true">'+t.ico+'</span>'
+        +'<span class="home-tile-lbl">'+t.lbl+(t.beta?' <span class="beta-badge" style="font-size:8px;padding:2px 6px">BÊTA</span>':'')+'</span>'
+        +'<span class="home-tile-sub">'+t.sub+'</span>'
+        +'</button>';
+    }).join('');
+    hz.innerHTML=
+      '<div class="home-hero">'
+      +'<div class="home-hero-title"><span class="gem">◆</span> Saveur N°5</div>'
+      +'<div class="home-hero-tagline">Recettes de grands chefs et traditions du monde — hors-ligne, sans publicité.</div>'
+      +'<div class="home-stats">'
+      +'<span class="home-stat"><strong>'+RECIPES.length+'</strong> recettes</span>'
+      +'<span class="home-stat"><strong>'+nbCo+'</strong> cuisines</span>'
+      +'<span class="home-stat"><strong>'+CATS.length+'</strong> catégories</span>'
+      +'</div>'
+      +'<div class="home-tiles">'+tiles+'</div>'
+      +'</div>';
+  }
+  document.getElementById('main').innerHTML='';
+  if(typeof renderRecent==='function')renderRecent();
+  if(typeof renderSeasonal==='function')renderSeasonal();
+  if(typeof renderHelix==='function')renderHelix();
+  if(typeof renderWorldMap==='function')renderWorldMap();
 }
 
 // ── RECOMMANDEUR D'IDÉES (Bêta) — v36 ─────────────────────────────────────

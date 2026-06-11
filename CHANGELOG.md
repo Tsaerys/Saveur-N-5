@@ -2,6 +2,26 @@
 
 ---
 
+## v37 — 2026-06-11
+
+### 🏠 Nouvelle page Accueil
+- L'app s'ouvre désormais sur un véritable accueil : carrousel saisonnier, suggestions du moment, carte du monde, recettes récentes et tuiles de raccourci vers toutes les sections
+- Le logo et le bouton 🏠 ramènent à l'Accueil (raccourci clavier : `G` puis `H`)
+
+### 🧭 Navigation repensée (ergonomie)
+- Barre de navigation allégée : 7 boutons au lieu de 9
+- **Frigo**, **Surprise** et **Créer** déménagent dans la barre d'outils du catalogue (et sur l'Accueil) — ils n'encombrent plus la navigation principale
+- La vue **Recettes** devient un catalogue épuré : filtres + grille, sans carrousel ni carte
+- Changement de vue : retour automatique en haut de page
+
+### 🔒 Recettes exclusives à l'application
+- Suppression de l'export PDF des fiches recettes (jsPDF retiré)
+- Suppression de l'export du catalogue (CSV / JSON)
+- Impression des fiches recettes bloquée (bouton retiré, Ctrl+P neutralisé, page d'impression remplacée par un avis)
+- La liste de courses reste imprimable et partageable ; la sauvegarde de VOS données (favoris, notes) reste disponible
+
+---
+
 ## v36 — 2026-06-10
 
 ### 💡 Générateur d'idées (Bêta)

@@ -684,10 +684,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1
 .logo { flex: 1 1 auto; }
 #theme-toggle-btn { flex-shrink: 0; }
 
-/* ── BOUTON ALÉATOIRE dans nav ── */
-#nav-random {
-  font-size: 18px;
-}
 
 /* ── DARK MODE amélioré ── */
 [data-theme="dark"] .badge-express {
@@ -905,89 +901,6 @@ body {
   .filters-toggle-btn { min-height: 40px; }
 }
 
-/* ── PRINT — Mode impression A4 optimisé ── */
-@media print {
-  @page { size: A4; margin: 1.5cm 1.8cm; }
-  @page :first { margin-top: 1.2cm; }
-
-  /* Masquer tous les éléments interactifs et décoratifs */
-  .topbar, .topbar-nav, .filters-bar, .filters-zone, .filters-toggle-row,
-  .back-btn, .detail-actions-bar, .detail-actions,
-  .step-timer-btn, .step-check, .step-reset-btn, .step-done-only-print,
-  .cooking-mode, .accords-section, .recent-section, .recent-zone,
-  .detail-rating-bar, .unit-toggle-bar, .pnotes-lbl, .pnotes-ta,
-  .pnotes-save, .floating-timer, .frigo-zone, .filters-body, .filters-toggle-btn,
-  #scroll-top-btn, #theme-toggle-btn, .card-fav-btn, .card-cart-btn,
-  .offline-banner, .toast, #cooking-overlay, .portions-ctrl,
-  .var-btn, .act-btn, .voice-btn, .topbar-search, .view-mode-btn,
-  .card-rating, #devtools-banner, #nav-install-btn, .filter-count,
-  .detail-meta-action, .detail-photo-overlay { display: none !important; }
-
-  /* Base typographie impression */
-  html, body { background: #fff !important; color: #000; font-size: 10.5pt;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    padding-bottom: 0; line-height: 1.55; }
-  body { font-family: Georgia, 'Cormorant Garamond', serif; }
-  h1, h2, h3, .detail-photo-title, .sec-lbl { font-family: 'Cormorant Garamond', Georgia, serif; }
-  .content-area, .main-content { height: auto; overflow: visible; max-width: 100%; padding: 0; }
-  a { color: #000; text-decoration: none; }
-  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 8pt; color: #666; }
-
-  /* En-tête recette */
-  .detail-card { border: none; box-shadow: none; page-break-inside: avoid; background: transparent; padding: 0; }
-  .detail-photo-wrap { height: 160px; page-break-inside: avoid; overflow: hidden; border-radius: 4px; }
-  .detail-photo-title { font-size: 24pt; line-height: 1.1; font-weight: 600; }
-  .detail-photo-chef { font-size: 11pt; font-style: italic; }
-
-  /* Bandeau métadonnées */
-  .detail-meta { border-top: 1.5px solid #000; border-bottom: 1.5px solid #000;
-    padding: 6px 0; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 18px;
-    font-size: 10pt; font-family: Georgia, serif; }
-  .detail-meta-item { display: inline-flex; align-items: center; gap: 4px; }
-
-  /* Corps : 2 colonnes */
-  .detail-body { display: grid; grid-template-columns: 36% 1fr; gap: 22px; margin-top: 8px; }
-  .col-l { border-right: 1px solid #999; border-bottom: none;
-    padding-bottom: 0; margin-bottom: 0; padding-right: 14px; }
-  .col-r { padding-top: 0; }
-  .sec-lbl { font-size: 13pt; font-weight: 600; margin-bottom: 8px;
-    text-transform: none; letter-spacing: 0; border-bottom: 1px solid #000; padding-bottom: 3px; }
-
-  /* Ingrédients : 1 col si peu, sinon 2 cols dans col-l */
-  .ingr-list { columns: 1; list-style: none; padding: 0; }
-  .ingr-item { break-inside: avoid; padding: 2.5px 0; border-bottom: 1px dotted #bbb;
-    display: flex; justify-content: space-between; gap: 8px; font-size: 10pt; }
-  .ingr-qty { color: #000; font-weight: 600; font-variant-numeric: tabular-nums; }
-
-  /* Étapes : numérotation claire */
-  .etape-item { page-break-inside: avoid; break-inside: avoid;
-    padding: 7px 0; border-bottom: 1px solid #e0e0e0; gap: 10px; }
-  .etape-item:last-child { border-bottom: none; }
-  .etape-item.section-head { border-bottom: none; color: #000; font-weight: 700;
-    padding-top: 10px; text-transform: uppercase; font-size: 10pt; letter-spacing: .05em; }
-  .section-head { page-break-after: avoid; break-after: avoid; }
-  .step-num { background: #000; color: #fff; border: none;
-    min-width: 22px; height: 22px; font-size: 9pt; }
-  .step-text { font-size: 10.5pt; }
-  .etape-item.step-done .step-text { color: #666; text-decoration: line-through; }
-
-  /* Encarts secondaires */
-  .prepav-block, .qual-pill { border: 1px solid #999; background: transparent !important; }
-  .qual-pill { color: #000 !important; }
-  .variante-block { page-break-inside: avoid; }
-
-  /* Liste de courses */
-  .courses-wrap { padding: 0; }
-  .courses-wrap .cs-selector, .courses-wrap .courses-actions,
-  .courses-wrap #courses-search { display: none; }
-  .cs-item { page-break-inside: avoid; padding: 3px 0; border-bottom: 1px dotted #bbb; }
-
-  /* Pied de page impression */
-  .print-footer { display: block !important; margin-top: 16px; padding-top: 6px;
-    border-top: 1px solid #000; font-size: 8.5pt; color: #555;
-    font-family: Georgia, serif; text-align: center; }
-}
-.print-footer { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════
    PREMIUM UI/UX v14.1
@@ -2072,10 +1985,6 @@ kbd {
    ────────────────────────────────────────────────────────────────────────── */
 
 /* #15 — Bouton "Surprise" plus discret dans la navbar */
-#nav-random{padding-left:10px!important;padding-right:10px!important;font-size:13px;opacity:.78;transition:opacity .18s}
-#nav-random:hover{opacity:1}
-#nav-random .nav-lbl{font-size:12px;font-weight:500}
-@media(max-width:900px){#nav-random .nav-lbl{display:none}}
 
 /* #16 — Couleurs catégories distinctes en mode sombre */
 [data-theme="dark"]{
@@ -2505,3 +2414,70 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
 /* ── CHANGELOG : scroll quand plusieurs versions manquées (v36) ─────────── */
 .changelog-modal{max-height:84vh;display:flex;flex-direction:column}
 #changelog-body{overflow-y:auto;flex:1;min-height:0;padding-right:4px}
+
+/* ── PRINT (v37) — recettes exclusives à l'app ───────────────────────────
+   Seule la liste de courses reste imprimable. Toute tentative d'impression
+   d'une fiche recette (ou de l'accueil/catalogue) affiche un avis. */
+@media print {
+  @page { size: A4; margin: 1.5cm 1.8cm; }
+  /* Chrome applicatif jamais imprimé */
+  .topbar, .topbar-nav, .filters-zone, #filters-zone, .frigo-zone, #frigo-zone,
+  #home-hero-zone, #helix-zone, #seasonal-zone, #map-zone, #recent-zone,
+  .timers-panel, .toast, #cooking-overlay, #focus-overlay, #scroll-top-btn,
+  .credit-badge, #protect-toast, #devtools-banner, .offline-banner,
+  #shortcuts-overlay, #changelog-overlay { display: none !important; }
+
+  /* Recettes : contenu masqué + avis */
+  body[data-view="recipe"] .content-area,
+  body[data-view="browse"] .content-area,
+  body[data-view="home"] .content-area,
+  body[data-view="favs"] .content-area,
+  body[data-view="reco"] .content-area { display: none !important; }
+  body[data-view="recipe"]::after,
+  body[data-view="browse"]::after,
+  body[data-view="home"]::after,
+  body[data-view="favs"]::after,
+  body[data-view="reco"]::after {
+    content: "◆ Saveur N°5 — Les recettes sont exclusives à l'application et ne peuvent pas être imprimées ou exportées. © Teva L.";
+    display: block; padding: 60px 30px; text-align: center;
+    font-family: Georgia, 'Cormorant Garamond', serif; font-size: 14pt; color: #000;
+  }
+
+  /* Liste de courses : impression propre conservée */
+  html, body { background: #fff !important; color: #000; font-size: 10.5pt; line-height: 1.55; }
+  .courses-wrap { padding: 0; }
+  .courses-wrap .cs-selector, .courses-wrap .courses-export-btns,
+  .courses-wrap #courses-search { display: none !important; }
+  .cs-item { page-break-inside: avoid; padding: 3px 0; border-bottom: 1px dotted #bbb; }
+}
+
+/* ── PAGE ACCUEIL (v37) ──────────────────────────────────────────────────── */
+.home-hero{max-width:1100px;margin:18px auto 8px;padding:26px 22px 20px;background:var(--surf);border:1px solid var(--bord);border-radius:18px;text-align:center}
+.home-hero-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;color:var(--text);line-height:1.1}
+.home-hero-title .gem{color:var(--gold,#bf9b30);font-size:30px}
+.home-hero-tagline{font-size:14px;color:var(--text3);margin-top:6px}
+.home-stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.home-stat{background:var(--gold-faint,#faf3e3);border:1px solid var(--gold-l,#d4aa55);border-radius:20px;padding:5px 14px;font-size:13px;color:var(--text2)}
+.home-stat strong{color:var(--gold,#9a6f2a);font-size:15px}
+.home-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:20px}
+.home-tile{display:flex;flex-direction:column;align-items:center;gap:5px;padding:16px 10px 13px;background:var(--bg);border:1px solid var(--bord);border-radius:14px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .15s,box-shadow .18s,border-color .15s;min-height:96px}
+.home-tile:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(80,60,30,.12);border-color:var(--gold-l,#d4aa55)}
+.home-tile-ico{font-size:26px;line-height:1}
+.home-tile-lbl{font-size:13.5px;font-weight:600;color:var(--text)}
+.home-tile-sub{font-size:11.5px;color:var(--text4)}
+[data-theme="dark"] .home-tile{background:#1d1d33}
+[data-theme="dark"] .home-stat{background:#2a2540;border-color:#6a5a30}
+@media (max-width:640px){
+  .home-hero{margin:10px 8px 6px;padding:18px 12px 14px}
+  .home-hero-title{font-size:28px}
+  .home-tiles{grid-template-columns:repeat(2,1fr);gap:8px}
+  .home-tile{min-height:84px;padding:12px 8px 10px}
+}
+
+/* ── BARRE D'OUTILS CATALOGUE (v37) ─────────────────────────────────────── */
+.toolbar-btn{background:var(--surf);border:1.5px solid var(--bord);border-radius:var(--rx);padding:7px 12px;font-size:13px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.toolbar-btn:hover{border-color:var(--gold-l,#d4aa55);color:var(--gold,#9a6f2a)}
+.toolbar-btn.active{background:var(--gold-faint,#faf3e3);border-color:var(--gold-l,#d4aa55);color:var(--gold,#9a6f2a);font-weight:600}
+.toolbar-count{background:var(--gold-l,#d4aa55);color:#fff;font-size:10px;font-weight:700;border-radius:9px;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+[data-theme="dark"] .toolbar-btn.active{background:#2a2540}
+@media (max-width:760px){.toolbar-btn .toolbar-lbl{display:none}.toolbar-btn{padding:7px 9px}}

@@ -64,7 +64,7 @@ const REGIME_KW={
 var _wakeLock=null;
 // Restauration du frigo depuis localStorage (persistence session)
 var _frigoSaved=(function(){try{return JSON.parse(localStorage.getItem('sn5_frigo'))||{};}catch{return{};}})();
-let S={view:"browse",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:"",saison:"",chef:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid')};
+let S={view:"home",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:"",saison:"",chef:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid')};
 
 // ── MINUTEURS MULTIPLES (G1 v33) ───────────────────────────────────────────
 // Chaque timer = {id, label, totalSec, startedAt, pausedAt, pausedTotal, paused, done, soundIdx}

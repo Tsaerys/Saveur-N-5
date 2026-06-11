@@ -15,8 +15,11 @@ Ramsay, Acurio…), avec un niveau de détail professionnel (techniques, accords
 
 - **Type** : SPA 100 % statique, PWA installable, fonctionne entièrement hors-ligne.
 - **URL de production** : https://tsaerys.github.io/Saveur-N-5/ (GitHub Pages).
-- **Version courante** : **v36** (2026-06-10).
+- **Version courante** : **v37** (2026-06-11).
 - **Public** : usage personnel/familial, mais le site est public et indexé.
+- **⚠️ Règle produit (v37)** : les recettes sont **exclusives à l'application** — aucun
+  export (PDF/CSV/JSON), impression des fiches bloquée. Seules la liste de courses et la
+  sauvegarde des données UTILISATEUR (favoris, notes…) peuvent sortir de l'app.
 
 ## 2. Stack technique et déploiement
 
@@ -29,7 +32,7 @@ Ramsay, Acurio…), avec un niveau de détail professionnel (techniques, accords
 | Déploiement | `git push` sur `main` → publication automatique |
 | Offline | Service Worker (`sw.js`) — app shell en Cache First, `index.html` en Network First |
 | Persistance | `localStorage` uniquement (aucun backend, aucune base de données, aucun appel API) |
-| CDN externes | jsPDF 2.5.1 (export PDF), D3.js v7 (carte du monde), Google Fonts (Cormorant Garamond + DM Sans) — **tous avec dégradation propre** si indisponibles |
+| CDN externes | D3.js v7 (carte du monde), Google Fonts (Cormorant Garamond + DM Sans) — **tous avec dégradation propre** si indisponibles. (jsPDF retiré en v37) |
 | Tests | Aucun framework — `node --check` comme garde-fou syntaxique + plans de test manuels (`.github/commands/*.md`) |
 
 ## 3. Structure des fichiers
@@ -129,7 +132,12 @@ saveur-n5-v14/                  ← racine du repo git (le vrai "projet")
 
 Toutes **livrées et fonctionnelles** sauf mention contraire :
 
-- ✅ Catalogue 836 recettes, grille/liste, pagination infinie (IntersectionObserver)
+- ✅ **Page Accueil (v37)** : hero + stats, 8 tuiles de raccourci, carrousel hélice
+  saisonnier, suggestions du moment, carte du monde, récemment consultées. Vue par défaut ;
+  logo et `G`+`H` y ramènent
+- ✅ **Navigation (v37)** : topbar 7 boutons (Accueil, Recettes, Idées β, Menu, Favoris,
+  Courses, Réglages) ; Frigo/Surprise/Créer vivent dans la barre d'outils du catalogue
+- ✅ Catalogue 836 recettes (vue épurée : filtres + grille), grille/liste, pagination infinie (IntersectionObserver)
 - ✅ Recherche avancée : `chef:`, `pays:`, `cat:`, `ing:`, `-exclusion`, `"phrase exacte"` + recherche vocale (Web Speech)
 - ✅ Filtres : pays, catégorie, difficulté, temps, qualité, rayon, saison, chef (autocomplete), multi-sélection, 5 régimes (végé, sans gluten/lactose/fruits de mer/poissons), tri
 - ✅ Mode Frigo : matching par ingrédients disponibles (+ mode strict)
@@ -139,7 +147,10 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
 - ✅ Multi-minuteurs persistants (Web Audio, 5 sons, vibration)
 - ✅ Favoris (onglets, tags personnels), Liste de courses (agrégation par rayon, copie/partage/.txt/impression), Menu de la semaine (occasions, régimes, historique 5 menus)
 - ✅ Création/édition/suppression de recettes utilisateur (vue ✍️ Créer)
-- ✅ Export/import de sauvegarde (JSON + QR code), export catalogue CSV/JSON, export PDF par recette (jsPDF)
+- ✅ Export/import de sauvegarde des données utilisateur (JSON + QR code) — favoris, notes, notations uniquement
+- ❌ **Supprimé en v37** : export PDF par recette, export catalogue CSV/JSON, impression
+  des fiches recettes (Ctrl+P neutralisé sur les fiches + CSS print remplacé par un avis).
+  La liste de courses reste imprimable
 - ✅ PWA offline complet, popup changelog (depuis v36 : TOUTES les versions manquées), bouton « Forcer la mise à jour »
 - ✅ Thème clair/sombre, raccourcis clavier (`?` pour l'aide), carrousel hélice 3D, accueil saisonnier, carte du monde interactive (D3), deep-linking `#recette/ID`
 
@@ -214,6 +225,28 @@ Fonctionnalité **zéro coût, zéro réseau** : la base `RECIPES` est l'unique 
 ## 10. Journal des sessions
 
 > ⚠️ Ajouter une entrée ici à la FIN de chaque session (plus récent en premier).
+
+### 2026-06-11 — v37 : Page Accueil + navigation repensée + recettes exclusives
+- **Recettes exclusives à l'app** : suppression de `exportRecipePDF` et `exportCatalogue`
+  (logic.js), des boutons 🖨/📄 de la fiche recette et des boutons CSV/JSON des Réglages ;
+  jsPDF (CDN) retiré d'index.html ; Ctrl+P neutralisé sur les fiches (script de protection,
+  via `body[data-view]`) ; CSS `@media print` réécrit — fiches/catalogue/accueil remplacés
+  par un avis à l'impression, **liste de courses toujours imprimable**. La sauvegarde des
+  données utilisateur (favoris/notes/notations, sans contenu de recettes) est conservée.
+- **Page Accueil (vue par défaut)** : nouvelle vue `home` — hero (titre, tagline, stats),
+  8 tuiles de raccourci (`renderHome`, ui.js), et déplacement du carrousel hélice, du
+  saisonnier, de la carte du monde et des « récemment consultées » de browse vers home
+  (gardes `S.view==='home'` dans app.js/map.js). Nouvelle zone `#home-hero-zone` +
+  réordonnancement des zones dans index.html. `setView` pose `body[data-view]` et remonte
+  en haut de page ; `goBack`/`render()` simplifiés pour passer par `setView`.
+- **Ergonomie navigation** : topbar réduite de 9 à 7 boutons (Accueil, Recettes, Idées β,
+  Menu, Favoris, Courses, Réglages) ; Frigo (avec compteur), Surprise et Créer déplacés
+  dans la barre d'outils du catalogue (`.toolbar-btn` dans `renderFilters`) et en tuiles
+  d'accueil ; clic carte du monde depuis l'Accueil → ouvre le catalogue filtré ;
+  raccourci `G`+`H` → Accueil ; logo → Accueil.
+- Vérifications : `node --check` OK ; tests navigateur complets (accueil/zones, tuiles,
+  fiche sans boutons d'export, frigo toolbar, carte→catalogue, réglages sans CSV/JSON,
+  retour logo, zéro erreur console).
 
 ### 2026-06-10 — v36 : Générateur d'idées (Bêta) + changelog complet
 - **Créé `PROJECT.md`** (ce fichier).

@@ -68,7 +68,9 @@
     var c=e.ctrlKey||e.metaKey;
     if(e.key==='F12'
       ||(c&&e.shiftKey&&'IJCijc'.includes(e.key))
-      ||(c&&'uUsS'.includes(e.key))){
+      ||(c&&'uUsS'.includes(e.key))
+      // v37 : impression bloquée sur une fiche recette (recettes exclusives à l'app)
+      ||(c&&'pP'.includes(e.key)&&document.body&&document.body.getAttribute('data-view')==='recipe')){
       e.preventDefault(); _pt();
     }
   });
@@ -112,9 +114,18 @@
       onclick="showSearchHelp()">?</button>
   </div>
   <nav class="topbar-nav" role="navigation" aria-label="Navigation principale">
-    <button class="nav-btn active" id="nav-browse" onclick="setView('browse')"
+    <button class="nav-btn active" id="nav-home" onclick="setView('home')"
+      aria-label="Accueil">
+      <span aria-hidden="true">🏠</span><span class="nav-lbl"> Accueil</span>
+    </button>
+    <button class="nav-btn" id="nav-browse" onclick="setView('browse')"
       aria-label="Toutes les recettes">
       <span aria-hidden="true">🍽</span><span class="nav-lbl"> Recettes</span>
+    </button>
+    <button class="nav-btn" id="nav-reco" onclick="setView('reco')"
+      aria-label="Générateur d'idées de recettes (bêta)">
+      <span aria-hidden="true">💡</span><span class="nav-lbl"> Idées</span>
+      <span class="nav-beta" aria-hidden="true">β</span>
     </button>
     <button class="nav-btn" id="nav-menu" onclick="setView('menu')"
       aria-label="Menu de la semaine">
@@ -130,38 +141,23 @@
       <span aria-hidden="true">🛒</span><span class="nav-lbl"> Courses</span>
       <span class="badge" id="cart-badge" style="display:none" aria-live="polite">0</span>
     </button>
-    <button class="nav-btn" id="nav-frigo" onclick="toggleFrigo()"
-      aria-label="Filtrer par ingrédients du frigo">
-      <span aria-hidden="true">🧊</span><span class="nav-lbl"> Frigo</span>
-      <span class="badge" id="frigo-badge" style="display:none" aria-live="polite">0</span>
-    </button>
-    <button class="nav-btn" id="nav-reco" onclick="setView('reco')"
-      aria-label="Générateur d'idées de recettes (bêta)">
-      <span aria-hidden="true">💡</span><span class="nav-lbl"> Idées</span>
-      <span class="nav-beta" aria-hidden="true">β</span>
-    </button>
     <button class="nav-btn" id="nav-settings" onclick="setView('settings')"
       aria-label="Paramètres, sauvegarde et statistiques">
       <span aria-hidden="true">⚙️</span><span class="nav-lbl"> Réglages</span>
-    </button>
-    <button class="nav-btn" id="nav-create" onclick="setView('create')"
-      aria-label="Créer une recette">
-      <span aria-hidden="true">✍️</span><span class="nav-lbl"> Créer</span>
-    </button>
-    <button class="nav-btn" id="nav-random" onclick="openRandom()"
-      aria-label="Recette aléatoire">
-      <span aria-hidden="true">🎲</span><span class="nav-lbl"> Surprise</span>
     </button>
   </nav>
 </header>
 
 <div class="content-area" id="content-area">
-  <div id="filters-zone" role="search" aria-label="Filtres de recettes"></div>
-  <div id="frigo-zone" style="display:none"></div>
-  <div id="recent-zone"></div>
+  <!-- Zones Accueil (visibles uniquement sur la vue home) -->
+  <div id="home-hero-zone"></div>
   <div id="helix-zone"></div>
   <div id="seasonal-zone"></div>
   <div id="map-zone"></div>
+  <div id="recent-zone"></div>
+  <!-- Zones Catalogue (visibles uniquement sur la vue browse) -->
+  <div id="filters-zone" role="search" aria-label="Filtres de recettes"></div>
+  <div id="frigo-zone" style="display:none"></div>
   <main id="main" role="main"></main>
 </div>
 
@@ -206,6 +202,7 @@
   <div class="shortcuts-modal">
     <h2>⌨️ Raccourcis clavier</h2>
     <div class="shortcuts-row"><span>Rechercher</span><span class="shortcuts-keys"><kbd>/</kbd></span></div>
+    <div class="shortcuts-row"><span>Accueil</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>H</kbd></span></div>
     <div class="shortcuts-row"><span>Recettes</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>R</kbd></span></div>
     <div class="shortcuts-row"><span>Favoris</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>F</kbd></span></div>
     <div class="shortcuts-row"><span>Courses</span><span class="shortcuts-keys"><kbd>G</kbd> <kbd>C</kbd></span></div>
@@ -232,8 +229,6 @@
   </div>
 </div>
 
-<!-- jsPDF — export PDF côté client (audit #23) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-DLBP9GpXSPi96KlhCkJ6GgvUuqFMlFBNVBK/IfYpNBqhM2UiMmOEVST7WJ7YRaqFgwGHZnHcvEjgCpYwDSoQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="js/data.js"></script>
 <!-- Recettes par pays (ordre = volume décroissant) -->
 <script src="js/data/asie.js"></script>
