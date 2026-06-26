@@ -2,6 +2,14 @@
 
 ---
 
+## v40 — 2026-06-11
+
+### 🍹 15 nouveaux cocktails — la carte passe à 30
+- Old Fashioned, Manhattan, Whisky Sour, Gin Tonic, Moscow Mule, Pisco Sour, Caipiroska, Bellini, Kir Royal, Espresso Martini, Long Island Iced Tea, Sidecar, Dark 'n' Stormy, French 75, Paloma
+- Chacun avec sa version Classique et sa version Sans alcool (sélecteur sur la fiche), comme les 15 premiers cocktails
+
+---
+
 ## v39 — 2026-06-11
 
 ### 🎨 Nouvelle identité visuelle

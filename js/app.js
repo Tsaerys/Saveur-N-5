@@ -5,8 +5,17 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v39';
+var _SN5_VER = 'v40';
 var _SN5_LOG = [
+  {
+    v: 'v40', date: '11 juin 2026', titre: '15 nouveaux cocktails — la carte passe à 30',
+    items: [
+      '🍹 15 nouveaux classiques : Old Fashioned, Manhattan, Whisky Sour, Gin Tonic, Moscow Mule, Pisco Sour, Caipiroska, Bellini, Kir Royal, Espresso Martini, Long Island Iced Tea, Sidecar, Dark \'n\' Stormy, French 75, Paloma',
+      '🍸/🌿 Chacun avec sa version Classique et sa version Sans alcool, comme les 15 premiers',
+      '📊 La catégorie Cocktails passe à 30 boissons au total',
+      '⚫ SW v40'
+    ]
+  },
   {
     v: 'v39', date: '11 juin 2026', titre: 'Nouvelle identité visuelle (logo)',
     items: [

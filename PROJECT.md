@@ -15,7 +15,7 @@ Ramsay, Acurio…), avec un niveau de détail professionnel (techniques, accords
 
 - **Type** : SPA 100 % statique, PWA installable, fonctionne entièrement hors-ligne.
 - **URL de production** : https://tsaerys.github.io/Saveur-N-5/ (GitHub Pages).
-- **Version courante** : **v39** (2026-06-11).
+- **Version courante** : **v40** (2026-06-11).
 - **Public** : usage personnel/familial, mais le site est public et indexé.
 - **⚠️ Règle produit (v37)** : les recettes sont **exclusives à l'application** — aucun
   export (PDF/CSV/JSON), impression des fiches bloquée. Seules la liste de courses et la
@@ -143,7 +143,7 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
   Courses, Réglages) ; Frigo/Surprise/Créer vivent dans la barre d'outils du catalogue
 - ✅ **Cocktails (v38)** : catégorie « Cocktail », 15 classiques mondiaux, chacun avec
   version Classique + Sans-alcool (virgin) basculable sur la fiche ; tuile d'accueil dédiée
-- ✅ Catalogue 851 recettes (vue épurée : filtres + grille), grille/liste, pagination infinie (IntersectionObserver)
+- ✅ Catalogue 866 recettes (vue épurée : filtres + grille), grille/liste, pagination infinie (IntersectionObserver)
 - ✅ Recherche avancée : `chef:`, `pays:`, `cat:`, `ing:`, `-exclusion`, `"phrase exacte"` + recherche vocale (Web Speech)
 - ✅ Filtres : pays, catégorie, difficulté, temps, qualité, rayon, saison, chef (autocomplete), multi-sélection, 5 régimes (végé, sans gluten/lactose/fruits de mer/poissons), tri
 - ✅ Mode Frigo : matching par ingrédients disponibles (+ mode strict)
@@ -162,13 +162,13 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
 
 ## 6. Données recettes
 
-- **Total : 851 recettes** réparties en 22 fichiers `js/data/*.js` (dont `cocktails.js`, v38).
+- **Total : 866 recettes** réparties en 22 fichiers `js/data/*.js` (dont `cocktails.js`, v38).
 - **Cuisines** (`co`) : France, Asie, Italie, Espagne, Grèce, Maroc, Mexique, Scandinavie,
   Amérique du Sud, Afrique, Argentine, États-Unis, Moyen-Orient, Pérou, Brésil, Portugal,
   Tunisie, Éthiopie, Caraïbes, Cuba, Europe Centrale, Turquie, Allemagne, Hongrie, Liban,
   Pologne, Royaume-Uni, Canada. Les cocktails réutilisent des `co` existants (Cuba, Mexique,
   Brésil, Caraïbes, Italie, Espagne, France, États-Unis).
-- **Catégories** : Plat ~467, Dessert ~162, Entrée ~125, **Cocktail 15 (v38)**,
+- **Catégories** : Plat ~467, Dessert ~162, Entrée ~125, **Cocktail 30 (v38→v40)**,
   Sauce / Base 38, Accompagnement 38, Assaisonnement 6.
 - Structure : voir contrainte §4.4. Les recettes utilisateur (`U…`) et assemblées (`GEN…`)
   vivent en localStorage et sont fusionnées dans `RECIPES` à l'init
@@ -231,6 +231,17 @@ Fonctionnalité **zéro coût, zéro réseau** : la base `RECIPES` est l'unique 
 ## 10. Journal des sessions
 
 > ⚠️ Ajouter une entrée ici à la FIN de chaque session (plus récent en premier).
+
+### 2026-06-11 — v40 : +15 cocktails (carte portée à 30)
+- **js/data/cocktails.js** : ajout de CK016-CK030 (Old Fashioned, Manhattan, Whisky Sour,
+  Gin Tonic, Moscow Mule, Pisco Sour, Caipiroska, Bellini, Kir Royal, Espresso Martini,
+  Long Island Iced Tea, Sidecar, Dark 'n' Stormy, French 75, Paloma) — même schéma que les
+  15 premiers (`virgin:{ig,et}`). Catalogue total : 866 recettes (30 cocktails).
+- **sw.js** : CACHE_NAME → v40. **app.js** : `_SN5_VER='v40'` + entrée changelog.
+  **CHANGELOG.md** : entrée v40.
+- Aucun changement de code applicatif (UI, filtres, sélecteur classique/virgin déjà en
+  place depuis v38) — uniquement des données.
+- Vérifications : `node --check` OK, 30/30 cocktails comptés dans le fichier.
 
 ### 2026-06-11 — v39 : Nouvelle identité visuelle (logo)
 - **Icônes régénérées** depuis `images/Icon Saveur N°5.png` (source 1620×1608, conservée comme
