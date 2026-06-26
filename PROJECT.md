@@ -15,7 +15,7 @@ Ramsay, Acurio…), avec un niveau de détail professionnel (techniques, accords
 
 - **Type** : SPA 100 % statique, PWA installable, fonctionne entièrement hors-ligne.
 - **URL de production** : https://tsaerys.github.io/Saveur-N-5/ (GitHub Pages).
-- **Version courante** : **v37** (2026-06-11).
+- **Version courante** : **v38** (2026-06-11).
 - **Public** : usage personnel/familial, mais le site est public et indexé.
 - **⚠️ Règle produit (v37)** : les recettes sont **exclusives à l'application** — aucun
   export (PDF/CSV/JSON), impression des fiches bloquée. Seules la liste de courses et la
@@ -111,8 +111,12 @@ saveur-n5-v14/                  ← racine du repo git (le vrai "projet")
    ```
    IDs = préfixe pays + numéro zéro-paddé (FR001, IT042, U001 pour l'utilisateur, GENxxxx
    pour les recettes assemblées). **Pas de backticks dans les fichiers de données.**
-5. **Catégories autorisées** (`CATS` dans state.js) : Entrée, Plat, Dessert, Sauce / Base,
-   Accompagnement, Assaisonnement. Les soupes → `cat:"Plat"` ou `"Entrée"` + `sous:"Soupe"`.
+5. **Catégories autorisées** (`CATS` dans state.js) : Entrée, Plat, Dessert, **Cocktail** (v38),
+   Sauce / Base, Accompagnement, Assaisonnement. Les soupes → `cat:"Plat"` ou `"Entrée"` +
+   `sous:"Soupe"`. Les **cocktails** ont un champ supplémentaire
+   `virgin:{ig:[...],et:"..."}` = version sans alcool ; la fiche affiche un sélecteur
+   Classique/Sans-alcool (`S.cocktail_version`, `setCocktailVersion`). Ajouter une catégorie
+   = la mettre dans `CATS` + `CAT_COLORS` + `PHOTO_EMOJIS` + une classe `.cat-<X>` en CSS.
 6. **Dégradation propre de toute dépendance CDN** : tester `typeof X !== 'undefined'` et
    prévoir un fallback (jsPDF → `window.print()`, D3 → carte absente, app intacte).
 7. **localStorage uniquement**, clés préfixées `sn5_` (récentes) ou courtes historiques
@@ -137,7 +141,9 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
   logo et `G`+`H` y ramènent
 - ✅ **Navigation (v37)** : topbar 7 boutons (Accueil, Recettes, Idées β, Menu, Favoris,
   Courses, Réglages) ; Frigo/Surprise/Créer vivent dans la barre d'outils du catalogue
-- ✅ Catalogue 836 recettes (vue épurée : filtres + grille), grille/liste, pagination infinie (IntersectionObserver)
+- ✅ **Cocktails (v38)** : catégorie « Cocktail », 15 classiques mondiaux, chacun avec
+  version Classique + Sans-alcool (virgin) basculable sur la fiche ; tuile d'accueil dédiée
+- ✅ Catalogue 851 recettes (vue épurée : filtres + grille), grille/liste, pagination infinie (IntersectionObserver)
 - ✅ Recherche avancée : `chef:`, `pays:`, `cat:`, `ing:`, `-exclusion`, `"phrase exacte"` + recherche vocale (Web Speech)
 - ✅ Filtres : pays, catégorie, difficulté, temps, qualité, rayon, saison, chef (autocomplete), multi-sélection, 5 régimes (végé, sans gluten/lactose/fruits de mer/poissons), tri
 - ✅ Mode Frigo : matching par ingrédients disponibles (+ mode strict)
@@ -156,14 +162,14 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
 
 ## 6. Données recettes
 
-- **Total : 836 recettes** réparties en 21 fichiers `js/data/*.js`.
-- **28 cuisines** (`co`) : France 205, Asie 193, Italie 158, Espagne 54, Grèce 25, Maroc 24,
-  Mexique 17, Scandinavie 15, Amérique du Sud 14, Afrique 13, Argentine 12, États-Unis 12,
-  Moyen-Orient 12, Pérou 11, Brésil 10, Portugal 10, Tunisie 10, Éthiopie 8, Caraïbes 7,
-  Cuba 5, Europe Centrale 5, Turquie 5, Allemagne 2, Hongrie 2, Liban 2, Pologne 2,
-  Royaume-Uni 2, Canada 1.
-- **Catégories** : Plat 467, Dessert 162, Entrée 125, Sauce / Base 38, Accompagnement 38,
-  Assaisonnement 6.
+- **Total : 851 recettes** réparties en 22 fichiers `js/data/*.js` (dont `cocktails.js`, v38).
+- **Cuisines** (`co`) : France, Asie, Italie, Espagne, Grèce, Maroc, Mexique, Scandinavie,
+  Amérique du Sud, Afrique, Argentine, États-Unis, Moyen-Orient, Pérou, Brésil, Portugal,
+  Tunisie, Éthiopie, Caraïbes, Cuba, Europe Centrale, Turquie, Allemagne, Hongrie, Liban,
+  Pologne, Royaume-Uni, Canada. Les cocktails réutilisent des `co` existants (Cuba, Mexique,
+  Brésil, Caraïbes, Italie, Espagne, France, États-Unis).
+- **Catégories** : Plat ~467, Dessert ~162, Entrée ~125, **Cocktail 15 (v38)**,
+  Sauce / Base 38, Accompagnement 38, Assaisonnement 6.
 - Structure : voir contrainte §4.4. Les recettes utilisateur (`U…`) et assemblées (`GEN…`)
   vivent en localStorage et sont fusionnées dans `RECIPES` à l'init
   (`initUserRecipes()` / `initRecoRecipes()`).
@@ -225,6 +231,24 @@ Fonctionnalité **zéro coût, zéro réseau** : la base `RECIPES` est l'unique 
 ## 10. Journal des sessions
 
 > ⚠️ Ajouter une entrée ici à la FIN de chaque session (plus récent en premier).
+
+### 2026-06-11 — v38 : Catégorie Cocktails (classique + virgin)
+- **Nouveau `js/data/cocktails.js`** : 15 cocktails classiques (`cat:"Cocktail"`, IDs CK001-CK015),
+  chacun avec un champ `virgin:{ig,et}` = version sans alcool. Réutilise des `co` existants.
+- **state.js** : « Cocktail » ajouté à `CATS`, `CAT_COLORS` (#b81d6a), `PHOTO_EMOJIS` (🍹) ;
+  nouvel état `S.cocktail_version` ('classic'|'virgin').
+- **ui.js** : `renderDetail` calcule la version active (classique/virgin) pour ingrédients ET
+  étapes, affiche un sélecteur `.cocktail-switch` (Classique gauche / Sans alcool droite),
+  masque les pastilles végé/gluten et le bloc accord-vin (désormais conditionnel) pour les
+  cocktails, libellé « Verres ». `setCocktailVersion()` ; `updateIngrList()` respecte la
+  version ; `openRecipe` réinitialise à 'classic' ; emoji/gradient cocktail ; tuile « Cocktails »
+  sur l'Accueil + helper `openCategory()`.
+- **CSS** : `.cat-Cocktail` (clair + dark), `.cocktail-switch`/`.ck-switch-btn` (actif magenta /
+  virgin vert).
+- **index.html + sw.js** : `cocktails.js` ajouté au chargement et à l'app shell ; SW v38.
+- Vérifications : `node --check` OK ; tests navigateur (851 recettes, 15 cocktails tous avec
+  virgin, fiche Mojito : classique=avec rhum / virgin=sans rhum, étapes basculées, filtre
+  catégorie Cocktail=15 cartes, tuile accueil, zéro erreur console).
 
 ### 2026-06-11 — v37 : Page Accueil + navigation repensée + recettes exclusives
 - **Recettes exclusives à l'app** : suppression de `exportRecipePDF` et `exportCatalogue`

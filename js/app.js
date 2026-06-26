@@ -5,8 +5,18 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v37';
+var _SN5_VER = 'v38';
 var _SN5_LOG = [
+  {
+    v: 'v38', date: '11 juin 2026', titre: 'Nouvelle catégorie Cocktails (avec versions sans alcool)',
+    items: [
+      '🍹 Nouvelle catégorie « Cocktails » : 15 grands classiques (Mojito, Piña Colada, Margarita, Daiquiri, Caïpirinha, Cosmopolitan, Aperol Spritz, Negroni, Bloody Mary, Sangria, Mimosa…)',
+      '🍸/🌿 Chaque cocktail propose un sélecteur Classique / Sans alcool (« virgin ») directement sur sa fiche',
+      '🏠 Accès rapide depuis une tuile « Cocktails » sur l\'Accueil, et via le filtre Catégorie du catalogue',
+      '🔎 Recherche et filtres compatibles (catégorie, ingrédients, pays d\'origine)',
+      '⚫ SW v38 — js/data/cocktails.js ajouté à l\'app shell'
+    ]
+  },
   {
     v: 'v37', date: '11 juin 2026', titre: 'Page Accueil + navigation repensée + recettes exclusives',
     items: [

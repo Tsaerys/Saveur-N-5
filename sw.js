@@ -1,7 +1,7 @@
 // Saveur N°5 — Service Worker
 // Cache l'app shell pour le mode hors ligne
 
-const CACHE_NAME = 'saveur-n5-v37';
+const CACHE_NAME = 'saveur-n5-v38';
 const APP_SHELL = [
   './',
   './index.html',
@@ -29,6 +29,7 @@ const APP_SHELL = [
   './js/data/amerique-du-sud.js',
   './js/data/caraibes.js',
   './js/data/divers.js',
+  './js/data/cocktails.js',
   './js/state.js',
   './js/logic.js',
   './js/reco.js',

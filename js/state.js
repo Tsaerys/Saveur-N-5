@@ -4,7 +4,7 @@
 // ── CONSTANTES ─────────────────────────────────────────────────────────────
 const FLAGS={France:"🇫🇷",Italie:"🇮🇹","Grèce":"🇬🇷",Espagne:"🇪🇸",Asie:"🌏","États-Unis":"🇺🇸",Mexique:"🇲🇽",Maroc:"🇲🇦",Liban:"🇱🇧",Portugal:"🇵🇹",Scandinavie:"🇸🇪",Allemagne:"🇩🇪","Royaume-Uni":"🇬🇧",Argentine:"🇦🇷","Moyen-Orient":"🌍",Tunisie:"🇹🇳","Éthiopie":"🇪🇹",Pérou:"🇵🇪",Brésil:"🇧🇷","Amérique du Sud":"🌎",Cuba:"🇨🇺","Caraïbes":"🌴",Pologne:"🇵🇱",Hongrie:"🇭🇺","Europe Centrale":"🇪🇺",Afrique:"🌍","Sénégal":"🇸🇳",Canada:"🇨🇦",Turquie:"🇹🇷"};
 const COUNTRIES=[...new Set(RECIPES.map(r=>r.co))];
-const CATS=["Entrée","Plat","Dessert","Sauce / Base","Accompagnement","Assaisonnement"];
+const CATS=["Entrée","Plat","Dessert","Cocktail","Sauce / Base","Accompagnement","Assaisonnement"];
 const QUAL_LABELS={1:"Source locale",2:"Recette courante",3:"Bonne source",4:"Référence reconnue",5:"Référence absolue"};
 const QUAL_COLORS={1:"#aaa",2:"#f39c12",3:"#e67e22",4:"#27ae60",5:"#c0392b"};
 const RAYON_ORDER=["Fruits et légumes","Boucherie / Charcuterie","Poissonnerie","Produits laitiers","Épicerie","Vins et spiritueux","Divers"];
@@ -17,7 +17,7 @@ const RAYON_MAP={
   "Vins et spiritueux":["vin rouge","vin blanc","champagne","cognac","calvados","armagnac","rhum","grand marnier","cointreau","marsala","porto","saké"],
   "Divers":["sel","poivre","épice","bouquet garni","noix de muscade","cannelle","cumin","curcuma","safran","paprika","piment","genévrier","clou de girofle","herbes","qs","quantité suffisante"]
 };
-const CAT_COLORS={Entrée:"#1a5a9a",Plat:"#9a1a1a",Dessert:"#1a6a1a","Sauce / Base":"#8a6010"};
+const CAT_COLORS={Entrée:"#1a5a9a",Plat:"#9a1a1a",Dessert:"#1a6a1a",Cocktail:"#b81d6a","Sauce / Base":"#8a6010"};
 // Teintes par cuisine — accent discret sur les cartes pour différencier les pays
 const COUNTRY_COLORS={
   "France":"#1f5aa8",
@@ -50,7 +50,7 @@ const COUNTRY_COLORS={
   "Canada":"#c0402a",
   "Turquie":"#8a2020"
 };
-const PHOTO_EMOJIS={"Entrée":"🥗","Plat":"🍽","Dessert":"🍰","Sauce / Base":"🫙"};
+const PHOTO_EMOJIS={"Entrée":"🥗","Plat":"🍽","Dessert":"🍰","Cocktail":"🍹","Sauce / Base":"🫙"};
 const UNIT_DEC=["g","cl","ml","kg","L"];
 const UNIT_HALF=["pièces","pièce","cs","cc","gousses","gousse","feuilles","feuille","branches","branche","tiges","tranche","tranches","pincée","bouquet","cm"];
 const UNIT_CONV={"g":{"oz":0.0353},"kg":{"lb":2.2046},"cl":{"fl oz":0.338,"verre":0.1},"ml":{"fl oz":0.0338},"cs":{"ml":15,"cl":1.5},"cc":{"ml":5,"cl":0.5}};
@@ -64,7 +64,7 @@ const REGIME_KW={
 var _wakeLock=null;
 // Restauration du frigo depuis localStorage (persistence session)
 var _frigoSaved=(function(){try{return JSON.parse(localStorage.getItem('sn5_frigo'))||{};}catch{return{};}})();
-let S={view:"home",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:"",saison:"",chef:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid')};
+let S={view:"home",recipe:null,portions:4,filters:{co:"",cat:"",diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:"",saison:"",chef:""},frigo_active:false,frigo_ings:Array.isArray(_frigoSaved.ings)?_frigoSaved.ings.slice():[],frigo_strict:!!_frigoSaved.strict,variant:null,cooking:null,cooking_step:0,timer_interval:null,timer_remaining:0,timer_running:false,unit_mode:"metric",menu_generated:null,_editId:null,view_mode:lsGet('sn5_viewmode','grid'),cocktail_version:"classic"};
 
 // ── MINUTEURS MULTIPLES (G1 v33) ───────────────────────────────────────────
 // Chaque timer = {id, label, totalSec, startedAt, pausedAt, pausedTotal, paused, done, soundIdx}

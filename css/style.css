@@ -166,6 +166,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1
 .cat-Entrée{background:var(--cat-e-bg);color:var(--cat-e)}
 .cat-Plat{background:var(--cat-p-bg);color:var(--cat-p)}
 .cat-Dessert{background:var(--cat-d-bg);color:var(--cat-d)}
+.cat-Cocktail{background:#fce4ee;color:#b81d6a}
+[data-theme="dark"] .cat-Cocktail{background:rgba(184,29,106,.22);color:#f3a6c8;border:1px solid rgba(243,166,200,.3)}
 .cat-Sauce{background:var(--cat-s-bg);color:var(--cat-s)}
 .diff-dots{display:flex;gap:3px;padding-top:2px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--bord2)}
@@ -2481,3 +2483,14 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
 .toolbar-count{background:var(--gold-l,#d4aa55);color:#fff;font-size:10px;font-weight:700;border-radius:9px;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
 [data-theme="dark"] .toolbar-btn.active{background:#2a2540}
 @media (max-width:760px){.toolbar-btn .toolbar-lbl{display:none}.toolbar-btn{padding:7px 9px}}
+
+/* ── SÉLECTEUR COCKTAIL : Classique / Sans alcool (v38) ─────────────────── */
+.cocktail-switch{display:flex;gap:0;margin:14px 0 4px;border:1.5px solid var(--bord);border-radius:var(--rx);overflow:hidden;max-width:420px}
+.ck-switch-btn{flex:1;background:var(--surf);border:none;padding:11px 14px;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.ck-switch-btn+.ck-switch-btn{border-left:1.5px solid var(--bord)}
+.ck-switch-btn:hover{background:var(--bg3)}
+.ck-switch-btn.active{background:#b81d6a;color:#fff}
+.ck-switch-virgin.active{background:#2a8a3b}
+[data-theme="dark"] .ck-switch-btn{background:#1d1d33;color:var(--text3)}
+[data-theme="dark"] .ck-switch-btn.active{background:#b81d6a;color:#fff}
+[data-theme="dark"] .ck-switch-virgin.active{background:#2a8a3b;color:#fff}

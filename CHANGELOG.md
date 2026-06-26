@@ -2,6 +2,16 @@
 
 ---
 
+## v38 — 2026-06-11
+
+### 🍹 Nouvelle catégorie « Cocktails »
+- 15 grands classiques mondiaux : Mojito, Piña Colada, Margarita, Daiquiri, Caïpirinha, Cosmopolitan, Tequila Sunrise, Cuba Libre, Aperol Spritz, Negroni, Bloody Mary, Sex on the Beach, Mai Tai, Sangria, Mimosa
+- **Chaque cocktail propose sa version Classique ET sa version Sans alcool (« virgin »)** — un simple sélecteur sur la fiche bascule entre les deux (ingrédients et étapes adaptés)
+- Accès via une tuile « Cocktails » sur l'Accueil et via le filtre Catégorie du catalogue
+- Compatible recherche, filtres, favoris et liste de courses
+
+---
+
 ## v37 — 2026-06-11
 
 ### 🏠 Nouvelle page Accueil

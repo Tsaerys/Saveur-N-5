@@ -39,6 +39,7 @@ function recipeEmoji(cat,nom){
   if(nomL.includes('pain')||nomL.includes('brioche')||nomL.includes('naan'))return'🍞';
   if(nomL.includes('couscous')||nomL.includes('tajine'))return'🫕';
   if(nomL.includes('legume')||nomL.includes('légume')||nomL.includes('ratatouille')||nomL.includes('aubergine'))return'🥦';
+  if(cat==='Cocktail')return'🍹';
   if(cat==='Dessert')return'🍰';
   if(cat==='Entrée')return'🥗';
   if(cat==='Sauce / Base')return'🫙';
@@ -48,6 +49,7 @@ function recipeGradient(cat){
   if(cat==='Entrée')return'linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 100%)';
   if(cat==='Plat')return'linear-gradient(135deg,#fff3e0 0%,#ffe0b2 100%)';
   if(cat==='Dessert')return'linear-gradient(135deg,#fce4ec 0%,#f8bbd0 100%)';
+  if(cat==='Cocktail')return'linear-gradient(135deg,#fde7f0 0%,#f8bbd0 100%)';
   return'linear-gradient(135deg,#f3e5f5 0%,#e1bee7 100%)';
 }
 
@@ -601,6 +603,10 @@ function _recipeEmoji(r){
   // Inspecter sous-catégorie + nom + ingrédients (joints en minuscules)
   var hay=((r.sous||'')+' '+r.nom+' '+(r.ig||[]).map(function(x){return x[0];}).join(' ')).toLowerCase();
   // Ordre : motifs spécifiques d'abord, fallback générique ensuite
+  if(r.cat==='Cocktail'){
+    if(/martini|cosmopolitan|negroni|daiquiri|margarita/.test(hay))return '🍸';
+    return '🍹';
+  }
   if(/saumon|bar |loup |sole|cabillaud|morue|merlu|brandade|gravlax|ceviche|sashimi/.test(hay))return '🐟';
   if(/crevette|gambas|homard|langoustine|crabe|écrevisse|sashimi/.test(hay))return '🦐';
   if(/poulpe|calmar|seiche|encornet|moule|huître|coquillage|palourde|saint-jacques|coquille/.test(hay))return '🦑';
@@ -861,7 +867,7 @@ function openRandom(){
 // ── DETAIL ────────────────────────────────────────────────────────────────
 function openRecipe(id){
   S.recipe=RECIPES.find(r=>r.id===id);
-  S.portions=S.recipe.bp;S.view="recipe";S.unit_mode="metric";
+  S.portions=S.recipe.bp;S.view="recipe";S.unit_mode="metric";S.cocktail_version="classic";
   document.body.setAttribute("data-view","recipe");
   addRecent(id);
   ["search-zone","filters-zone","frigo-zone","recent-zone","helix-zone","seasonal-zone","map-zone","home-hero-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
@@ -872,19 +878,31 @@ function openRecipe(id){
 
 function renderDetail(){
   const r=S.recipe;const ratio=S.portions/r.bp;
+  // v38 : cocktails — version Classique (alcool) ou Sans alcool (virgin)
+  const isCocktail=(r.cat==='Cocktail'&&r.virgin&&Array.isArray(r.virgin.ig));
+  const useVirgin=isCocktail&&S.cocktail_version==='virgin';
+  const igSrc=useVirgin?r.virgin.ig:r.ig;
+  const etSrc=useVirgin?(r.virgin.et||r.et):r.et;
   const isFav=FAVS.has(r.id),inCart=CART.has(r.id);
   const note=NOTES[r.id]||"";
   const rating=RATINGS[r.id]||0;
 
-  const ig=r.ig.map(([n,q,u])=>`
+  const ig=igSrc.map(([n,q,u])=>`
     <li class="ingr-item">
       <span class="ingr-name">${n}</span>
       <span class="ingr-qty">${u==="qs"?"q.s.":fmtQty(q*ratio,u)}</span>
     </li>`).join("");
 
+  const cocktailSwitch=isCocktail?`
+    <div class="cocktail-switch" role="group" aria-label="Choisir la version de la boisson">
+      <button class="ck-switch-btn${useVirgin?'':' active'}" aria-pressed="${!useVirgin}" onclick="setCocktailVersion('classic')">🍸 Classique</button>
+      <button class="ck-switch-btn ck-switch-virgin${useVirgin?' active':''}" aria-pressed="${useVirgin}" onclick="setCocktailVersion('virgin')">🌿 Sans alcool</button>
+    </div>`:"";
+  const vinBlock=r.vin?`<div class="vin-block"><div class="vin-lbl">Accord vin / boisson</div><div class="vin-txt">${r.vin}</div></div>`:"";
+
   const doneSteps=_getDoneSteps(r.id);
   let stepNum=0;
-  const steps=r.et.split("\n").filter(s=>s.trim()).map(s=>{
+  const steps=etSrc.split("\n").filter(s=>s.trim()).map(s=>{
     const isHead=!s.match(/^\d+[\.\)]/);
     if(isHead)return`<div class="etape-item section-head">${s}</div>`;
     stepNum++;
@@ -940,20 +958,21 @@ function renderDetail(){
           <span class="info-pill">⏲ Prépa : ${r.prep} min</span>
           <span class="info-pill">🔥 Cuisson : ${r.cui===0?"Aucune":r.cui+" min"}</span>
           <span class="info-pill">${dots(r.diff)} ${r.diff}/5</span>
-          ${isVege(r)?'<span class="info-pill" style="color:#2a7a2a">🌿 Végétarien</span>':""}
-          ${isGlutenFree(r)?'<span class="info-pill" style="color:#6a4a1a">🌾 Sans gluten</span>':""}
+          ${(!isCocktail&&isVege(r))?'<span class="info-pill" style="color:#2a7a2a">🌿 Végétarien</span>':""}
+          ${(!isCocktail&&isGlutenFree(r))?'<span class="info-pill" style="color:#6a4a1a">🌾 Sans gluten</span>':""}
           ${rating>0?`<span class="info-pill" style="color:#8a6010">${"★".repeat(rating)} Ma note</span>`:""}
         </div>
+        ${cocktailSwitch}
         <div class="detail-body">
           <div class="col-l">
             <div class="sec-lbl">Ingrédients</div>
             <div class="portions-ctrl">
-              <span class="portions-lbl">Personnes</span>
+              <span class="portions-lbl">${isCocktail?'Verres':'Personnes'}</span>
               <button class="qty-btn" aria-label="Réduire les portions" onclick="changePortion(-1)">−</button>
               <span class="qty-val" id="qv" aria-live="polite">${S.portions}</span>
               <button class="qty-btn" aria-label="Augmenter les portions" onclick="changePortion(1)">+</button>
             </div>
-            <div class="portions-hint">Base : ${r.bp} pers. · Les quantités s'ajustent automatiquement</div>
+            <div class="portions-hint">Base : ${r.bp} ${isCocktail?(r.bp>1?'verres':'verre'):'pers.'} · Les quantités s'ajustent automatiquement</div>
             <div class="unit-toggle-bar">
               <span style="font-size:11px;color:var(--text4);font-weight:500">Unités :</span>
               <button class="unit-toggle-btn${S.unit_mode==="metric"?" active":""}" aria-pressed="${S.unit_mode==="metric"}" onclick="setUnitMode('metric')">Métrique</button>
@@ -963,7 +982,7 @@ function renderDetail(){
             <ul class="ingr-list" id="ingr-list">${ig}</ul>
             ${variantHtml}
           ${prepAvHtml}
-            <div class="vin-block"><div class="vin-lbl">Accord vin / boisson</div><div class="vin-txt">${r.vin}</div></div>
+            ${vinBlock}
             <div class="notes-box">${r.notes}</div>
             <div style="margin-top:12px">
               <div class="pnotes-lbl">Mes notes personnelles</div>
@@ -1014,9 +1033,13 @@ function _closeActMore(){
 }
 function changePortion(d){S.portions=Math.max(1,S.portions+d);document.getElementById("qv").textContent=S.portions;updateIngrList();}
 function setUnitMode(m){S.unit_mode=m;renderDetail();}
+// v38 : bascule Classique / Sans alcool sur une fiche cocktail
+function setCocktailVersion(v){S.cocktail_version=(v==='virgin')?'virgin':'classic';renderDetail();}
 function updateIngrList(){
   const r=S.recipe;const ratio=S.portions/r.bp;
-  document.getElementById("ingr-list").innerHTML=r.ig.map(([n,q,u])=>`<li class="ingr-item"><span class="ingr-name">${n}</span><span class="ingr-qty">${u==="qs"?"q.s.":fmtQty(q*ratio,u)}</span></li>`).join("");
+  const useVirgin=(r.cat==='Cocktail'&&r.virgin&&Array.isArray(r.virgin.ig)&&S.cocktail_version==='virgin');
+  const igSrc=useVirgin?r.virgin.ig:r.ig;
+  document.getElementById("ingr-list").innerHTML=igSrc.map(([n,q,u])=>`<li class="ingr-item"><span class="ingr-name">${n}</span><span class="ingr-qty">${u==="qs"?"q.s.":fmtQty(q*ratio,u)}</span></li>`).join("");
 }
 
 function goBack(){
@@ -2272,6 +2295,14 @@ function crDelete(id){
   setView('browse');
 }
 
+// Ouvre le catalogue filtré sur une catégorie (utilisé par les tuiles d'accueil)
+function openCategory(cat){
+  S.filters={co:"",cat:cat,diff:"",time:"",q:"",regime:"",qual:"",rayon:"",sort:"",saison:"",chef:""};
+  var qi=document.getElementById('qi');if(qi)qi.value="";
+  setView('browse'); // re-render filtres + grille via le routeur
+  updateCount();
+}
+
 // ── PAGE ACCUEIL — v37 ────────────────────────────────────────────────────
 // Hero + raccourcis ; les zones carrousel/saisonnier/carte/récents sont
 // remplies par leurs renderers dédiés (renderHelix, renderSeasonal,
@@ -2281,9 +2312,11 @@ function renderHome(){
   if(hz){
     var counts=getRecipeCounts();
     var nbCo=Object.keys(counts.byCo).length;
+    var nbCocktails=RECIPES.filter(function(x){return x.cat==='Cocktail';}).length;
     var tiles=[
       {ico:'🍽',lbl:'Explorer les recettes',sub:RECIPES.length+' recettes',act:"setView('browse')"},
       {ico:'💡',lbl:'Générateur d\'idées',sub:'À partir de vos ingrédients',act:"setView('reco')",beta:true},
+      {ico:'🍹',lbl:'Cocktails',sub:nbCocktails+' boissons · avec versions sans alcool',act:"openCategory('Cocktail')"},
       {ico:'🧊',lbl:'Mon frigo',sub:S.frigo_ings&&S.frigo_ings.length?S.frigo_ings.length+' ingrédient'+(S.frigo_ings.length>1?'s':''):'Cuisiner avec ce que j\'ai',act:"if(!S.frigo_active)toggleFrigo();else setView('browse')"},
       {ico:'📅',lbl:'Menu de la semaine',sub:'Générer un menu complet',act:"setView('menu')"},
       {ico:'♥',lbl:'Mes favoris',sub:FAVS.size?FAVS.size+' recette'+(FAVS.size>1?'s':''):'Aucun favori pour l\'instant',act:"setView('favs')"},
