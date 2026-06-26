@@ -2,6 +2,15 @@
 
 ---
 
+## v39 — 2026-06-11
+
+### 🎨 Nouvelle identité visuelle
+- Nouveau logo Saveur N°5 (toque de chef, « 5 » et cuillère) appliqué à **toutes** les icônes de l'application
+- Icônes PWA régénérées dans toutes les tailles (16, 32, 180, 192, 512 px) + favicon multi-tailles
+- L'icône se met à jour automatiquement à la prochaine ouverture (vider le cache si besoin via Réglages → Forcer la mise à jour)
+
+---
+
 ## v38 — 2026-06-11
 
 ### 🍹 Nouvelle catégorie « Cocktails »

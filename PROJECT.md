@@ -15,7 +15,7 @@ Ramsay, Acurio…), avec un niveau de détail professionnel (techniques, accords
 
 - **Type** : SPA 100 % statique, PWA installable, fonctionne entièrement hors-ligne.
 - **URL de production** : https://tsaerys.github.io/Saveur-N-5/ (GitHub Pages).
-- **Version courante** : **v38** (2026-06-11).
+- **Version courante** : **v39** (2026-06-11).
 - **Public** : usage personnel/familial, mais le site est public et indexé.
 - **⚠️ Règle produit (v37)** : les recettes sont **exclusives à l'application** — aucun
   export (PDF/CSV/JSON), impression des fiches bloquée. Seules la liste de courses et la
@@ -231,6 +231,19 @@ Fonctionnalité **zéro coût, zéro réseau** : la base `RECIPES` est l'unique 
 ## 10. Journal des sessions
 
 > ⚠️ Ajouter une entrée ici à la FIN de chaque session (plus récent en premier).
+
+### 2026-06-11 — v39 : Nouvelle identité visuelle (logo)
+- **Icônes régénérées** depuis `images/Icon Saveur N°5.png` (source 1620×1608, conservée comme
+  master) : `icon-16/32/180/192/512.png` + `favicon.ico` (multi-tailles 16/32/48, PNG embarqués)
+  à la racine. Générées via System.Drawing (PowerShell) — recadrage carré centré + bicubique HQ.
+- **sw.js** : CACHE_NAME → v39 ; ajout de favicon.ico + icon-16/32/180 à l'`APP_SHELL` (les
+  icônes étant cache-first, le bump est nécessaire pour propager le nouveau logo).
+- **app.js** : `_SN5_VER='v39'` + entrée changelog. **CHANGELOG.md** : entrée v39.
+- Aucun changement de code applicatif ni de noms de fichiers d'icônes — manifest.json et
+  index.html inchangés (mêmes chemins).
+- ⚠️ Astuce future : le chemin du projet contient « ° » (Saveur N°5) ; en script PowerShell,
+  résoudre le chemin par joker (`Get-Item 'S:\Apps\Saveur*\...'`) pour éviter la corruption
+  d'encodage du caractère accentué.
 
 ### 2026-06-11 — v38 : Catégorie Cocktails (classique + virgin)
 - **Nouveau `js/data/cocktails.js`** : 15 cocktails classiques (`cat:"Cocktail"`, IDs CK001-CK015),

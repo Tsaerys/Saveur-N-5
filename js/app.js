@@ -5,8 +5,16 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v38';
+var _SN5_VER = 'v39';
 var _SN5_LOG = [
+  {
+    v: 'v39', date: '11 juin 2026', titre: 'Nouvelle identité visuelle (logo)',
+    items: [
+      '🎨 Nouveau logo Saveur N°5 (toque + 5 + cuillère) appliqué à toutes les icônes de l\'app',
+      '📱 Icônes PWA régénérées (16, 32, 180, 192, 512 px) + favicon multi-tailles',
+      '⚫ SW v39 — icônes mises à jour dans l\'app shell'
+    ]
+  },
   {
     v: 'v38', date: '11 juin 2026', titre: 'Nouvelle catégorie Cocktails (avec versions sans alcool)',
     items: [
