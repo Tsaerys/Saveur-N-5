@@ -15,7 +15,7 @@ Ramsay, Acurio…), avec un niveau de détail professionnel (techniques, accords
 
 - **Type** : SPA 100 % statique, PWA installable, fonctionne entièrement hors-ligne.
 - **URL de production** : https://tsaerys.github.io/Saveur-N-5/ (GitHub Pages).
-- **Version courante** : **v40** (2026-06-11).
+- **Version courante** : **v41** (2026-06-11).
 - **Public** : usage personnel/familial, mais le site est public et indexé.
 - **⚠️ Règle produit (v37)** : les recettes sont **exclusives à l'application** — aucun
   export (PDF/CSV/JSON), impression des fiches bloquée. Seules la liste de courses et la
@@ -75,7 +75,7 @@ saveur-n5-v14/                  ← racine du repo git (le vrai "projet")
 │   ├── map.js                  Carte du monde D3 (zone #map-zone, accueil). Mapping cuisine→ISO3
 │   └── app.js                  Orchestration : _SN5_VER + _SN5_LOG (changelog in-app), init(),
 │                               enregistrement SW, deep-linking #recette/ID, mode Focus,
-│                               sous-chef vocal, carrousel hélice 3D, effets visuels, raccourcis
+│                               sous-chef vocal, effets visuels, raccourcis
 ├── .github/commands/*.md       Gabarits de plans de test manuels (ajout-fonctionnalite,
 │                               correction-bug, refactor-safe, test-avant-commit, ui-mod,
 │                               validation-data) — ⚠️ certains chiffres périmés (512 recettes)
@@ -136,8 +136,8 @@ saveur-n5-v14/                  ← racine du repo git (le vrai "projet")
 
 Toutes **livrées et fonctionnelles** sauf mention contraire :
 
-- ✅ **Page Accueil (v37)** : hero + stats, 8 tuiles de raccourci, carrousel hélice
-  saisonnier, suggestions du moment, carte du monde, récemment consultées. Vue par défaut ;
+- ✅ **Page Accueil (v37, carrousel retiré en v41)** : hero + stats, 8 tuiles de raccourci,
+  suggestions du moment, carte du monde, récemment consultées. Vue par défaut ;
   logo et `G`+`H` y ramènent
 - ✅ **Navigation (v37)** : topbar 7 boutons (Accueil, Recettes, Idées β, Menu, Favoris,
   Courses, Réglages) ; Frigo/Surprise/Créer vivent dans la barre d'outils du catalogue
@@ -158,7 +158,7 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
   des fiches recettes (Ctrl+P neutralisé sur les fiches + CSS print remplacé par un avis).
   La liste de courses reste imprimable
 - ✅ PWA offline complet, popup changelog (depuis v36 : TOUTES les versions manquées), bouton « Forcer la mise à jour »
-- ✅ Thème clair/sombre, raccourcis clavier (`?` pour l'aide), carrousel hélice 3D, accueil saisonnier, carte du monde interactive (D3), deep-linking `#recette/ID`
+- ✅ Thème clair/sombre, raccourcis clavier (`?` pour l'aide), accueil saisonnier, carte du monde interactive (D3), deep-linking `#recette/ID`
 
 ## 6. Données recettes
 
@@ -231,6 +231,28 @@ Fonctionnalité **zéro coût, zéro réseau** : la base `RECIPES` est l'unique 
 ## 10. Journal des sessions
 
 > ⚠️ Ajouter une entrée ici à la FIN de chaque session (plus récent en premier).
+
+### 2026-06-11 — v41 : Suppression du carrousel hélice de l'Accueil
+- **js/app.js** : suppression complète du bloc « Carrousel Hélice 3D » (~280 lignes :
+  `_hlxPool`, `_hlxRender`, `_hlxStep`, `_hlxBind`, `renderHelix()`, etc.) et de l'appel
+  `renderHelix()` dans le wrapper de `renderMain`. Référence résiduelle `.helix-ctrl-btn`
+  retirée du sélecteur de `_initRipple()`.
+- **js/ui.js** : retrait de `helix-zone` des listes de zones affichées/masquées (`setView`,
+  `openRecipe`) et de l'appel `renderHelix()` dans `renderHome()`.
+- **index.html** : suppression de `<div id="helix-zone"></div>`.
+- **css/style.css** : suppression de tous les blocs `.helix-*`/`#helix-*` (carrousel
+  principal, flèches latérales, dots, lisibilité des cartes) ; retrait de `#helix-zone` de
+  la règle d'impression. ⚠️ Une règle non liée (`.shared-mode .content-area`) suivait
+  immédiatement le bloc principal et a été accidentellement supprimée puis restaurée —
+  vérifier les blocs adjacents lors de suppressions similaires.
+- **sw.js** : CACHE_NAME → v41. **app.js** : `_SN5_VER='v41'` + entrée changelog.
+  **CHANGELOG.md** : entrée v41.
+- L'Accueil garde : hero + stats, tuiles de raccourci, suggestions du moment (saisonnier),
+  carte du monde, récemment consultées.
+- Vérifications : `node --check` OK ; aucune trace `helix`/`hlx` restante dans JS/HTML/CSS ;
+  test navigateur (cache + SW vidés pour forcer le rechargement — la mise à jour réelle
+  passera par le mécanisme normal de bump de version) : Accueil sans carrousel, zéro erreur
+  console, 866 recettes / 29 cuisines / 7 catégories inchangés.
 
 ### 2026-06-11 — v40 : +15 cocktails (carte portée à 30)
 - **js/data/cocktails.js** : ajout de CK016-CK030 (Old Fashioned, Manhattan, Whisky Sour,

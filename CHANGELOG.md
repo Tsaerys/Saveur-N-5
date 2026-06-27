@@ -2,6 +2,14 @@
 
 ---
 
+## v41 — 2026-06-11
+
+### 🗑 Suppression du carrousel de l'Accueil
+- Retrait du carrousel hélice 3D (rotation des suggestions de plats) sur la page d'Accueil
+- L'Accueil reste centré sur les tuiles de raccourci, les suggestions du moment, la carte du monde et les recettes récentes
+
+---
+
 ## v40 — 2026-06-11
 
 ### 🍹 15 nouveaux cocktails — la carte passe à 30

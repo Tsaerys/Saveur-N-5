@@ -353,7 +353,7 @@ function setView(v){
   if(!fz){console.warn("[SN5] zones manquantes");return;}
   // Zones Accueil (hero, carrousel, saisonnier, carte, récents)
   var isHome=(v==="home");
-  ["home-hero-zone","helix-zone","seasonal-zone","map-zone","recent-zone"].forEach(function(z){
+  ["home-hero-zone","seasonal-zone","map-zone","recent-zone"].forEach(function(z){
     var el=document.getElementById(z);if(el)el.style.display=isHome?"":"none";
   });
   // Zones Catalogue (filtres + frigo)
@@ -870,7 +870,7 @@ function openRecipe(id){
   S.portions=S.recipe.bp;S.view="recipe";S.unit_mode="metric";S.cocktail_version="classic";
   document.body.setAttribute("data-view","recipe");
   addRecent(id);
-  ["search-zone","filters-zone","frigo-zone","recent-zone","helix-zone","seasonal-zone","map-zone","home-hero-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
+  ["search-zone","filters-zone","frigo-zone","recent-zone","seasonal-zone","map-zone","home-hero-zone"].forEach(z=>{var el=document.getElementById(z);if(el)el.style.display="none";});
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   window.location.hash = 'recette/' + id;
   renderDetail();window.scrollTo(0,0);
@@ -2304,9 +2304,9 @@ function openCategory(cat){
 }
 
 // ── PAGE ACCUEIL — v37 ────────────────────────────────────────────────────
-// Hero + raccourcis ; les zones carrousel/saisonnier/carte/récents sont
-// remplies par leurs renderers dédiés (renderHelix, renderSeasonal,
-// renderWorldMap, renderRecent) qui ne s'affichent que sur la vue 'home'.
+// Hero + raccourcis ; les zones saisonnier/carte/récents sont remplies
+// par leurs renderers dédiés (renderSeasonal, renderWorldMap, renderRecent)
+// qui ne s'affichent que sur la vue 'home'.
 function renderHome(){
   var hz=document.getElementById('home-hero-zone');
   if(hz){
@@ -2345,7 +2345,6 @@ function renderHome(){
   document.getElementById('main').innerHTML='';
   if(typeof renderRecent==='function')renderRecent();
   if(typeof renderSeasonal==='function')renderSeasonal();
-  if(typeof renderHelix==='function')renderHelix();
   if(typeof renderWorldMap==='function')renderWorldMap();
 }
 

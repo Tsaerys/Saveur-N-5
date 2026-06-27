@@ -1497,179 +1497,6 @@ kbd {
    ══════════════════════════════════════════════ */
 .shared-mode .topbar-nav { display: none !important; }
 .shared-mode .back-btn { display: none; }
-
-/* ══════════════════════════════════════════════
-   CARROUSEL HÉLICE 3D
-   ══════════════════════════════════════════════ */
-#helix-zone { margin: 0; }
-
-#helix-container {
-  position: relative;
-  background: var(--bg);
-  border-bottom: 1px solid var(--bord);
-  margin-bottom: 4px;
-  padding-bottom: 4px;
-}
-
-/* ── En-tête saisonnier ── */
-.helix-header {
-  text-align: center;
-  padding: 16px 16px 4px;
-}
-.helix-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(17px, 3vw, 21px);
-  font-weight: 500;
-  color: var(--text);
-  letter-spacing: .2px;
-}
-.helix-subtitle {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 2px;
-}
-
-/* ── Scène 3D ── */
-#helix-scene {
-  position: relative;
-  width: 100%;
-  height: 330px;
-  perspective: 1100px;
-  perspective-origin: 50% 50%;
-  overflow: hidden;
-}
-/* fondu haut / bas */
-#helix-scene::before,
-#helix-scene::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0;
-  height: 80px;
-  z-index: 20;
-  pointer-events: none;
-}
-#helix-scene::before {
-  top: 0;
-  background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%);
-}
-#helix-scene::after {
-  bottom: 0;
-  background: linear-gradient(to top, var(--bg) 0%, transparent 100%);
-}
-
-/* ── Carousel (origine = centre de la scène) ── */
-#helix-carousel {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 0;
-  height: 0;
-  transform-style: preserve-3d;
-}
-
-/* ── Cartes ── */
-.helix-card {
-  position: absolute;
-  width: 155px;
-  height: 210px;
-  left: -77px;
-  top: -105px;
-  border-radius: 13px;
-  overflow: hidden;
-  cursor: pointer;
-  background: var(--surf);
-  border: 1px solid var(--bord);
-  box-shadow: 0 4px 18px rgba(0,0,0,.14);
-  will-change: transform, opacity, filter;
-  backface-visibility: hidden;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.helix-card.helix-center {
-  box-shadow: 0 8px 32px rgba(0,0,0,.22), 0 0 0 2px var(--gold-l);
-}
-.helix-card-photo {
-  width: 100%;
-  height: 128px;
-  object-fit: cover;
-  display: block;
-  background: var(--bg3);
-  pointer-events: none;
-}
-.helix-card-body {
-  padding: 9px 11px 8px;
-  background: var(--surf);
-  position: relative;
-  z-index: 1;
-}
-.helix-card-cat {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .7px;
-  color: var(--gold);
-  display: block;
-  margin-bottom: 3px;
-}
-.helix-card-nom {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text);
-  line-height: 1.28;
-  margin-bottom: 4px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-word;
-}
-.helix-card-chef {
-  font-size: 10px;
-  color: var(--text3);
-}
-
-/* ── Contrôles ── */
-.helix-controls {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  padding: 10px 0 6px;
-}
-.helix-ctrl-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--bg);
-  border: 1.5px solid var(--bord);
-  color: var(--text2);
-  font-size: 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color .15s, background .15s, transform .1s;
-  flex-shrink: 0;
-}
-.helix-ctrl-btn:hover  { border-color: var(--gold); background: var(--bg2); }
-.helix-ctrl-btn:active { transform: scale(.88); }
-
-/* ── Indicateur ── */
-.helix-hint {
-  text-align: center;
-  font-size: 10px;
-  color: var(--text4);
-  letter-spacing: .4px;
-  padding-bottom: 8px;
-}
-
-/* ── Mobile ── */
-@media (max-width: 600px) {
-  #helix-scene { height: 270px; perspective: 800px; }
-  .helix-card  { width: 125px; height: 172px; left: -62px; top: -86px; }
-  .helix-card-photo { height: 102px; }
-  .helix-card-nom   { font-size: 11.5px; }
-}
 .shared-mode .content-area { padding-bottom: 16px; }
 
 /* ══════════════════════════════════════════════
@@ -1908,7 +1735,7 @@ kbd {
 .nav-btn,
 .regime-btn, .act-btn, .qty-btn, .unit-toggle-btn,
 .pnotes-save, .back-btn, .focus-nav-btn, .focus-speak-btn,
-.cook-nav-btn, .step-timer-btn, .btn-add-ing, .helix-ctrl-btn {
+.cook-nav-btn, .step-timer-btn, .btn-add-ing {
   position: relative;
   overflow: hidden;
 }
@@ -1922,19 +1749,6 @@ kbd {
 .filter-grp select,.filter-grp input{font-size:13px;color:var(--text);font-weight:500}
 .filter-grp select:not([value=""]),.filter-grp.has-value select{color:var(--gold);font-weight:600;border-color:var(--gold-l)}
 .filter-grp option[value=""]{color:var(--text4)}
-
-/* #10 — Carrousel hélix : flèches latérales + dots de pagination */
-#helix-container{position:relative}
-.helix-side-arrow{position:absolute;top:50%;transform:translateY(-50%);background:var(--surf);border:1.5px solid var(--bord);border-radius:50%;width:42px;height:42px;font-size:24px;line-height:1;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;transition:all .2s;box-shadow:var(--shadow-md);font-family:inherit;padding:0}
-.helix-side-arrow:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-faint);transform:translateY(-50%) scale(1.08)}
-.helix-side-arrow:active{transform:translateY(-50%) scale(.92)}
-.helix-side-prev{left:14px}
-.helix-side-next{right:14px}
-@media(max-width:600px){.helix-side-arrow{width:36px;height:36px;font-size:20px}.helix-side-prev{left:6px}.helix-side-next{right:6px}}
-.helix-dots{display:flex;justify-content:center;gap:8px;padding:8px 0 4px;flex-wrap:wrap;max-width:480px;margin:0 auto}
-.helix-dot{width:9px;height:9px;border-radius:50%;border:none;background:var(--bord2);padding:0;cursor:pointer;transition:all .25s;flex-shrink:0;font-size:0}
-.helix-dot:hover{background:var(--gold-l);transform:scale(1.25)}
-.helix-dot.active{background:var(--gold);transform:scale(1.35);box-shadow:0 0 0 3px var(--gold-faint)}
 
 /* #11 — Cartes "Récemment consultées" enrichies */
 .recent-card{flex-shrink:0;width:155px;background:var(--surf);border:1px solid var(--bord);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);outline:none}
@@ -2144,18 +1958,6 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
 [data-theme="dark"] .recent-card-nom{color:rgba(255,255,255,.95)!important;font-weight:500}
 [data-theme="dark"] .recent-card-meta{color:rgba(255,255,255,.78)}
 [data-theme="dark"] .recent-card-co{color:rgba(255,255,255,.7);border-top-color:var(--bord2)}
-
-/* #14 — Carrousel hélix : lisibilité renforcée (centrale opaque, latérales fade) */
-.helix-card{transition:opacity .35s,filter .35s,transform .35s}
-.helix-card-body{padding:10px 12px}
-.helix-card-nom{font-size:15px;font-weight:500;color:var(--text);line-height:1.25;font-family:'Cormorant Garamond',serif}
-.helix-card-cat{font-size:9.5px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-.helix-card-chef{font-size:11px;color:var(--text3);font-style:italic;margin-top:2px}
-.helix-card.helix-center .helix-card-nom{font-size:17px;color:var(--text);font-weight:600}
-.helix-card.helix-center .helix-card-body{background:var(--surf);box-shadow:0 4px 14px rgba(80,60,30,.18)}
-[data-theme="dark"] .helix-card-nom{color:rgba(255,255,255,.96)}
-[data-theme="dark"] .helix-card-chef{color:rgba(255,255,255,.7)}
-[data-theme="dark"] .helix-card.helix-center .helix-card-body{background:var(--bg2);box-shadow:0 4px 16px rgba(0,0,0,.35)}
 
 /* #10 v31 — Barre des filtres multi-sélection actifs (chips avec ×) */
 .multi-active-bar{display:flex;flex-direction:column;gap:6px;padding:10px 14px 4px;background:var(--gold-faint);border:1px solid var(--gold-l);border-radius:8px;margin:4px 0 10px}
@@ -2424,7 +2226,7 @@ html,body,.topbar,.topbar-nav,.card,.detail-card,.cs-selector,.menu-config,.deta
   @page { size: A4; margin: 1.5cm 1.8cm; }
   /* Chrome applicatif jamais imprimé */
   .topbar, .topbar-nav, .filters-zone, #filters-zone, .frigo-zone, #frigo-zone,
-  #home-hero-zone, #helix-zone, #seasonal-zone, #map-zone, #recent-zone,
+  #home-hero-zone, #seasonal-zone, #map-zone, #recent-zone,
   .timers-panel, .toast, #cooking-overlay, #focus-overlay, #scroll-top-btn,
   .credit-badge, #protect-toast, #devtools-banner, .offline-banner,
   #shortcuts-overlay, #changelog-overlay { display: none !important; }
