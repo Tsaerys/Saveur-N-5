@@ -15,7 +15,7 @@ Ramsay, Acurio…), avec un niveau de détail professionnel (techniques, accords
 
 - **Type** : SPA 100 % statique, PWA installable, fonctionne entièrement hors-ligne.
 - **URL de production** : https://tsaerys.github.io/Saveur-N-5/ (GitHub Pages).
-- **Version courante** : **v41** (2026-06-11).
+- **Version courante** : **v42** (2026-06-11).
 - **Public** : usage personnel/familial, mais le site est public et indexé.
 - **⚠️ Règle produit (v37)** : les recettes sont **exclusives à l'application** — aucun
   export (PDF/CSV/JSON), impression des fiches bloquée. Seules la liste de courses et la
@@ -143,7 +143,7 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
   Courses, Réglages) ; Frigo/Surprise/Créer vivent dans la barre d'outils du catalogue
 - ✅ **Cocktails (v38)** : catégorie « Cocktail », 15 classiques mondiaux, chacun avec
   version Classique + Sans-alcool (virgin) basculable sur la fiche ; tuile d'accueil dédiée
-- ✅ Catalogue 866 recettes (vue épurée : filtres + grille), grille/liste, pagination infinie (IntersectionObserver)
+- ✅ Catalogue 886 recettes (vue épurée : filtres + grille), grille/liste, pagination infinie (IntersectionObserver)
 - ✅ Recherche avancée : `chef:`, `pays:`, `cat:`, `ing:`, `-exclusion`, `"phrase exacte"` + recherche vocale (Web Speech)
 - ✅ Filtres : pays, catégorie, difficulté, temps, qualité, rayon, saison, chef (autocomplete), multi-sélection, 5 régimes (végé, sans gluten/lactose/fruits de mer/poissons), tri
 - ✅ Mode Frigo : matching par ingrédients disponibles (+ mode strict)
@@ -162,13 +162,13 @@ Toutes **livrées et fonctionnelles** sauf mention contraire :
 
 ## 6. Données recettes
 
-- **Total : 866 recettes** réparties en 22 fichiers `js/data/*.js` (dont `cocktails.js`, v38).
+- **Total : 886 recettes** réparties en 22 fichiers `js/data/*.js` (dont `cocktails.js`, v38).
 - **Cuisines** (`co`) : France, Asie, Italie, Espagne, Grèce, Maroc, Mexique, Scandinavie,
   Amérique du Sud, Afrique, Argentine, États-Unis, Moyen-Orient, Pérou, Brésil, Portugal,
   Tunisie, Éthiopie, Caraïbes, Cuba, Europe Centrale, Turquie, Allemagne, Hongrie, Liban,
   Pologne, Royaume-Uni, Canada. Les cocktails réutilisent des `co` existants (Cuba, Mexique,
   Brésil, Caraïbes, Italie, Espagne, France, États-Unis).
-- **Catégories** : Plat ~467, Dessert ~162, Entrée ~125, **Cocktail 30 (v38→v40)**,
+- **Catégories** : Plat ~467, Dessert ~162, Entrée ~125, **Cocktail 50 (v38→v42)**,
   Sauce / Base 38, Accompagnement 38, Assaisonnement 6.
 - Structure : voir contrainte §4.4. Les recettes utilisateur (`U…`) et assemblées (`GEN…`)
   vivent en localStorage et sont fusionnées dans `RECIPES` à l'init
@@ -231,6 +231,25 @@ Fonctionnalité **zéro coût, zéro réseau** : la base `RECIPES` est l'unique 
 ## 10. Journal des sessions
 
 > ⚠️ Ajouter une entrée ici à la FIN de chaque session (plus récent en premier).
+
+### 2026-06-11 — v42 : Cocktails portés à 50, niveau bar + variantes
+- **Exigence durable (mémoire)** : les cocktails doivent être « les meilleurs du monde »
+  (specs craft précises, technique, verrerie, garniture). Voir mémoire `cocktail-quality`.
+- **js/data/cocktails.js réécrit** : les 30 existants (CK001-CK030) revus aux specs
+  bartender (mesures cl, shake/stir, double-filtrage, dry-shake blanc d'œuf, zeste pressé,
+  verrerie + garniture dans `notes`) ; 20 nouveaux (CK031-CK050) dont le **Painkiller**
+  (CK031). Total : 50 cocktails, 886 recettes.
+- **Variantes** : 18 cocktails ont un champ `vars:[{nom,desc}]` (riffs célèbres) — rendu par
+  `buildVariantHtml` existant (logic.js), affiché sous les ingrédients sur la fiche. C'est un
+  mécanisme TEXTUEL (descriptions), distinct du toggle Classique/Virgin. Choix assumé pour
+  rester cohérent avec l'architecture (pas de swap d'ingrédients par variante).
+- **state.js** : ajout des drapeaux + couleurs **Russie** 🇷🇺 (corrige Moscow Mule qui
+  n'avait pas de drapeau) et **Irlande** 🇮🇪 (Irish Coffee). Ces `co` ne sont pas dans
+  `MAP_CUISINE_GEO` → non colorés sur la carte (dégradation propre, OK).
+- **sw.js** v42, **app.js** `_SN5_VER='v42'` + entrée changelog, **CHANGELOG.md** entrée v42.
+- Vérifications : `node --check` OK ; smoke test Node (50 cocktails, 0 problème d'intégrité,
+  tous avec `virgin` valide, Painkiller présent, toutes les `co` ont drapeau+couleur,
+  `vars` bien formés).
 
 ### 2026-06-11 — v41 : Suppression du carrousel hélice de l'Accueil
 - **js/app.js** : suppression complète du bloc « Carrousel Hélice 3D » (~280 lignes :

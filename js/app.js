@@ -5,8 +5,20 @@
 //   2. Mettre à jour _SN5_VER ci-dessous à la même valeur
 //   3. Ajouter un bloc en tête de _SN5_LOG (plus récent d'abord)
 //   4. Mettre à jour CHANGELOG.md à la racine du projet
-var _SN5_VER = 'v41';
+var _SN5_VER = 'v42';
 var _SN5_LOG = [
+  {
+    v: 'v42', date: '11 juin 2026', titre: 'Cocktails : 50 recettes niveau bar, specs pro + variantes',
+    items: [
+      '🍸 La carte passe à 50 cocktails (+20), dont le Painkiller demandé',
+      '⭐ Les 30 cocktails existants entièrement revus aux specs bartender : mesures précises, technique pro (shake/stir, double-filtrage, dry-shake, zeste pressé), verrerie et garniture',
+      '🔀 18 cocktails proposent désormais des variantes célèbres (Negroni → Boulevardier/Sbagliato, Margarita → Tommy\'s/épicée/frozen, Old Fashioned, Manhattan, Moscow Mule, Painkiller n°2/3/4…)',
+      '🌿 Chaque cocktail garde sa version Classique et sa version Sans alcool',
+      '🆕 Nouveaux : Painkiller, Dry Martini, Mint Julep, Gimlet, Aviation, Clover Club, White Russian, Irish Coffee, Tom Collins, Singapore Sling, Hurricane, Zombie, Gin Fizz, Bramble, Pornstar Martini, Amaretto Sour, Hugo Spritz, Americano, Vesper, Penicillin',
+      '🇷🇺🇮🇪 Drapeaux Russie et Irlande ajoutés',
+      '⚫ SW v42'
+    ]
+  },
   {
     v: 'v41', date: '11 juin 2026', titre: 'Suppression du carrousel de recettes sur l\'Accueil',
     items: [

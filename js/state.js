@@ -2,7 +2,7 @@
 // ⚠️ Ne contient PAS de logique métier ni de DOM — variables et constantes uniquement.
 
 // ── CONSTANTES ─────────────────────────────────────────────────────────────
-const FLAGS={France:"🇫🇷",Italie:"🇮🇹","Grèce":"🇬🇷",Espagne:"🇪🇸",Asie:"🌏","États-Unis":"🇺🇸",Mexique:"🇲🇽",Maroc:"🇲🇦",Liban:"🇱🇧",Portugal:"🇵🇹",Scandinavie:"🇸🇪",Allemagne:"🇩🇪","Royaume-Uni":"🇬🇧",Argentine:"🇦🇷","Moyen-Orient":"🌍",Tunisie:"🇹🇳","Éthiopie":"🇪🇹",Pérou:"🇵🇪",Brésil:"🇧🇷","Amérique du Sud":"🌎",Cuba:"🇨🇺","Caraïbes":"🌴",Pologne:"🇵🇱",Hongrie:"🇭🇺","Europe Centrale":"🇪🇺",Afrique:"🌍","Sénégal":"🇸🇳",Canada:"🇨🇦",Turquie:"🇹🇷"};
+const FLAGS={France:"🇫🇷",Italie:"🇮🇹","Grèce":"🇬🇷",Espagne:"🇪🇸",Asie:"🌏","États-Unis":"🇺🇸",Mexique:"🇲🇽",Maroc:"🇲🇦",Liban:"🇱🇧",Portugal:"🇵🇹",Scandinavie:"🇸🇪",Allemagne:"🇩🇪","Royaume-Uni":"🇬🇧",Argentine:"🇦🇷","Moyen-Orient":"🌍",Tunisie:"🇹🇳","Éthiopie":"🇪🇹",Pérou:"🇵🇪",Brésil:"🇧🇷","Amérique du Sud":"🌎",Cuba:"🇨🇺","Caraïbes":"🌴",Pologne:"🇵🇱",Hongrie:"🇭🇺","Europe Centrale":"🇪🇺",Afrique:"🌍","Sénégal":"🇸🇳",Canada:"🇨🇦",Turquie:"🇹🇷",Russie:"🇷🇺",Irlande:"🇮🇪"};
 const COUNTRIES=[...new Set(RECIPES.map(r=>r.co))];
 const CATS=["Entrée","Plat","Dessert","Cocktail","Sauce / Base","Accompagnement","Assaisonnement"];
 const QUAL_LABELS={1:"Source locale",2:"Recette courante",3:"Bonne source",4:"Référence reconnue",5:"Référence absolue"};
@@ -48,7 +48,9 @@ const COUNTRY_COLORS={
   "Afrique":"#b07030",
   "Sénégal":"#5aa050",
   "Canada":"#c0402a",
-  "Turquie":"#8a2020"
+  "Turquie":"#8a2020",
+  "Russie":"#3a5a9a",
+  "Irlande":"#2a8a4a"
 };
 const PHOTO_EMOJIS={"Entrée":"🥗","Plat":"🍽","Dessert":"🍰","Cocktail":"🍹","Sauce / Base":"🫙"};
 const UNIT_DEC=["g","cl","ml","kg","L"];

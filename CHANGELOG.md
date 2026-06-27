@@ -2,6 +2,18 @@
 
 ---
 
+## v42 — 2026-06-11
+
+### 🍸 Cocktails : 50 recettes au niveau d'un bar à cocktails
+- La carte passe de 30 à **50 cocktails**, dont le **Painkiller** ⭐
+- Les 30 cocktails existants ont été **entièrement revus aux specs bartender** : mesures précises (cl), technique professionnelle (shake/stir, double-filtrage, dry-shake pour le blanc d'œuf, zeste pressé), verrerie et garniture pour faire « le meilleur du monde »
+- **18 cocktails proposent des variantes célèbres** : Negroni → Boulevardier / Sbagliato / White Negroni, Margarita → Tommy's / épicée / frozen / mangue, Old Fashioned → rhum / érable / Oaxaca, Manhattan → Perfect / Rob Roy, Moscow Mule → Kentucky / mexicaine / londonienne, Mojito → Royal / fraise, Painkiller → n°2/3/4, etc.
+- Chaque cocktail conserve sa version **Classique** et sa version **Sans alcool**
+- Nouveaux : Painkiller, Dry Martini, Mint Julep, Gimlet, Aviation, Clover Club, White Russian, Irish Coffee, Tom Collins, Singapore Sling, Hurricane, Zombie, Gin Fizz, Bramble, Pornstar Martini, Amaretto Sour, Hugo Spritz, Americano, Vesper, Penicillin
+- Drapeaux Russie 🇷🇺 et Irlande 🇮🇪 ajoutés
+
+---
+
 ## v41 — 2026-06-11
 
 ### 🗑 Suppression du carrousel de l'Accueil
